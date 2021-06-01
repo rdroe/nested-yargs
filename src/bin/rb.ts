@@ -1,7 +1,6 @@
-#!/usr/bin/env node
-import yargs from 'yargs'
 
-const http = require('http')
+import yargs from 'yargs'
+import http from 'http'
 
 interface RbCliCall {
     option: string
@@ -23,28 +22,27 @@ const argv: RbCliCall = yargs
 const call = (snt: string) => {
     const arg = snt.split(' ').join('-')
     console.log('requesting for sentence ', arg)
-     
+
     const options = {
-	hostname: 'localhost',
-	port: 8080,
-	path: `/brackets?snt=${arg}`,
-	method: 'GET',
-	headers: {
-	    'Content-Type': 'application/json',
-	    // 'Content-Length': data.length
-	}
+        hostname: 'localhost',
+        port: 8080,
+        path: `/brackets?snt=${arg}`,
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            // 'Content-Length': data.length
+        }
     }
 
-    console.log('sending req', options)
-    const req: any = http.request(options, (res: any) => {
-	console.log(`statusCode: ${res.statusCode}`)
-	res.on('data', (d: any) => {
-	    process.stdout.write(d)
-	})
+    const req: http.ClientRequest = http.request(options, (res: any) => {
+        console.log(`statusCode: ${res.statusCode}`)
+        res.on('data', (d: any) => {
+            process.stdout.write(d)
+        })
     })
 
     req.on('error', (error: Error) => {
-	console.error(error)
+        console.error(error)
     })
 
     req.write('{}')
