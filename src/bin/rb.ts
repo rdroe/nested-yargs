@@ -1,39 +1,39 @@
 
-import yargs from 'yargs'
-import fetch from 'isomorphic-fetch'
+import yargs, { Options } from 'yargs'
 
-interface BracketsCliCall {
-    sentence: string,
-    _?: Array<number | string>
-}
+import * as brackets from './commands/brackets'
+import * as match from './commands/match'
 
-const argv: BracketsCliCall = yargs
-    .usage('Usage: $0 <command> [options]')
-    .command('brackets', 'requests the parse for a sentence')
-    .demandCommand(1)
-    .demandOption(['sentence'])
-    .options({
-        sentence: {
-            alias: 's',
-            description: 'sentence to parse',
-            default: '/'
-        }
-    })
-    .argv
+const modules = [
+    brackets,
+    match
+]
 
-const [command] = argv._
+modules.forEach(({
+    command,
+    demandOption,
+    options
+}: { command: [string, string], demandOption: string[], options: { [prop: string]: Options } }) => {
 
-const parse_brackets = (snt: string) => {
-    const arg = snt.split(' ').join('-')
-    const path = `http://localhost:8080/brackets?snt=${arg}`
-    return fetch(path)
-}
-
-
-if (argv && argv.sentence) {
-    parse_brackets(argv.sentence).then((data: any) => {
-        data.json().then((json: any) => {
-            console.log(json)
+    yargs
+        .command(command[0], command[1], function(yrgs) {
+            yrgs.usage(`$0 ${command[0]} [options]`)
+                .options(options)
+                .demandOption(demandOption)
         })
-    })
-}
+})
+
+yargs.demandCommand(1)
+
+const [command] = yargs.argv._
+
+const module = modules.find(({ command: cmd }: { command: [string, string] }) => {
+
+    return cmd[0] && cmd[0] === command
+})
+
+const { action } = module
+
+// @todo : make an object signature for action function.
+// @todo : wherever an object with more than one property exists, make a type, e.g. command, demandOption, etc
+action(module, yargs.argv)
