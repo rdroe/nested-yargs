@@ -1,5 +1,6 @@
 
 import { Options } from 'yargs'
+import { DemandOption, Command, RbOptions, Action, Lib, Module, RbArgv } from './rbTypes'
 
 const left: Options = {
     alias: 'l',
@@ -12,22 +13,22 @@ const right: Options = {
     description: 'right matchable'
 }
 
-export const options = {
+export const options: RbOptions = {
     left,
     right
 }
 
 
 
-export const command: [string, string] = ['match', 'tests whether arguments match']
+export const command: Command = ['match', 'tests whether arguments match']
 
-export const action = (_: any, argv: { [prop: string]: any }) => {
+export const action: Action = (_: Module, argv: RbArgv) => {
 
     const { left, right } = argv
     console.log(`Does ${left} match ${right}`, left === right ? ' Yes!' : 'No...')
 }
 
-export const demandOption = ['l', 'r']
+export const demandOption: DemandOption = ['l', 'r']
 
 export const lib: { [fn: string]: Function } = {}
 

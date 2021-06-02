@@ -1,8 +1,8 @@
 
-import yargs, { Options } from 'yargs'
-
+import yargs, { Argv } from 'yargs'
 import * as brackets from './commands/brackets'
 import * as match from './commands/match'
+import { DemandOption, Command, RbOptions, RbArgv } from './commands/rbTypes'
 
 const modules = [
     brackets,
@@ -13,7 +13,11 @@ modules.forEach(({
     command,
     demandOption,
     options
-}: { command: [string, string], demandOption: string[], options: { [prop: string]: Options } }) => {
+}: {
+    command: Command,
+    demandOption: DemandOption,
+    options: RbOptions
+}) => {
 
     yargs
         .command(command[0], command[1], function(yrgs) {
@@ -25,15 +29,18 @@ modules.forEach(({
 
 yargs.demandCommand(1)
 
-const [command] = yargs.argv._
+const [userCommand]: (string | number)[] = yargs.argv._
 
-const module = modules.find(({ command: cmd }: { command: [string, string] }) => {
+const module = modules.find(({ command: cmd }: { command: Command }) => {
 
-    return cmd[0] && cmd[0] === command
+    return cmd[0] && cmd[0] === userCommand
 })
 
-const { action } = module
 
+
+
+const { action } = module
+const { argv: rbArgv }: Argv<RbArgv> = yargs
 // @todo : make an object signature for action function.
 // @todo : wherever an object with more than one property exists, make a type, e.g. command, demandOption, etc
-action(module, yargs.argv)
+action(module, rbArgv)
