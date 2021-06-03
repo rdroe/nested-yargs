@@ -2,7 +2,7 @@
 type ParseNode = any
 
 export interface ParseData {
-    action: "FETCH_SUCCEEDED"
+    action?: "FETCH_SUCCEEDED"
     sentence: string
     brackets: string
     data: Array<PosNode>
