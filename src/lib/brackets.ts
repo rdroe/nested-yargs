@@ -1,8 +1,6 @@
 
-import fetch from 'isomorphic-fetch'
+import { callApi, EP_BRACKETS } from './api/call'
 
 export const parse = (snt: string) => {
-    const arg = snt.split(' ').join('-')
-    const path = `http://localhost:8080/brackets?snt=${arg}`
-    return fetch(path)
+    return callApi(EP_BRACKETS, { key: 'snt', val: snt.split(' ').join('-') })
 }
