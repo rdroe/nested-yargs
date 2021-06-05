@@ -23,6 +23,7 @@ export interface Module {
 export type RbArgv = {
     [arg: string]: string | number
     sentence?: string
+    s?: string
     left?: string | number
     right?: string | number
     brackets?: string
