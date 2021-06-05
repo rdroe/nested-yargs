@@ -1,6 +1,6 @@
 
 import { callApi } from './api/call'
-import { ParseData } from '../bin/commands/ParseData'
+import { ParseData } from './brackets/ParseData'
 
 // export const list = () => {
 //     return callApi('roebooks')

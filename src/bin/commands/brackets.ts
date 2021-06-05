@@ -5,7 +5,7 @@ import { DemandOption, Command, RbOptions, Action, RbArgv } from '../appTypes'
 import { parse, save } from '../../lib/brackets/fns'
 import { SaveRequest } from '../../lib/brackets/types'
 
-import { ParseData } from './ParseData'
+import { ParseData } from '../../lib/brackets/ParseData'
 
 export const command: Command = ['brackets', 'requests or saves the parse for a sentence']
 
