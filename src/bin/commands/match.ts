@@ -1,6 +1,6 @@
 
 import { Options } from 'yargs'
-import { DemandOption, Command, RbOptions, Action, Module, RbArgv } from './rbTypes'
+import { DemandOption, Command, RbOptions, Action, RbArgv } from '../appTypes'
 
 const left: Options = {
     alias: 'l',

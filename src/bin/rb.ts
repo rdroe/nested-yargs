@@ -2,7 +2,7 @@
 import yargs, { Argv } from 'yargs'
 import * as brackets from './commands/brackets'
 import * as match from './commands/match'
-import { RbArgv, Module } from './commands/rbTypes'
+import { RbArgv, Module } from './appTypes'
 
 const modules = [
     brackets,

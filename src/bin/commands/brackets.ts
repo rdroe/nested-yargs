@@ -1,6 +1,6 @@
 import { Options } from 'yargs'
 
-import { DemandOption, Command, RbOptions, Action, RbArgv } from './rbTypes'
+import { DemandOption, Command, RbOptions, Action, RbArgv } from '../appTypes'
 
 import { parse, save } from '../../lib/brackets/fns'
 import { SaveRequest } from '../../lib/brackets/types'
