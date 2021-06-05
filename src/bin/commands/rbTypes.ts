@@ -1,5 +1,5 @@
 
-import { Options, Argv } from 'yargs'
+import { Options } from 'yargs'
 
 export type DemandOption = string[]
 export type Command = [string, string]
@@ -8,17 +8,12 @@ export type RbOptions = {
 }
 
 export interface Action {
-    (module: Module, argv: RbArgv): void
-}
-
-export interface Lib {
-    [functionName: string]: Function
+    (argv: RbArgv): void
 }
 
 export interface Module {
     command: Command
     action: Action
-    lib: Lib
     options: RbOptions
     demandOption: DemandOption
 }

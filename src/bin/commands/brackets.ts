@@ -1,17 +1,15 @@
 import { Options } from 'yargs'
 
-import { DemandOption, Command, RbOptions, Action, Lib, Module, RbArgv } from './rbTypes'
+import { DemandOption, Command, RbOptions, Action, RbArgv } from './rbTypes'
 
-import { parse, save, SaveRequest } from '../../lib/brackets'
+import { parse, save } from '../../lib/brackets/fns'
+import { SaveRequest } from '../../lib/brackets/types'
+
 import { ParseData } from './ParseData'
 
 export const command: Command = ['brackets', 'requests or saves the parse for a sentence']
 
-
-export const action: Action = (thisModule: Module, argv: RbArgv) => {
-
-    const { lib } = thisModule
-    const { parse: p } = lib
+export const action: Action = async (argv: RbArgv) => {
 
     if (argv.save) {
         if (!argv.destination_roebook) {
@@ -24,16 +22,14 @@ export const action: Action = (thisModule: Module, argv: RbArgv) => {
             sent_at: Date.now()
         }
 
-        const savior = save({ data: saveRequest }).then((data: any) => console.log(data))
-        return console.log(savior)
+        const resp = await save(saveRequest)
+        console.log(resp)
+    } else {
+
+        const resp = await parse(argv.sentence)
+        const json: ParseData = await resp.json()
+        console.log(json)
     }
-
-    p(argv.sentence).then((fetchResponse: Response) => {
-        fetchResponse.json().then((json: ParseData) => {
-            console.log(json)
-        })
-    })
-
 }
 
 export const demandOption: DemandOption = []
@@ -45,12 +41,12 @@ const sentence: Options = {
 
 const saveOpt: Options = {
     alias: 'v',
-    description: 'ParseData to save'
+    description: 'parsed sentence to save'
 }
 
 const destination_roebook: Options = {
     alias: 'd',
-    description: 'Roebook to which to save the parse'
+    description: 'roebook identifier to which to save the parse'
 }
 
 export const options: RbOptions = {
@@ -58,6 +54,4 @@ export const options: RbOptions = {
     save: saveOpt,
     destination_roebook
 }
-
-export const lib: Lib = { parse }
 
