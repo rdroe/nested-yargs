@@ -1,6 +1,7 @@
 
 import { RequestOptions } from 'http'
 import fetch from 'isomorphic-fetch'
+import { SaveRequest } from '../brackets'
 const DOMAIN_DEFAULT = 'http://localhost:8080'
 
 export const EP_BRACKETS = 'brackets'
@@ -11,6 +12,7 @@ export interface QueryParams {
 
 interface fetchCall {
     (ep: string, params: QueryParams, options?: RequestInit): Promise<Response>
+    (ep: string, params: SaveRequest, options?: RequestInit): Promise<Response>
 }
 
 // Example POST method implementation:
@@ -31,10 +33,11 @@ async function postData(url = '', data = {}, options = {}) {
             body: JSON.stringify(data) // body data type must match "Content-Type" header
         }, ...options
     });
+
     return response.json(); // parses JSON response into native JavaScript objects
 }
-
-export const callApi: fetchCall = (ep: string, queryParams: QueryParams, options: RequestInit = {}) => {
+// stinks a little to have a union of such different types
+export const callApi: fetchCall = (ep: string, queryParams: QueryParams | SaveRequest, options: RequestInit = {}) => {
     const rqBase = `${DOMAIN_DEFAULT}/${ep}`
     if (options.method && options.method.toLowerCase() === 'post') {
         return postData(rqBase, queryParams, options)
