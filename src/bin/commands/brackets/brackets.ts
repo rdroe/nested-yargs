@@ -2,11 +2,9 @@ import { Options } from 'yargs'
 
 import { DemandOption, Command, RbOptions, Action, RbArgv } from '../../appTypes'
 
-// @todo: implement a library location to rid '../../..' etc
+import { parse } from 'brackets/fns'
 
-import { parse } from '../../../lib/brackets/fns'
-
-import { ParseData } from '../../../lib/brackets/ParseData'
+import { ParseData } from 'brackets/ParseData'
 
 // @todo: Remove this
 export const command: Command = ['brackets get', 'request or save the parse for a sentence']
