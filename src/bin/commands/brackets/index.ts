@@ -1,23 +1,26 @@
 
 import yargs, { Argv, CommandModule } from 'yargs'
-import * as brackets from './brackets'
-// import * as brackets_save from './commands/brackets_save'
-
+import * as getbr from './get'
+import * as save from './save'
 
 const cm: CommandModule = {
     command: "brackets",
     describe: 'fetch, save (etc) constituent parses',
     builder: (yargs) => {
-
         return yargs.command({
-            command: "get",
+            command: "get [options]",
             describe: "fetch brackets",
-            handler: brackets.action,
-            builder: brackets.options
+            handler: getbr.action,
+            builder: getbr.options
+        }).command({
+            command: "save [options]",
+            describe: "save brackets",
+            handler: save.action,
+            builder: save.options
         })
     },
-    handler: args => {
-        console.log("handler foo!");
+    handler: () => {
+
     }
 }
 

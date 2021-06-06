@@ -1,13 +1,10 @@
 import { Options } from 'yargs'
 
-import { DemandOption, Command, RbOptions, Action, RbArgv } from '../../appTypes'
+import { RbOptions, Action, RbArgv } from '../../appTypes'
 
-import { parse } from 'brackets/fns'
+import { parse } from '../../../lib/brackets/fns'
 
-import { ParseData } from 'brackets/ParseData'
-
-// @todo: Remove this
-export const command: Command = ['brackets get', 'request or save the parse for a sentence']
+import { ParseData } from '../../../lib/brackets/ParseData'
 
 export const action: Action = async (argv: RbArgv) => {
 
@@ -16,9 +13,6 @@ export const action: Action = async (argv: RbArgv) => {
     console.log(json)
     return argv
 }
-
-//@todo: remove this
-export const demandOption: DemandOption = []
 
 const sentence: Options = {
     alias: 's',

@@ -1,34 +1,37 @@
 
-import { Options } from 'yargs'
-import { DemandOption, Command, RbOptions, Action, RbArgv } from '../appTypes'
+import { Options, CommandModule } from 'yargs'
+import { RbOptions, Action, RbArgv } from '../appTypes'
 
 const left: Options = {
     alias: 'l',
-    description: 'left matchable'
+    description: 'left matchable',
+    demandOption: true
 }
 
 
 const right: Options = {
     alias: 'r',
-    description: 'right matchable'
+    description: 'right matchable',
+    demandOption: true
 }
 
-export const options: RbOptions = {
+const options: RbOptions = {
     left,
     right
 }
 
-
-
-export const command: Command = ['match', 'tests whether arguments match']
-
-export const action: Action = (argv: RbArgv) => {
-
+const action: Action = (argv: RbArgv) => {
     const { left, right } = argv
     console.log(`Does ${left} match ${right}`, left === right ? ' Yes!' : 'No...')
 }
 
-export const demandOption: DemandOption = ['l', 'r']
+const cm: CommandModule = {
+    command: "match",
+    describe: 'test and log whether -l matches -r with ===',
+    builder: options,
+    handler: (args) => {
+        action(args as RbArgv)
+    }
+}
 
-export const lib: { [fn: string]: Function } = {}
-
+export default cm

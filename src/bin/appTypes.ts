@@ -16,7 +16,6 @@ export interface Module {
     command: Command
     action: Action
     options: RbOptions
-    demandOption: DemandOption
 }
 
 
