@@ -7,31 +7,40 @@ A roebooks command-line tool that
 
 
 
+### Top-level store
+Some notes are due on the top-level store. 
 
 
+An event is an event and its implied history: everything that must have happened to arrive here. Its time (in turns) is also implicit. 
 
-# TS-CLI README
+Alias: event = subtree
 
-Example / Boilerplate code for TypeScript-based CLI tool
+A full tree is many events in their full, shared causality chain. The nodes here are possibilities. 
 
-## Development
-The `dev` script will execute the `./src/bin/cli.ts` script directly with the `ts-node` TypeScript REPL:
-```
-$ npm run dev
-```
-Additional arguments to the CLI tool can be passed to `dev` after `--`, i.e.:
-```
-$ npm run dev -- --help
-```
+Alias: full tree = overview = possibilities
 
-Otherwise, the local package folder can be symlinked via the `link` command:
-```
-$ npm link
-```
-allowing the custom `ts-cli` command to be used directly.
+If the subtrees interact with the full tree, it might be by sharing a time. A time cursor on the full tree could be changeable. It could draw emphasis to possible trees. Another way would be a more detailed version of the same cursor: a history cursor. A full history would narrow emphasis to a single event/subtree.
+
+The other major kind of data concerns the NPs within these events. 
 
 
-## Build
-```
-$ npm run build
-```
+### Initializing the writing UI
+Fetches
+1 - List Roebooks
+2 - Main RB startup routine (affordances and auto-triggering initial path till a choice point)
+
+### Populating Events
+
+Fetch 1 - 
+  params: empty history
+  receipt: possible explicit events
+
+The very first fetch will be for events given an empty history.
+
+With initial, explicit events in hand, the second fetch will attempt to expand ontology of the sentence that constitutes the event. 
+
+Fetch 2 - 
+  params: top nps of fetched explicit event(s) from 1
+  receipt: "is" linked nps, layer 1
+  
+
