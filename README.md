@@ -1,50 +1,39 @@
 
-### rb-cli
+### nested-yargs
+
+I like writing utilities with multiple subcommands, `command subcommand -o 1` (instead of, say `command --subcommand -o 1`).
+
+This is a template project for doing that in Typescript. This is a yargs wrapper along with a couple of http utilities (in `/src/lib/api`).
+
+I have used this for node, but you could theoretically use it in the browser as well, however you do that with yargs. (yargs mentions browser-based use.) 
 
 #### upshot
 
-`npx ./dist/bin/rb.js --help`
+See the example `match` command, which lies in `src/bin`, and its subcommands. 
 
-A roebooks command-line tool that
-- interacts like a graphical UI will do with the roebooks prolog app; and 
-- does the above by making api calls to a remote server, as if to exercise and test endpoints the actual web program will use.
+After installing and building (the latter is e.g. `npx tsc`), run, for example
+```
+./dist/bin/ny.js --help
+```
+or 
+```
+./dist/bin/ny.js match --help
+```
+or
+```
+./dist/bin/ny.js match scalar --help
+```
 
+This last command is usable with the options `-l [number|string]` and `-r [number|string]`.
 
+A couple of utilities exist for convenience, some generic fetch and post commands. `isomorphic-fetch` is used.
+#### adding modules
+Remarks in `src/bin/commands/match/index.ts` show how you could add a parallel command such as `nonscalar` if you follow the command above; a sibling for `match scalar`.
 
-### Top-level store
-Some notes are due on the top-level store. 
+To add other top-level modules, see where `match` is imported to `src/bin/ny.ts` and placed in an array. Write other modules alongside `match` in the file system.  Here in `ny.ts`, import them like `match` and place them in the same array. That will enable them as commands. 
 
+Of course, when you write the new command modules, have their exports match those of `match`. Provide, for example, `export const description = ...` and `export const handler = ...` on each command that you add. There are a couple of other required named exports.
 
-An event is an event and its implied history: everything that must have happened to arrive here. Its time (in turns) is also implicit. 
-
-Alias: event = subtree
-
-A full tree is many events in their full, shared causality chain. The nodes here are possibilities. 
-
-Alias: full tree = overview = possibilities
-
-If the subtrees interact with the full tree, it might be by sharing a time. A time cursor on the full tree could be changeable. It could draw emphasis to possible trees. Another way would be a more detailed version of the same cursor: a history cursor. A full history would narrow emphasis to a single event/subtree.
-
-The other major kind of data concerns the NPs within these events. 
-
-
-### Initializing the writing UI
-Fetches
-1 - List Roebooks
-2 - Main RB startup routine (affordances and auto-triggering initial path till a choice point)
-
-### Populating Events
-
-Fetch 1 - 
-  params: empty history
-  receipt: possible explicit events
-
-The very first fetch will be for events given an empty history.
-
-With initial, explicit events in hand, the second fetch will attempt to expand ontology of the sentence that constitutes the event. 
-
-Fetch 2 - 
-  params: top nps of fetched explicit event(s) from 1
-  receipt: "is" linked nps, layer 1
-  
-
+#### notes on cli calls
+- Instead calling a file deeply nested in the project, such as `./dist/bin/ny.js ...`, you might consider compiling all the typescript to a single js file. If all the dependencies are contained in a single file, you would theoretically be able to place it anywhere in the filesystem. (The device needs to have node available, of course).
+- You could rename `ny.js` to your own app's name or an abbreviation of same.
