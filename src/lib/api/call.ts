@@ -1,7 +1,7 @@
 
 import fetch from 'isomorphic-fetch'
 import { SaveRequest } from '../brackets/types'
-const DOMAIN_DEFAULT = 'http://localhost:8080'
+import { DOMAIN_DEFAULT } from '../../bin/constants'
 
 export const EP_BRACKETS = 'brackets'
 
@@ -35,14 +35,12 @@ async function postData(url = '', data: SaveRequest, options: RequestInit) {
     return response.json(); // parses JSON response into native JavaScript objects
 }
 
-// stinks a little to have a union of such different types
 export const post: postCall = (ep: string, queryParams: SaveRequest, options: RequestInit = {}) => {
     const rqBase = `${DOMAIN_DEFAULT}/${ep}`
     return postData(rqBase, queryParams, options)
 }
 
 
-// stinks a little to have a union of such different types
 export const callApi: getCall = (ep: string, queryParams: QueryParams, options: RequestInit = {}) => {
     const rqBase = `${DOMAIN_DEFAULT}/${ep}`
     const concattedParams: string = Object.entries(queryParams).reduce(
@@ -51,6 +49,7 @@ export const callApi: getCall = (ep: string, queryParams: QueryParams, options: 
             const separator = accum ? '&' : '?'
             return `${accum}${separator}${key}=${val}`
         }, '')
+
     console.log('get request;', concattedParams)
 
     return fetch(`${rqBase}${concattedParams}`, options)
