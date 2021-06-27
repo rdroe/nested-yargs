@@ -1,10 +1,9 @@
 
-import yargs, { Argv, CommandModule } from 'yargs'
-import brackets from './commands/brackets/index'
+import yargs, { CommandModule } from 'yargs'
+
 import match from './commands/match'
 
 const modules = [
-    brackets,
     match
 ]
 
