@@ -1,5 +1,5 @@
 import { Options } from 'yargs'
-import { RbOptions, Action, RbArgv } from '../../appTypes'
+import { AppOptions, Action, AppArgv } from '../../appTypes'
 
 const left: Options = {
     alias: 'l',
@@ -14,7 +14,7 @@ const right: Options = {
     demandOption: true
 }
 
-export const builder: RbOptions = {
+export const builder: AppOptions = {
     left,
     right
 }
@@ -22,12 +22,12 @@ export const builder: RbOptions = {
 export const command = 'scalar [options]'
 export const describe = 'test and log whether -l (scalar) matches -r (scalar) with ==='
 
-const action: Action = (argv: RbArgv) => {
-    const { left, right } = argv
+const action: Action = (argv: AppArgv) => {
+    const { left, right }: { [k: string]: string | number } = argv
     console.log(`Does ${left} match ${right}`, left === right ? ' Yes!' : 'No...')
 }
 
-export const handler = (args: RbArgv) => {
+export const handler = (args: AppArgv) => {
     action(args)
 }
 
