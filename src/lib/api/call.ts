@@ -1,7 +1,10 @@
 
 import fetch from 'isomorphic-fetch'
-import { SaveRequest } from '../brackets/types'
 import { DOMAIN_DEFAULT } from '../../bin/constants'
+
+type SaveRequest = {
+    key?: string | number
+}
 
 export const EP_BRACKETS = 'brackets'
 
