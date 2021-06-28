@@ -2,7 +2,7 @@
 import fetch from 'isomorphic-fetch'
 const domain = process.env.NESTED_YARGS_DOMAIN ?? 'http://localhost:8080'
 
-type SaveRequest = {
+export type SaveRequest = {
     key?: string | number
 }
 
@@ -45,7 +45,7 @@ export const post: postCall = (ep: string, queryParams: SaveRequest, options: Re
 
 
 
-export const call: getCall = (ep: string, queryParams: QueryParams, options: RequestInit = {}) => {
+export const get: getCall = (ep: string, queryParams: QueryParams, options: RequestInit = {}) => {
     const rqBase = `${domain}/${ep}`
     const concattedParams: string = Object.entries(queryParams).reduce(
         (accum: string, [key, val]: [string, string | number]) => {

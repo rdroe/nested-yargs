@@ -6,6 +6,7 @@ export default (modules: CommandModule[]) => {
     const allModules: CommandModule[] = modules
     allModules.push(match)
     allModules.forEach((module: CommandModule) => {
+
         yargs.command(module).argv
     })
 
