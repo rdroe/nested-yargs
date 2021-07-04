@@ -7,7 +7,7 @@
 	"removeComments": true,
 	"preserveConstEnums": true,
 	"sourceMap": true,
-	"outDir": "dist/",
+	"outDir": "./dist",
 	"declaration": true
     },
     "watchOptions": {
