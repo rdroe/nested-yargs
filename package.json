@@ -4,15 +4,12 @@
   "description": "Dev template for nested-subcommand cli tools",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rdroe/nested-yargs.git"
+    "url": "https://github.com/rdroe/nyargs.git"
   },
   "scripts": {
     "build": "npx tsc",
     "dev": "npx tsc -w",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "bin": {
-    "ts-cli": "dist/bin/cli.js"
   },
   "author": "rdroe",
   "license": "ISC",
