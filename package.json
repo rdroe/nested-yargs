@@ -16,6 +16,7 @@
   },
   "author": "rdroe",
   "license": "ISC",
+  "main": "dist/index.js",  
   "types": "index.d.ts",
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.35",
