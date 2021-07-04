@@ -12,11 +12,11 @@ export interface QueryParams {
     [key: string]: string | number
 }
 
-interface postCall {
+export interface postCall {
     (ep: string, params: SaveRequest, options?: RequestInit): Promise<Response>
 }
 
-interface getCall {
+export interface getCall {
     (ep: string, params: QueryParams, options?: RequestInit): Promise<Response>
 }
 
