@@ -1,6 +1,6 @@
 {
-  "name": "nested-yargs",
-  "version": "0.1.1",
+  "name": "nyargs",
+  "version": "0.1.2",
   "description": "Dev template for nested-subcommand cli tools",
   "repository": {
     "type": "git",
@@ -15,8 +15,8 @@
     "ts-cli": "dist/bin/cli.js"
   },
   "author": "rdroe",
-    "license": "ISC",
-    "types": "index.d.ts",
+  "license": "ISC",
+  "types": "index.d.ts",
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.35",
     "@types/node": "^15.6.1",
