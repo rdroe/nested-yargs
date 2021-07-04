@@ -1,6 +1,6 @@
 {
   "name": "nyargs",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Dev template for nested-subcommand cli tools",
   "repository": {
     "type": "git",
@@ -17,8 +17,10 @@
   "author": "rdroe",
   "license": "ISC",
   "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "files": [ "dist" ],
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.35",
     "@types/node": "^15.6.1",
