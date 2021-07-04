@@ -1,5 +1,5 @@
 {
-  "name": "ts-cli",
+  "name": "nested-yargs",
   "version": "0.1.0",
   "description": "Dev template for nested-subcommand cli tools",
   "repository": {
