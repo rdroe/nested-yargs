@@ -1,6 +1,36 @@
 
-import { CommandModule, Options } from 'yargs'
-import { AppOptions, AppArgv } from '../../../../index'
+import { CommandModule, Options, Argv } from 'yargs'
+import { Action, AppOptions, AppArgv } from '../../../../index'
+
+export const stem = (nm: string, subs: CommandModule[], desc: string = nm) => {
+    return {
+        command: `${nm} <subcommand>`,
+        describe: desc,
+        builder: (yargs) => {
+            subs.forEach((module: CommandModule) => {
+                yargs.command(module).argv
+            })
+            return yargs.demandCommand()
+        }
+    } as CommandModule
+}
+
+export const leaf = (nm: string, opts: AppOptions, action: Action, desc: string = nm): CommandModule => {
+    return {
+        command: `${nm} [options]`,
+        describe: desc,
+        builder: opts,
+        handler: (args) => {
+
+            const { a: a_, anarg: a2_ } = args
+            const str = a_ ?? a2_
+
+            if (typeof (str) !== 'string' && typeof (str) !== 'number') throw new Error(`string is required for option anarg`)
+
+            action({ anarg: str })
+        }
+    }
+}
 
 const anarg: Options = {
     alias: 'a',
@@ -12,21 +42,11 @@ const subOpts: AppOptions = {
     anarg
 }
 
-const sub = {
-    command: 'subcommand [options]',
-    describe: 'test whether cli commands work',
-    builder: subOpts,
-    handler: (args: AppArgv) => {
-        const anarg_ = args.anarg
-        console.log(`${anarg_} ... in bed?`)
-    }
-} as CommandModule
+const subAct: Action = (args: AppArgv) => {
+    const anarg_ = args.anarg
+    console.log(`${anarg_} ... in bed?`)
+}
 
-export default {
-    command: 'testcli',
-    describe: 'test whether cli commands (and subs) work',
-    builder: (yargs) => {
-        return yargs.command(sub)
-    },
-    handler: () => { }
-} as CommandModule
+const sub = leaf('subcommand', subOpts, subAct, 'test working cli commands or not')
+
+export default stem('testcli', [sub], 'test: do cmds, subcmds work?')
