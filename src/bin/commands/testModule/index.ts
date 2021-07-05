@@ -1,14 +1,14 @@
 
-import { CommandModule, Options, Argv } from 'yargs'
+import { CommandModule, Options } from 'yargs'
 import { Action, AppOptions, AppArgv } from '../../../../index'
 
 export const stem = (nm: string, subs: CommandModule[], desc: string = nm) => {
     return {
-        command: `${nm} <subcommand>`,
+        command: `${nm} <sub1>`,
         describe: desc,
         builder: (yargs) => {
             subs.forEach((module: CommandModule) => {
-                yargs.command(module).argv
+                yargs.command(module)
             })
             return yargs.demandCommand()
         }
@@ -19,14 +19,15 @@ export const leaf = (nm: string, opts: AppOptions, action: Action, desc: string 
     return {
         command: `${nm} [options]`,
         describe: desc,
-        builder: opts,
+        builder: (yargs) => {
+            return yargs.options(opts)
+        },
         handler: (args) => {
 
             const { a: a_, anarg: a2_ } = args
             const str = a_ ?? a2_
 
             if (typeof (str) !== 'string' && typeof (str) !== 'number') throw new Error(`string is required for option anarg`)
-
             action({ anarg: str })
         }
     }

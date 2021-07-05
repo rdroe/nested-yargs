@@ -1,5 +1,6 @@
-import yargs, { CommandModule } from 'yargs'
+import { CommandModule } from 'yargs'
 import matchCmd from './commands/match'
+const yargs = require('yargs')
 const match: CommandModule = matchCmd
 export default (modules: CommandModule[]) => {
     yargs.usage("$0 command")
@@ -9,9 +10,5 @@ export default (modules: CommandModule[]) => {
 
         yargs.command(module).argv
     })
-
-    yargs.demand(1, "You must provide a valid command")
-        .help("h")
-        .alias("h", "help").argv
-
+    yargs.help('help')
 }
