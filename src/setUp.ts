@@ -1,9 +1,5 @@
 import yargs, { CommandModule } from 'yargs'
 import { AppOptions, Action } from './appTypes'
-import matchCmd from './commands/match'
-
-const match: CommandModule = matchCmd
-
 
 export const stem = (nm: string, subs: CommandModule[], desc: string = nm) => {
     const subOrSubs = subs[0] && typeof subs[0].builder === 'object' ? 'sub' : 'sub..'
@@ -39,9 +35,7 @@ export const leaf = (nm: string, opts: AppOptions, action: Action, desc: string 
 export default (modules: CommandModule[]) => {
     yargs.usage("$0 command")
     const allModules: CommandModule[] = modules
-    allModules.push(match)
     allModules.forEach((module: CommandModule) => {
-
         yargs.command(module).argv
     })
     yargs.help('help')
