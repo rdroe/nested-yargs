@@ -1,10 +1,12 @@
 import yargs, { CommandModule } from 'yargs'
-import { AppOptions, Action } from './appTypes'
+
+import { AppOptions, Action, AppArgv } from './appTypes'
 
 export const stem = (nm: string, subs: CommandModule[], desc: string = nm) => {
     const subOrSubs = subs[0] && typeof subs[0].builder === 'object' ? 'sub' : 'sub..'
+    const cmd = `${nm} [${subOrSubs}] [options]`
     return {
-        command: `${nm} [${subOrSubs}] [options]`,
+        command: cmd,
         describe: desc,
         builder: (yargs) => {
             subs.forEach((module: CommandModule) => {
@@ -21,16 +23,10 @@ export const leaf = (nm: string, opts: AppOptions, action: Action, desc: string 
         describe: desc,
         builder: opts,
         handler: (args) => {
-
-            const { a: a_, anarg: a2_ } = args
-            const str = a_ ?? a2_
-
-            if (typeof (str) !== 'string' && typeof (str) !== 'number') throw new Error(`string is required for option anarg`)
-            action({ anarg: str })
+            action(args as AppArgv)
         }
     }
 }
-
 
 export default (modules: CommandModule[]) => {
     yargs.usage("$0 command")
@@ -38,5 +34,5 @@ export default (modules: CommandModule[]) => {
     allModules.forEach((module: CommandModule) => {
         yargs.command(module).argv
     })
-    yargs.help('help')
+    yargs.help('help').alias('help', 'h')
 }

@@ -19,15 +19,10 @@ export const builder: AppOptions = {
     right
 }
 
-export const command = 'scalar [options]'
 export const describe = 'test and log whether -l (scalar) matches -r (scalar) with ==='
 
-const action: Action = (argv: AppArgv) => {
+export const action: Action = (argv: AppArgv) => {
     const { left, right }: { [k: string]: string | number } = argv
     console.log(`Does ${left} match ${right}`, left === right ? ' Yes!' : 'No...')
-}
-
-export const handler = (args: AppArgv) => {
-    action(args)
 }
 

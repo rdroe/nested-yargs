@@ -1,23 +1,9 @@
 
-import { CommandModule } from 'yargs'
 import * as scalar from './scalar'
+import { stem, leaf } from '../../setUp'
 
-const cm: CommandModule = {
-    command: 'match',
-    describe: 'test whether arguments do match',
-    builder: (yargs) => {
-        return yargs.command(scalar)
-        /* .command({
-            command: "other_subcommand [options]",
-            describe: "other match utility (besides scalar)",
-            handler: other.action,
-            builder: other.options})
-        */
-    },
-    handler: () => {
+const moduleScalar = leaf('scalar', scalar.builder, scalar.action, scalar.describe)
 
-    }
-}
+export default stem('match', [moduleScalar], 'test whether various kinds of arguments match')
 
-export default cm
 
