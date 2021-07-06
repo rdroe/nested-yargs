@@ -3,8 +3,9 @@ import { CommandModule, Options } from 'yargs'
 import { Action, AppOptions, AppArgv } from '../../../../index'
 
 export const stem = (nm: string, subs: CommandModule[], desc: string = nm) => {
+    const subOrSubs = subs[0] && typeof subs[0].builder === 'object' ? 'sub' : 'sub..'
     return {
-        command: `${nm} <sub1>`,
+        command: `${nm} [${subOrSubs}] [options]`,
         describe: desc,
         builder: (yargs) => {
             subs.forEach((module: CommandModule) => {
@@ -19,9 +20,7 @@ export const leaf = (nm: string, opts: AppOptions, action: Action, desc: string 
     return {
         command: `${nm} [options]`,
         describe: desc,
-        builder: (yargs) => {
-            return yargs.options(opts)
-        },
+        builder: opts,
         handler: (args) => {
 
             const { a: a_, anarg: a2_ } = args
@@ -48,6 +47,9 @@ const subAct: Action = (args: AppArgv) => {
     console.log(`${anarg_} ... in bed?`)
 }
 
-const sub = leaf('subcommand', subOpts, subAct, 'test working cli commands or not')
+const level2 = leaf('level2', subOpts, subAct, 'test working opts')
 
-export default stem('testcli', [sub], 'test: do cmds, subcmds work?')
+
+const level1 = stem('level1', [level2], 'test level 2: do  subcmds work?')
+
+export default stem('testcli', [level1], 'test: do cmds, subcmds work?')
