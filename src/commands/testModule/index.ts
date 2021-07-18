@@ -1,6 +1,6 @@
 
 import { CommandModule, Options } from 'yargs'
-import { AppOptions, AppArgv } from '../../../../index'
+import { AppOptions, AppArgv } from '../../../index'
 
 const anarg: Options = {
     alias: 'a',
