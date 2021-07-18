@@ -18,7 +18,8 @@ export const repl = (modules: CommandModule[], input: string = '') => {
 
 }
 
-export default (modules: CommandModule[]) => {
+export default (modules: CommandModule[], replStr: string | undefined = '') => {
+    if (replStr) { return repl(modules, replStr) }
     yargs.usage("$0 command")
     const allModules: CommandModule[] = modules
     allModules.push(match)
