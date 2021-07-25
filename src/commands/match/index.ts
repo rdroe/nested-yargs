@@ -5,7 +5,7 @@ import * as scalar from './scalar'
 const cm: CommandModule = {
     command: 'match',
     describe: 'test whether arguments do match',
-    builder: (yargs) => {
+    builder: async (yargs) => {
         return yargs.command(scalar)
         /* .command({
             command: "other_subcommand [options]",
@@ -14,7 +14,7 @@ const cm: CommandModule = {
             builder: other.options})
         */
     },
-    handler: () => {
+    handler: async () => {
 
     }
 }

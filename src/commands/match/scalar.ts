@@ -7,7 +7,6 @@ const left: Options = {
     demandOption: true
 }
 
-
 const right: Options = {
     alias: 'r',
     description: 'right matchable',
@@ -22,12 +21,12 @@ export const builder: AppOptions = {
 export const command = 'scalar [options]'
 export const describe = 'test and log whether -l (scalar) matches -r (scalar) with ==='
 
-const action: Action = (argv: AppArgv) => {
+const action: Action = async (argv: AppArgv) => {
     const { left, right }: { [k: string]: string | number } = argv
     console.log(`Does ${left} match ${right}`, left === right ? ' Yes!' : 'No...')
+    return true
 }
 
-export const handler = (args: AppArgv) => {
-    action(args)
+export const handler = async (args: AppArgv) => {
+    return action(args)
 }
-
