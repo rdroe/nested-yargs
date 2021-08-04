@@ -5,7 +5,6 @@ import { add } from './queue'
 import readline from 'readline'
 const match: CommandModule = matchCmd
 
-
 export default async (modules: CommandModule[], replStr: string | undefined = '') => {
     yargs.usage("$0 command")
     const allModules: CommandModule[] = modules
@@ -26,7 +25,6 @@ export const repl = (modules: CommandModule[]) => {
             return repl_(modules, input)
         })
     }
-
 
     const callRb = () => {
         return new Promise((replRes) => {
@@ -51,6 +49,7 @@ export const repl = (modules: CommandModule[]) => {
 
 
 async function repl_(modules: CommandModule[], input: string = '') {
+
     const simArgv = input === '' ? undefined : stringArgv(input)
 
     yargs(simArgv).usage("$0 command")
