@@ -14,7 +14,7 @@ const containsInterrupt = (rawInput: string) => {
 
 /** Given input verified by verifyAndExecuteCli, force the running of the typed command. The executor needs the command modules to be visible, so curried.
 */
-const getExecuteCli = (modules: CommandModule[], yargsCaller: Function) => async (input: string): Promise<{ argv: any, result: any }> => {
+const getExecuteCli = async (modules: CommandModule[], yargsCaller: Function) => async (input: string): Promise<{ argv: any, result: any }> => {
 
     let result: any
     let argv: any
@@ -37,7 +37,7 @@ const getExecuteCli = (modules: CommandModule[], yargsCaller: Function) => async
 }
 
 // This is the primary loop logic. it  makes use of the above direct executor function, but also runs the loop in which the executor and the verification is run repeatedly.
-async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, executor: Function): Promise<{ argv: object, result: object }> {
+async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, executor: (arg0: string) => Promise<any>): Promise<{ argv: object, result: object }> {
 
     // Obtain input and execute. 
     // If this is a recursion, with input already present, feed that forward. 
@@ -70,13 +70,13 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
 }
 
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
-const repl = (modules: CommandModule[], yargsCaller: Function) => {
+const repl = async (modules: CommandModule[], yargsCaller: Function) => {
 
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior. 
-    const executeCli = getExecuteCli(modules, yargsCaller)
+    const executeCli = await getExecuteCli(modules, yargsCaller)
 
     // kick off the actual loop that talks to user and repeats execution
-    verifyAndExecuteCli(null, PROMPT, executeCli)
+    await verifyAndExecuteCli(null, PROMPT, executeCli)
 }
 
 export default repl
