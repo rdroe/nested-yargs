@@ -14,6 +14,6 @@ export interface Action {
 
 
 export type AppArgv = {
-    [arg: string]: string | number
+    [arg: string]: string | number | Array<string | number>
 }
 

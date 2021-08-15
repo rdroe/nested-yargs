@@ -1,45 +1,59 @@
 
-### nested-yargs
+# nyargs
 
-I like writing utilities with multiple subcommands, `command subcommand -o 1` (instead of, say `command --subcommand -o 1`).
+Isomorphic utilities and  caching environment for modeling frontend data on the command line. nyargs provides a repl and cache-expansion syntx for interactively building fetched data into useful patterns.
 
-This is a template  project and utility for doing that in Typescript. This is a yargs wrapper along with a couple of http utilities (in `/src/lib/api`).
+The simple idea is that you import this repl-runner and load your own CLI-command modules into it. You then have a repl in which your custom commands are recognized. Also, with the caching and fetch functionality, it makes it a great web based tool.
 
-I have used this for node, but you could theoretically use it in the browser as well, however you do that with yargs. (yargs mentions browser-based use.) 
+The cache is backed by IndexedDB. This repo is developed as a laboratory for creating frontend data functionality. Yargs modules, too, can be used from the frontend; so developing a nyargs project, you are also in part developing a frontend project. 
 
-It is made to be packaged as a module; pull in the repos default export (from index.ts) as a module; or extend the project yourself. 
+```typescript
+import myModule from './myModule'
+import otherModule from './otherModule'
+import {repl} from 'nyargs'
 
-#### upshot
+repl([myModule, otherModule])
 
-See the example `match` command, which lies in `src/bin`, and its subcommands. 
-
-After installing and building (the latter is e.g. `npx tsc`), run, for example
-```
-./dist/src/bin/ny.js --help
-```
-or 
-```
-./dist/src/bin/ny.js match --help
-```
-or
-```
-./dist/src/bin/ny.js match scalar --help
 ```
 
-This last command is usable with the options `-l [number|string]` and `-r [number|string]`.
+## Structure of Modules
+Please see the structure of a yargs CommandModule (a type provided by `@types/yargs`)
 
-A couple of utilities exist for convenience, some generic fetch and post commands. `isomorphic-fetch` is used.
+In nyargs, such a module requires these properties:
 
-#### adding modules
+- options
+- builder
+- handler (async function is required)
+- describe
 
-Remarks in `src/bin/commands/match/index.ts` show how you could add a parallel command such as `nonscalar` if you follow the command above; a sibling for `match scalar`.
+[Yargs's docs](https://yargs.js.org/docs) cover those properties.
 
-To add other top-level modules, see where `match` is imported to `src/bin/setUp.ts` and placed in an array. Write other modules alongside `match` in the file system.  Here in `ny.ts`, import them like `match` and place them in the same array. That will enable them as commands. 
+## CLI Cache Language
 
-Of course, when you write the new command modules, have their exports match those of `match`. Provide, for example, `export const description = ...` and `export const handler = ...` on each command that you add. There are a couple of other required named exports.
+`nyargs` does default or user-specialized caching of command-line results. for this caching, `fake-indexeddb` is used, which enables developing data models that can also be used in the browser. (Also of note: our importable fetch and post functionality uses isomorphic-fetch.)
 
-The setUp export in `src/bin/setUp.ts` can also be used to wrap your own modules, i.e. imported to some other repo. At the very moment of writing, types are not set up to let you do this. You would need to make a PR here and export the appropriate types. You might be able to do the equivalent JS import / export using the `/dist` folder for exports.
+The following example presumes some programming of the `request id` and `request name` modules the user would be expected to do.
 
-#### notes on cli calls
-- Instead calling a file deeply nested in the project, such as `./dist/src/bin/ny.js ...`, you might consider compiling all the typescript to a single js file. If all the dependencies are contained in a single file, you would theoretically be able to place it anywhere in the filesystem. (The device needs to have node available, of course).
-- You could rename `ny.js` to your own app's name or an abbreviation of same.
+Suppose 'request age' is a user-defined module that accepts parameters and makes a get request. 
+
+```bash 
+nyargs > request id --user amit 
+```
+
+This would return results that would be automatically cached for use in future commands. They would be cached under the commands namespace ['request', 'age'].
+
+
+```bash
+nyargs > request name --id {request age}
+```
+
+This bracketed portion would be expanded by nyargs into the last cached value under that namespace. 
+
+When the cli user taps enter, the next line will show the expansion: 
+
+```bash
+nyargs > request name --id {request age}
+RUN AUGMENTED ? > request name --id 88
+```
+
+The user would tap enter again, now, if the new, augmented cli command looked correct. Alternatively, more brackets could be added. Alternatively, the auto-expanded cli command could be manually edited.

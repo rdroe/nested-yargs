@@ -1,23 +1,15 @@
 
-import { CommandModule } from 'yargs'
+import { CommandModule, Argv } from 'yargs'
 import * as scalar from './scalar'
+import { cache, branch } from '../../hooks/helpers'
 
-const cm: CommandModule = {
+const cm = {
     command: 'match',
     describe: 'test whether arguments do match',
-    builder: async (yargs) => {
-        return yargs.command(scalar)
-        /* .command({
-            command: "other_subcommand [options]",
-            describe: "other match utility (besides scalar)",
-            handler: other.action,
-            builder: other.options})
-        */
-    },
-    handler: async () => {
-
+    builder: async (yargs: Argv) => {
+        return yargs.command({ ...cache(scalar, '.[] | select(.match == true) | [.left, .right]') })
     }
 }
 
-export default cm
+export default branch(cm)
 
