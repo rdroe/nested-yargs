@@ -70,7 +70,7 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
 }
 
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
-const repl = async (modules: CommandModule[], yargsCaller: Function) => {
+const repl = async (modules: CommandModule[], yargsCaller: (modules: CommandModule[], input: string) => Promise<any>) => {
 
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior. 
     const executeCli = await getExecuteCli(modules, yargsCaller)
