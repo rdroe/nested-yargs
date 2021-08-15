@@ -1,4 +1,4 @@
-import yargs, { CommandModule } from 'yargs'
+import yargs, { CommandModule, Argv } from 'yargs'
 import matchCmd from './commands/match'
 import stringArgv from 'string-argv'
 import loop from './loop'
@@ -24,11 +24,23 @@ export default async (modules: CommandModule[]) => {
     return true
 }
 
-export const repl = (modules: CommandModule[]) => {
+export const repl = async (modules: CommandModule[]) => {
     return loop(modules, repl_)
 }
+interface ArgvWithResult extends Argv {
+    result: string
+}
+const harvestResults = (awaited: ArgvWithResult) => {
 
+    // For now, the imported  modules must always assign "result" on the argv object, which we process here.
+    // This is a bit of a hack ; not sure how to return the result properly by means of yargs calls to Command module submodules
+    const json = JSON.parse(
+        awaited.result
+    )
+    delete awaited.result
 
+    return json
+}
 async function repl_(modules: CommandModule[], input: string = '') {
 
     const simArgv = stringArgv(input)
@@ -62,34 +74,33 @@ async function repl_(modules: CommandModule[], input: string = '') {
 
     // Use the afterParse function to effect the yargs call; which requires a bit of specialized massaging to work asynchronously
     try {
-        const argv = await yargs.parse(simArgv, {}, afterParse)
-        return { result: { line: 123 }, argv }
+
+        const parseRes: unknown = await yargs.parse(simArgv, {}, afterParse)
+        const parseResArgv = parseRes as ArgvWithResult
+        if (!parseResArgv.result) throw new Error('no result is attached.')
+        const json = harvestResults(parseResArgv)
+        return { result: json, argv: parseResArgv }
     } catch (e) {
         console.error('Error!!' + e.message)
         return ({ result: { message: e.message }, argv: {} })
     }
 }
 
+
 /* 
+
    Helper function that finished up yargs parsing 
 */
-async function afterParse(err: Error, arg2: any): Promise<{ result: any, argv: any }> {
+async function afterParse(err: Error, arg2: any): Promise<ArgvWithResult> {
 
     if (err) {
         console.error('Error during yargs-based parsing: ', err.message)
-        return ({ result: err.message, argv: arg2 })
+        return ({ ...arg2, result: { message: err.message } })
     }
 
-    const awaited = await arg2
+    return await arg2
 
-    if (typeof awaited !== 'object') throw new Error('In user modules, a result must be assigned to the argv object as property "argv.result". This seems to be missing ')
 
-    const json = JSON.parse(
-        awaited.result
-    )
-
-    // For now, the imported  modules must always assign "result" on the argv object, which we process here.
-    // This is a bit of a hack ; not sure how to return the result properly by means of yargs calls to Command module submodules
-    delete awaited.result
-    return ({ result: json, argv: awaited })
 }
+
+
