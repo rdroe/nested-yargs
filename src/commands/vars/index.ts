@@ -82,6 +82,7 @@ const action = async (argv: AppArgv) => {
         })
     }
 
+
     if (cmd === 'get') {
         const query: Query = {
             commands: commands as string[],
