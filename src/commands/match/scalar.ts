@@ -1,6 +1,6 @@
 import { Options } from 'yargs'
-import { AppOptions, Action, AppArgv } from '../../appTypes'
-import hooks from '../../hooks'
+import { AppOptions, Action, AppArguments } from '../../appTypes'
+
 const left: Options = {
     alias: 'l',
     description: 'left matchable',
@@ -23,11 +23,10 @@ export const builder: AppOptions = {
 export const command = 'scalar [options]'
 export const describe = 'test and log whether -l (scalar) matches -r (scalar) with ==='
 
-const action: Action = async (argv: AppArgv) => {
+const action: Action = async (argv: AppArguments) => {
     const { left, right } = argv
-
-    const results = (left as Array<string | number>).map((l, idx) => {
-        const rt = (right as Array<string | number>)[idx]
+    const results = left.map((l, idx) => {
+        const rt = right[idx]
         return {
             index: idx,
             match: l === rt,
@@ -35,12 +34,9 @@ const action: Action = async (argv: AppArgv) => {
             right: rt
         }
     })
-    console.log('resluts = ', results)
-    if (hooks.resolver) return hooks.resolver({ result: results, argv })
     return results
-
 }
 
-export const handler = async (args: AppArgv) => {
+export const handler = async (args: AppArguments) => {
     return action(args)
 }

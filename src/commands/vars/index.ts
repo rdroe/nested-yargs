@@ -1,8 +1,6 @@
-import { AppOptions, Action, AppArgv } from '../../appTypes'
-import { Options, CommandModule, demandOption } from 'yargs'
+import { AppArguments } from '../../appTypes'
+import { Options, CommandModule } from 'yargs'
 import { Entry, Query, put, where, jqEval } from '../../lib/store'
-
-type Command = 'put' | string
 
 const cmds = ['put', 'get', 'eval']
 
@@ -38,8 +36,8 @@ const object: Options = {
     default: []
 }
 
-const action = async (argv: AppArgv) => {
-    console.log(argv)
+const action = async (argv: AppArguments) => {
+
     const {
         _: allCommands,
         'c:c': commands,
@@ -48,7 +46,6 @@ const action = async (argv: AppArgv) => {
         object,
         _jq: jqQuery
     } = argv
-
 
     if ((typeof allCommands === 'number' || typeof allCommands === 'string')) {
         throw new Error('One and only one command is required')
@@ -75,41 +72,39 @@ const action = async (argv: AppArgv) => {
 
     const arrObject: any[] = []
 
-    if ((object as Array<string>).length > 0) {
-        (object as Array<string>).forEach((json) => {
+    if (object.length > 0) {
+        object.forEach((json) => {
             const obj = JSON.parse(json)
             arrObject.push(obj)
         })
     }
 
-
     if (cmd === 'get') {
         const query: Query = {
-            commands: commands as string[],
-            names: names as string[],
-            _jq: jqQuery as string
+            commands,
+            names,
+            _jq: jqQuery
         }
-        console.log('getting', query)
         return where(query)
-
-
     } else if (cmd === 'put') {
-        await Promise.all(arrObject.concat(scalar ?? []).map((ev) => {
-            const entry: Entry = {
-                commands: commands as string[],
-                names: names as string[],
-                value: ev,
-                _jq: jqQuery as string
-            }
-            console.log('putting', entry)
-            return put(entry)
-        }))
+        await Promise.all(
+            arrObject
+                .concat(scalar ?? [])
+                .map((ev) => {
 
+                    const entry: Entry = {
+                        commands,
+                        names,
+                        value: ev,
+                        _jq: jqQuery
+                    }
+                    return put(entry)
+                }))
     } else if (cmd === 'eval') {
         console.log('evaluating')
         await Promise.all(arrObject.map(async (obj) => {
             console.log('evaluating ', jqQuery)
-            await jqEval(obj, jqQuery as string)
+            await jqEval(obj, jqQuery)
         }))
     }
 }
@@ -117,8 +112,8 @@ const action = async (argv: AppArgv) => {
 const cm: CommandModule = {
     command: "cache",
     describe: 'put, get (etc) variables',
-    builder: { command, name, _jq, scalar, object } as AppOptions,
-    handler: async (a: any) => await action(a as AppArgv)
+    builder: { command, name, _jq, scalar, object },
+    handler: async (a: AppArguments) => await action(a)
 }
 
 export default cm

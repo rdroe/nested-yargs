@@ -1,7 +1,7 @@
 import { CommandModule } from 'yargs'
 import hooks from './'
 
-export const cache = (module: { builder: object }, filter = '.'): CommandModule => {
+export const cache = (module: CommandModule, filter = '.'): CommandModule => {
     // i don't think this is needed anymore (nor 'branch' below)
     module.builder = {
         ...module.builder,
@@ -12,7 +12,7 @@ export const cache = (module: { builder: object }, filter = '.'): CommandModule 
             description: 'cache match'
         }
     }
-    return module as CommandModule
+    return module
 }
 
 export const branch = (module: Partial<CommandModule>) => {

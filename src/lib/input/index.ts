@@ -48,7 +48,7 @@ export const getInput = (pr: string, initialInput: string = ''): Promise<string>
             hist.push(inp)
             curReadline.close()
             idx = hist.length
-            return res(inp as string)
+            return res(inp)
         })
         if (initialInput) {
             curReadline.write(initialInput)

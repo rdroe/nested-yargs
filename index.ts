@@ -1,4 +1,3 @@
-
 import setUp from './src/setUp'
 import hooks_ from './src/hooks'
 import vars from './src/commands/vars'

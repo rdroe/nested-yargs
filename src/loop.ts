@@ -4,7 +4,6 @@ import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
 
 const PROMPT = 'nyargs > '
-
 const containsInterrupt = (rawInput: string) => {
     if (rawInput.includes('davo:dismiss') || rawInput.includes('davo:dis')) {
         return true
