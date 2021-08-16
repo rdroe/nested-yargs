@@ -17,3 +17,10 @@ export type AppArgv = {
     [arg: string]: string | number | Array<string | number>
 }
 
+export type AppArguments = {
+    c: string,
+    cache: string,
+    s: string,
+    sentence: string,
+    result: any
+}

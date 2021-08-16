@@ -1,4 +1,5 @@
-import yargs, { CommandModule, Argv } from 'yargs'
+import yargs, { CommandModule, Arguments, Argv } from 'yargs'
+import { AppArguments } from './appTypes'
 import matchCmd from './commands/match'
 import stringArgv from 'string-argv'
 import loop from './loop'
@@ -28,15 +29,13 @@ export const repl = async (modules: CommandModule[]) => {
     return await loop(modules, repl_)
 }
 
-const harvestResults = async (awaited: any) => {
-
+const harvestResults = async (awaited: Arguments<{ result?: string }>): Promise<AppArguments> => {
     // For now, the imported  modules must always assign "result" on the argv object, which we process here.
     // This is a bit of a hack ; not sure how to return the result properly by means of yargs calls to Command module submodules
     const json = JSON.parse(
         awaited.result
     )
     delete awaited.result
-
     return json
 }
 
@@ -74,8 +73,8 @@ async function repl_(modules: CommandModule[], input: string = '') {
     // Use the afterParse function to effect the yargs call; which requires a bit of specialized massaging to work asynchronously
     try {
 
-        const parseRes: any = await yargs.parse(simArgv, {}, afterParse)
-        console.log('parser res argv', parseRes)
+        const parseRes: Arguments<{ result?: string }> = await yargs.parseAsync(simArgv, {}, afterParse)
+
         if (!parseRes.result) throw new Error('no result is attached.')
 
         const json = await harvestResults(parseRes)
@@ -86,21 +85,15 @@ async function repl_(modules: CommandModule[], input: string = '') {
     }
 }
 
-
 /* 
-
    Helper function that finished up yargs parsing 
 */
-async function afterParse(err: Error, arg2: any): Promise<any> {
+async function afterParse(err: Error, arg2: Arguments<AppArguments>): Promise<Arguments<AppArguments>> {
 
     if (err) {
         console.error('Error during yargs-based parsing: ', err.message)
         return ({ ...arg2, result: { message: err.message } })
     }
-    console.log('returning from after parse', arg2)
-    return await arg2
 
-
+    return arg2
 }
-
-
