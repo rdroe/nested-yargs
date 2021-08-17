@@ -3,7 +3,7 @@ import fetch from 'isomorphic-fetch'
 const domain = process.env.NESTED_YARGS_DOMAIN ?? 'http://localhost:8080'
 
 export type SaveRequest = {
-    key?: string | number
+    [key: string]: string | number | object
 }
 
 export const EP_BRACKETS = 'brackets'
