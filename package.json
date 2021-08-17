@@ -1,6 +1,6 @@
 {
   "name": "nyargs",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Dev template for nested-subcommand cli tools",
   "repository": {
     "type": "git",
