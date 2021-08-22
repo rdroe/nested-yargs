@@ -29,12 +29,13 @@ export const repl = async (modules: CommandModule[]) => {
     return await loop(modules, repl_)
 }
 
-const harvestResults = async (awaited: Arguments<{ result?: string }>): Promise<AppArguments> => {
+
+const harvestResults = async (awaited: Arguments<{ result: object }>): Promise<object> => {
     // For now, the imported  modules must always assign "result" on the argv object, which we process here.
     // This is a bit of a hack ; not sure how to return the result properly by means of yargs calls to Command module submodules
-    const json = JSON.parse(
+    const json =
         awaited.result
-    )
+
     delete awaited.result
     return json
 }
@@ -43,12 +44,19 @@ async function repl_(modules: CommandModule[], input: string = '') {
 
     const simArgv = stringArgv(input)
     const universalOpts = {
-        'c':
+        'c:n':
         {
-            alias: 'cache',
+            alias: 'cache: names index',
             global: true,
-            default: '.',
-            describe: 'filter for limiting the cached portion of results'
+            array: true,
+            describe: 'filter for estting cache address by names'
+        },
+        'c:c':
+        {
+            alias: 'cache: commands index',
+            global: true,
+            array: true,
+            describe: 'filter for setting cache address by commands'
         }
     }
     yargs
@@ -72,12 +80,12 @@ async function repl_(modules: CommandModule[], input: string = '') {
 
     // Use the afterParse function to effect the yargs call; which requires a bit of specialized massaging to work asynchronously
     try {
+        const parseRes: Arguments = await yargs.parseAsync(simArgv, {}, afterParse)
 
-        const parseRes: Arguments<{ result?: string }> = await yargs.parseAsync(simArgv, {}, afterParse)
+        if (typeof parseRes.result !== 'object') throw new Error('no result is attached.')
 
-        if (!parseRes.result) throw new Error('no result is attached.')
+        const json = await harvestResults(parseRes as Arguments<{ result: object }>)
 
-        const json = await harvestResults(parseRes)
         return { result: json, argv: parseRes }
     } catch (e) {
         console.error('Error!!' + e.message)

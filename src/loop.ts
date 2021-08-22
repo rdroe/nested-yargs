@@ -4,6 +4,7 @@ import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
 
 const PROMPT = 'nyargs > '
+const JQ_DEFAULT = 'max_by(.createdAt).value'
 const containsInterrupt = (rawInput: string) => {
     if (rawInput.includes('davo:dismiss') || rawInput.includes('davo:dis')) {
         return true
@@ -50,7 +51,7 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
     }
 
     // Run the raw input through jq calls and cache-replacing
-    const input = parseCacheInstructions(rawInput)
+    const input = await parseCacheInstructions(rawInput, JQ_DEFAULT)
 
     // If it is different (if cache-replacing was used) verify to run.
     if (input !== rawInput) {

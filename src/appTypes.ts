@@ -16,16 +16,16 @@ export type AppArgv = {
 }
 
 export type AppArguments = Arguments<{
-    c: string,
-    cache: string,
-    s: string,
-    sentence: string,
-    result: any,
-    object: string[],
-    'c:c': string[],
-    'c:n': string[],
-    scalar: (string | number)[],
-    _jq: string,
-    left: (string | number)[],
-    right: (string | number)[]
+    c: string, // how to cache 
+    cache: string, // how to cache 
+    s: string, // sentence to get brackets for
+    sentence: string,  // ''
+    result: any | object, // passenger result by command
+    object: string[], // cache command: object
+    'c:c': string[], // commands index for put to cache
+    'c:n': string[],  // namse index for put to cache 
+    scalar: (string | number)[], // cache command : scalar 
+    _jq: string, // jq search pattern for cache 
+    left: (string | number)[],  // match arg
+    right: (string | number)[]  // match arg
 }>

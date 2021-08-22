@@ -85,9 +85,10 @@ const action = async (argv: AppArguments) => {
             names,
             _jq: jqQuery
         }
-        return where(query)
+        argv.result = await where(query)
+        return argv
     } else if (cmd === 'put') {
-        await Promise.all(
+        const result = await Promise.all(
             arrObject
                 .concat(scalar ?? [])
                 .map((ev) => {
@@ -100,12 +101,14 @@ const action = async (argv: AppArguments) => {
                     }
                     return put(entry)
                 }))
+        argv.result = result
+        return argv
     } else if (cmd === 'eval') {
-        console.log('evaluating')
-        await Promise.all(arrObject.map(async (obj) => {
-            console.log('evaluating ', jqQuery)
+        const result = await Promise.all(arrObject.map(async (obj) => {
             await jqEval(obj, jqQuery)
         }))
+        argv.result = result
+        return argv
     }
 }
 

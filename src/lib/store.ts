@@ -24,6 +24,7 @@ interface Vars {
 }
 
 interface Cache {
+    id?: number
     names: Array<string>
     commands: Array<string>
     value: any
@@ -43,7 +44,7 @@ class UiDb extends Dexie {
             subtree: "id++",
             rbnode: "id,text",
             vars: 'one, two',
-            cache: 'names, command, value, &[commands+names]'
+            cache: 'id++, *names, *commands, value, [commands+names], createdAt'
         });
         this.timetree = this.table("timetree")
         this.subtree = this.table("subtree")
@@ -58,13 +59,14 @@ export default db
 
 
 export interface Query {
+    id?: number
     commands: string[]
     names: string[]
     _jq?: string // on entry, _jq limits results to this dot path, etc if present
 }
 
 export interface Entry extends Query {
-    value: string
+    value: any
     // if _jq is present, only the dot-path will be entered.
 }
 
@@ -78,41 +80,52 @@ const requireValidCacheInstructions = (str: string) => {
     return result
 }
 
-const chooseCommands = (initCmds: string[], explicitCmds: null | string) => {
-    if (explicitCmds) {
+const chooseCommands = (explicitCmds: undefined | string) => {
+    if (typeof explicitCmds === 'string') {
         return explicitCmds.split(' ').filter(x => x !== '' && x !== ' ')
     } else {
-        return initCmds
+        return []
     }
 }
 
-const cacheInstructionsToQuery = (inner: string | null, initCmds: string[]) => {
-    if (inner === null) return { commands: initCmds }
+interface CacheQuery {
+    commands: string[]
+    names: string[]
+    _jq: string | null
+}
+
+// For parseing {asdf`asdf`asdf} to a query to run on db
+const cacheInstructionsToQuery = (inner: string | null, initCmds: string[], defaultQuery: string | null): CacheQuery => {
+
+    if (inner === null) return { commands: [], names: [], _jq: null }
     const split = inner.split('`')
     switch (split.length) {
         case 1:
-            const cmds = chooseCommands(initCmds, split[0])
+            const cmds = chooseCommands(split[0])
             return {
-                commands: cmds
+                commands: cmds,
+                names: [],
+                _jq: defaultQuery
             }
 
         case 2:
-            const cmds2 = chooseCommands(initCmds, split[0])
-            console.log('choose names', split)
-            const names2 = chooseCommands([], split[1])
+            const cmds2 = chooseCommands(split[0])
+
+            const names2 = chooseCommands(split[1])
             return {
                 commands: cmds2,
-                names: names2
+                names: names2,
+                _jq: defaultQuery
             }
 
         case 3:
-            const cmds3 = chooseCommands(initCmds, split[0])
-            const names3 = chooseCommands([], split[1])
+            const cmds3 = chooseCommands(split[0])
+            const names3 = chooseCommands(split[1])
             const jq3 = split[2]
             return {
                 commands: cmds3,
                 names: names3,
-                _jq: jq3
+                _jq: jq3 ?? defaultQuery
             }
 
         default:
@@ -120,13 +133,13 @@ const cacheInstructionsToQuery = (inner: string | null, initCmds: string[]) => {
     }
 }
 
-const extractBracketedSections_ = (str: string): { cli: string, brackets: string | null } => {
+const extractBracketedSections_ = (str: string): { cli: string, brackets: string | null, bracketed: string | null } => {
 
     let splitTwo
 
     const splitOne = str.split('{')
     if (splitOne.length === 1) {
-        return { cli: str, brackets: null }
+        return { cli: str, brackets: null, bracketed: null }
     }
     const [leftOuter, rightOfBrackOne] = splitOne
     splitTwo = rightOfBrackOne.split('}')
@@ -135,13 +148,91 @@ const extractBracketedSections_ = (str: string): { cli: string, brackets: string
     }
 
     const [inner, rightOuter] = splitTwo
-    return { cli: `${leftOuter} ${rightOuter}`, brackets: inner ?? null }
+    return { cli: `${leftOuter} ${rightOuter}`, brackets: inner ?? null, bracketed: inner ? `{${inner}}` : null }
 
 }
 
-export const parseCacheInstructions = (str: string) => {
 
-    const { cli, brackets } = extractBracketedSections_(str)
+/**
+ Prove that a cache result's index at indexName (e.g. commands or names)  matches (starts with) each target in order.
+*/
+const filterResult = (result: Cache, targets: string[], indexName: 'commands' | 'names') => {
+    // commands var is the input from first `-separated section. (array of strings at this point) minuse the first one, which we know already matches at this point.
+    // result is a cache entry, so result.commands is the commands index originally stored with it.  
+    if (!targets.length) return true
+
+    const ret = targets.filter((queryCmd, idx) => {
+        const test = result[indexName][idx]
+        if (test === undefined || queryCmd === undefined) {
+            return false
+        }
+        const tested = test.startsWith(queryCmd)
+        return tested
+    })
+
+    return ret.length === targets.length
+
+}
+
+const queryArrayIndex = async (targets: string[], indexName: 'commands' | 'names'): Promise<Cache[]> => {
+    const first = targets.shift()
+    const q = db.cache
+    const res = await q.where(indexName)
+        .startsWith(first)
+        .and((possResult) => {
+            return filterResult(possResult, [first, ...targets], indexName)
+        })
+        .toArray()
+    res.sort((a, b) => {
+        if (a.createdAt > b.createdAt) return 1
+        else if (a.createdAt < b.createdAt) return -1
+        return 0
+    })
+    return res
+}
+
+const filterOnArrayIndex = async (arr: Cache[], targets: string[], targetName: 'commands' | 'names') => {
+
+    return arr.filter(possResult => filterResult(possResult, targets, targetName))
+}
+
+const interpretQuery = async (query: CacheQuery): Promise<Cache[] | Cache | string> => {
+
+    const {
+        commands = [], names = [], _jq: filter = null
+    } = query
+
+    let res1: Cache[] = []
+    if (commands.length) {
+        res1 = await queryArrayIndex(commands, 'commands')
+        if (names.length) {
+            res1 = await filterOnArrayIndex(res1, names, 'names')
+        }
+
+    } else if (names.length) {
+        res1 = await queryArrayIndex(names, 'names')
+        console.log('no commands present! names')
+    }
+
+    if (res1.length === 0) return res1
+
+    if (filter !== null) {
+        console.log('filter passed:', filter)
+        const lowerFilter = filter.toLowerCase()
+        if (lowerFilter === 'first' || lowerFilter === 'f') {
+            return res1[0]
+        } else if (lowerFilter === 'last' || lowerFilter === 'l') {
+            return res1[res1.length - 1]
+        } else {
+            return jqEval(res1, filter)
+        }
+    }
+    return res1
+}
+
+export const parseCacheInstructions = async (str: string, defaultFilter: string | null = null) => {
+
+    const { cli, brackets, bracketed } = extractBracketedSections_(str)
     requireValidCacheInstructions(str)
     if (cli.includes('{') || cli.includes('}')) {
         throw new Error('Only one set of cache instructions is allowed for now.')
@@ -156,24 +247,27 @@ export const parseCacheInstructions = (str: string) => {
         return hasFoundOption === false
     })
 
-    const query = cacheInstructionsToQuery(brackets, initCmds)
-    return cli
+    const query = cacheInstructionsToQuery(brackets, initCmds, defaultFilter)
+    const res = await interpretQuery(query)
+    const strPatch = typeof res === 'object' ? JSON.stringify(res) : res
+    return str.replace(bracketed, strPatch)
 }
 
 export const jqEval = async (obj: any, query: string | undefined) => {
     if (query === undefined) return obj
-    return jq.run(query, obj, { input: 'json' })
+    const str = await jq.run(query, obj, { input: 'json' })
+    return JSON.parse(str)
 }
 
 export const put = async (entry: Entry) => {
+
     try {
         const { commands, names, _jq, value: valueIn } = entry
         const value = await jqEval(valueIn, _jq)
-        console.log('filtered val:', value)
-
         const createdAt = Date.now()
-        console.log('commands, names, date', commands, names, createdAt)
+        console.log('putting', value, ' at ', commands, names)
         return db.cache.put({ commands, names, value, createdAt })
+
     } catch (e) {
         console.error('Could not put new entry: ' + entry)
     }
@@ -184,11 +278,19 @@ export const cache = async (commands: string[], data: any, names: string[] = [],
 }
 
 export const where = async (query: Query) => {
-    const { commands, names, _jq } = query
-    const raw = await db.cache.where({ commands, names }).toArray()
-    console.log('raw:', raw)
-    const filtered = await jqEval(raw, _jq)
-    console.log('filtered:', filtered)
+    const { _jq } = query
+    const q_ = Object.entries(query).reduce((accum, [key, val]) => {
+        if (val && key !== '_jq') {
+            return { ...accum, [key]: val }
+        }
+        return accum
+    }, {})
+    console.log('jq:', _jq)
+    const raw = await db.cache.where(q_).toArray()
+    const arr = Object.values(raw)
+    console.log('arr', arr, ' jq:', _jq)
+    const filtered = await jqEval(arr, _jq)
+    console.log('filt', filtered)
     return filtered
 }
 /**
