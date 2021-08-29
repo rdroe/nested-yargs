@@ -8,6 +8,7 @@ const match: CommandModule = matchCmd
 
 // one-shot (default) nested runner.
 export default async (modules: CommandModule[]) => {
+
     yargs.usage("$0 command")
     const allModules: CommandModule[] = modules
     allModules.push(match)
@@ -17,12 +18,12 @@ export default async (modules: CommandModule[]) => {
 
     await Promise.all(moduleProms)
 
-    yargs.demand(1, "You must provide a valid command")
+    return yargs.demand(1, "You must provide a valid command")
         .help("h")
         .alias("h", "help")
         .argv
 
-    return true
+
 }
 
 export const repl = async (modules: CommandModule[]) => {
@@ -41,51 +42,56 @@ const harvestResults = async (awaited: Arguments<{ result: object }>): Promise<o
 }
 
 async function repl_(modules: CommandModule[], input: string = '') {
-
     const simArgv = stringArgv(input)
-    const universalOpts = {
-        'c:n':
-        {
-            alias: 'cache: names index',
-            global: true,
-            array: true,
-            describe: 'filter for estting cache address by names'
-        },
-        'c:c':
-        {
-            alias: 'cache: commands index',
-            global: true,
-            array: true,
-            describe: 'filter for setting cache address by commands'
+    try {
+
+        const universalOpts = {
+            'c:n':
+            {
+                alias: 'names',
+                global: true,
+                array: true,
+                describe: 'filter for estting cache address by names'
+            },
+            'c:c':
+            {
+                alias: 'commands',
+                global: true,
+                array: true,
+                describe: 'filter for setting cache address by commands'
+            }
         }
+        yargs
+            .options(universalOpts)
+            .exitProcess(false)
+            .usage("$0 command")
+
+        const allModules: CommandModule[] = modules
+        allModules.push(match)
+        const moduleProms = allModules.map(async (module: CommandModule) => yargs.command(module))
+
+        await Promise.all(moduleProms)
+
+        yargs
+            .exitProcess(false)
+            .demand(1,
+                "You must provide a valid command")
+            .help("h")
+            .alias("h", "help")
+
+    } catch (e) {
+        console.error('Error before parsing: ', e.message)
+        return { argv: {}, result: {} }
     }
-    yargs
-        .options(universalOpts)
-        .exitProcess(false)
-        .usage("$0 command")
-
-    const allModules: CommandModule[] = modules
-    allModules.push(match)
-    const moduleProms = allModules.map(async (module: CommandModule) => yargs.command(module))
-
-    await Promise.all(moduleProms)
-
-    yargs
-        .exitProcess(false)
-        .demand(1,
-            "You must provide a valid command")
-        .help("h")
-        .alias("h", "help")
-
 
     // Use the afterParse function to effect the yargs call; which requires a bit of specialized massaging to work asynchronously
     try {
         const parseRes: Arguments = await yargs.parseAsync(simArgv, {}, afterParse)
 
-        if (typeof parseRes.result !== 'object') throw new Error('no result is attached.')
+        if (typeof parseRes.result !== 'object') console.warn('Warning: string is attached as result.')
 
         const json = await harvestResults(parseRes as Arguments<{ result: object }>)
-
+        console.log(json)
         return { result: json, argv: parseRes }
     } catch (e) {
         console.error('Error!!' + e.message)

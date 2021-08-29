@@ -1,6 +1,4 @@
-
 import fetch from 'isomorphic-fetch'
-const domain = process.env.NESTED_YARGS_DOMAIN ?? 'http://localhost:8080'
 
 export type SaveRequest = {
     [key: string]: string | number | object
@@ -34,27 +32,20 @@ async function postData(url = '', data: SaveRequest, options: RequestInit) {
             body: JSON.stringify({ data })
         }, ...options
     });
-
     return response.json(); // parses JSON response into native JavaScript objects
 }
 
-export const post: postCall = (ep: string, queryParams: SaveRequest, options: RequestInit = {}) => {
-    const rqBase = `${domain}/${ep}`
+export const post: postCall = (rqBase: string, queryParams: SaveRequest, options: RequestInit = {}) => {
     return postData(rqBase, queryParams, options)
 }
 
-
-
-export const get: getCall = (ep: string, queryParams: QueryParams, options: RequestInit = {}) => {
-    const rqBase = `${domain}/${ep}`
+export const get: getCall = (rqBase: string, queryParams: QueryParams, options: RequestInit = {}) => {
     const concattedParams: string = Object.entries(queryParams).reduce(
         (accum: string, [key, val]: [string, string | number]) => {
 
             const separator = accum ? '&' : '?'
             return `${accum}${separator}${key}=${val}`
         }, '')
-
-    console.log('get request;', concattedParams)
 
     return fetch(`${rqBase}${concattedParams}`, options)
 }

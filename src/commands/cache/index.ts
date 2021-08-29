@@ -10,16 +10,17 @@ const command: Options = {
     type: 'array'
 }
 
-const name: Options = {
+const names: Options = {
     description: 'namespace name to get/put from/to',
     alias: 'c:n',
     type: 'array'
 }
 
-const _jq: Options = {
+const jq: Options = {
     description: 'query element to apply in put-able or entry object',
-    alias: 'jq',
-    type: 'string'
+    alias: 'j',
+    type: 'string',
+    default: '.'
 }
 
 const scalar: Options = {
@@ -27,6 +28,13 @@ const scalar: Options = {
     alias: 'v:s',
     type: 'array',
     default: []
+}
+
+const id: Options = {
+    description: 'for get, cache element id',
+    alias: 'i',
+    type: 'number',
+    default: -1
 }
 
 const object: Options = {
@@ -37,21 +45,20 @@ const object: Options = {
 }
 
 const action = async (argv: AppArguments) => {
-
     const {
         _: allCommands,
         'c:c': commands,
         'c:n': names,
         scalar,
         object,
-        _jq: jqQuery
+        jq: jqQuery
     } = argv
 
     if ((typeof allCommands === 'number' || typeof allCommands === 'string')) {
         throw new Error('One and only one command is required')
     }
     const [, ...subs] = allCommands
-    if (!subs || subs.length === undefined || subs.length !== 1) {
+    if (!subs || subs.length !== 1) {
         throw new Error('One and only one command is required')
     }
     const cmd = subs[0]
@@ -71,7 +78,6 @@ const action = async (argv: AppArguments) => {
     }
 
     const arrObject: any[] = []
-
     if (object.length > 0) {
         object.forEach((json) => {
             const obj = JSON.parse(json)
@@ -80,14 +86,22 @@ const action = async (argv: AppArguments) => {
     }
 
     if (cmd === 'get') {
+
         const query: Query = {
-            commands,
-            names,
+            commands: (commands && commands[0] && commands[0] === '*') ? '*' : commands || undefined,
+            names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,
             _jq: jqQuery
         }
+
+        if (typeof argv.id === 'number') {
+            query.id = argv.id
+        }
+
         argv.result = await where(query)
+
         return argv
     } else if (cmd === 'put') {
+
         const result = await Promise.all(
             arrObject
                 .concat(scalar ?? [])
@@ -115,7 +129,7 @@ const action = async (argv: AppArguments) => {
 const cm: CommandModule = {
     command: "cache",
     describe: 'put, get (etc) variables',
-    builder: { command, name, _jq, scalar, object },
+    builder: { command, names, jq, scalar, object, id },
     handler: async (a: AppArguments) => await action(a)
 }
 
