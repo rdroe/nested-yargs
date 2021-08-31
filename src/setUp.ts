@@ -1,4 +1,4 @@
-import yargs, { CommandModule, Arguments, Argv } from 'yargs'
+import yargs, { CommandModule, Arguments } from 'yargs'
 import { AppArguments } from './appTypes'
 import matchCmd from './commands/match'
 import stringArgv from 'string-argv'

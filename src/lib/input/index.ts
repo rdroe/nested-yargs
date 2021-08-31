@@ -10,7 +10,6 @@ const clearCurrent = (rl: readline.Interface) => {
 
 // At the level of stdin, listen to keypress to control e.g. history, etc.
 process.stdin.on('keypress', (ch, obj) => {
-
     let rl = curReadline
     let name = obj.name || null
     if (name === 'up') {
@@ -39,6 +38,12 @@ export const reader = (pr: string) => {
         prompt: pr
     })
     return rl
+}
+
+export const triggerInput = (inp = "brackets get -s 'i go'") => {
+
+    curReadline.write(inp)
+    curReadline.write("\n")
 }
 
 export const getInput = (pr: string, initialInput: string = ''): Promise<string> => {

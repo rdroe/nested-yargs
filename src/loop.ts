@@ -3,6 +3,18 @@ import { cache } from './hooks'
 import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
 
+const program: { enabled: boolean, array: string[] } = {
+    enabled: false,
+
+    array: []
+}
+
+export const setProgram = (prog: { enabled: boolean, array: string[] }) => {
+    program.enabled = prog.enabled
+
+    program.array = prog.array
+}
+
 const PROMPT = 'nyargs > '
 const JQ_DEFAULT = 'max_by(.createdAt).value'
 const containsInterrupt = (rawInput: string) => {
@@ -12,7 +24,7 @@ const containsInterrupt = (rawInput: string) => {
     return false
 }
 
-/** Given input verified by verifyAndExecuteCli, force the running of the typed command. The executor needs the command modules to be visible, so curried.
+/** Given input verified by verifyAndExecuteCli, force the running of the typed command. 
 */
 const getExecuteCli = async (modules: CommandModule[], yargsCaller: Function) => async (input: string): Promise<{ argv: any, result: any }> => {
 
@@ -38,13 +50,19 @@ const getExecuteCli = async (modules: CommandModule[], yargsCaller: Function) =>
 
 // This is the primary loop logic. it  makes use of the above direct executor function, but also runs the loop in which the executor and the verification is run repeatedly.
 async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, executor: (arg0: string) => Promise<any>): Promise<{ argv: object, result: object }> {
-
+    let rawInput: string
     // Obtain input and execute. 
     // If this is a recursion, with input already present, feed that forward. 
+    if (program.enabled === true && program.array.length) {
+        console.log('popping in loop')
+        rawInput = program.array.pop()
+    }
 
-    const rawInput = forwardedInput
-        ? await getInput(pr, forwardedInput)
-        : await getInput(pr)
+    if (typeof rawInput === 'undefined') {
+        rawInput = forwardedInput
+            ? await getInput(pr, forwardedInput)
+            : await getInput(pr)
+    }
 
     if (containsInterrupt(rawInput)) {
         return { result: {}, argv: {} }
