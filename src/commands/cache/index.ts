@@ -96,9 +96,7 @@ const action = async (argv: AppArguments) => {
         if (typeof argv.id === 'number') {
             query.id = argv.id
         }
-
         argv.result = await where(query)
-
         return argv
     } else if (cmd === 'put') {
 

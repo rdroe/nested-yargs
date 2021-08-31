@@ -5,13 +5,11 @@ import { getInput } from './lib/input'
 
 const program: { enabled: boolean, array: string[] } = {
     enabled: false,
-
     array: []
 }
 
 export const setProgram = (prog: { enabled: boolean, array: string[] }) => {
     program.enabled = prog.enabled
-
     program.array = prog.array
 }
 
@@ -51,11 +49,14 @@ const getExecuteCli = async (modules: CommandModule[], yargsCaller: Function) =>
 // This is the primary loop logic. it  makes use of the above direct executor function, but also runs the loop in which the executor and the verification is run repeatedly.
 async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, executor: (arg0: string) => Promise<any>): Promise<{ argv: object, result: object }> {
     let rawInput: string
+    let didUseProgram: boolean = false
     // Obtain input and execute. 
     // If this is a recursion, with input already present, feed that forward. 
     if (program.enabled === true && program.array.length) {
-        console.log('popping in loop')
-        rawInput = program.array.pop()
+
+        rawInput = program.array.shift()
+        console.log('program line:', rawInput)
+        didUseProgram = true
     }
 
     if (typeof rawInput === 'undefined') {
@@ -72,10 +73,12 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
     const input = await parseCacheInstructions(rawInput, JQ_DEFAULT)
 
     // If it is different (if cache-replacing was used) verify to run.
-    if (input !== rawInput) {
+    if (!didUseProgram && input !== rawInput) {
         return verifyAndExecuteCli(input, 'RUN AGUMENTED ? > ', executor) // loop, also giving chance to enter new input 
     } else {
-
+        if (didUseProgram && input !== rawInput) {
+            console.log('program line expanded: ', input)
+        }
         // if raw matches new, just replace.
         const ret = await executor(input)
 
