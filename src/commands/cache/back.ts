@@ -1,7 +1,5 @@
 import { AppArguments } from '../../appTypes'
 import { CommandModule } from 'yargs'
-// import { idb } from 'some-database'
-// import { serializedData } from 'some-serialized-data'
 import db from '../../lib/store'
 import { exportToJson } from '../../lib/idb-backup-and-restore.js'
 import fs from 'fs'
@@ -15,6 +13,11 @@ const cm: CommandModule = {
             alias: 'f',
             type: 'string',
             default: `back-${Date.now()}.json`
+        },
+        path: {
+            alias: 'p',
+            type: 'string',
+            default: `data/`
         }
     },
     handler: async (args: AppArguments) => {
@@ -28,11 +31,11 @@ const cm: CommandModule = {
 
         const dbBack = db.backendDB()
 
-
-        args.result = exportToJson(dbBack)
-            .then(async (dat) => {
-                fs.writeFileSync(args.filename, dat, 'utf8')
-            })
+        const fname = `${args.path}${args.filename}`
+        const dat = await exportToJson(dbBack)
+        fs.writeFileSync(fname, dat, 'utf8')
+        console.log(`wrote ${fname}`)
+        args.result = fname
         return args
     }
 

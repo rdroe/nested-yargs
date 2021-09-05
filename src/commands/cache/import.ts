@@ -10,8 +10,7 @@ const cm: CommandModule = {
     builder: {
         filename: {
             alias: 'f',
-            type: 'string',
-            default: `back-${Date.now()}.json`
+            type: 'string'
         },
         path: {
             alias: 'p',
@@ -32,9 +31,7 @@ const cm: CommandModule = {
         await clearDatabase(dbBack)
         args.result = await importFromJson(dbBack, file)
         return args
-
     }
-
 }
 
 export default cm

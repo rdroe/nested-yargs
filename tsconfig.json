@@ -8,7 +8,8 @@
 	"preserveConstEnums": true,
 	"sourceMap": true,
 	"outDir": "./dist",
-	"declaration": true
+	"declaration": true,
+	"allowJs": true
     },
     "watchOptions": {
 	"watchDirectory": "useFsEvents"
