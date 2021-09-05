@@ -1,7 +1,8 @@
 import { AppArguments } from '../../appTypes'
 import { Options, CommandModule } from 'yargs'
 import { Entry, Query, put, where, jqEval } from '../../lib/store'
-
+import back from './back'
+import * as imp from './import'
 const cmds = ['put', 'get', 'eval']
 
 const command: Options = {
@@ -123,12 +124,35 @@ const action = async (argv: AppArguments) => {
         return argv
     }
 }
+/*
+    builder: (yargs) => {
+        return yargs
+            .command({
+                command: "get [options]",
+                describe: "fetch brackets",
+                handler: getbr.action,
+                builder: getbr.options
 
+            })
+    },
+*/
 const cm: CommandModule = {
     command: "cache",
     describe: 'put, get (etc) variables',
-    builder: { command, names, jq, scalar, object, id },
-    handler: async (a: AppArguments) => await action(a)
+    builder: (yargs) => {
+        return yargs.
+            command(back).
+            command(imp.default).
+            options({
+                command,
+                names,
+                jq,
+                scalar,
+                object,
+                id
+            })
+    },
+    handler: (a: AppArguments) => action(a)
 }
 
 export default cm

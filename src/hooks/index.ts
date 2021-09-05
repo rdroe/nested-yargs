@@ -30,8 +30,7 @@ export const cache = async (argv: AppArguments, data: object) => {
     }
 
     // don't cache recusrively in case this was a cli call to a cache get or put.
-
-    if (argv._.includes('cache')) {
+    if ((argv._ || []).includes('cache')) {
         return
     }
 
