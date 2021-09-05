@@ -21,16 +21,13 @@ const cm: CommandModule = {
         }
     },
     handler: async (args: AppArguments) => {
-
         await db.cache.add({
             commands: ['la', 'tra'],
             names: ['fa', 're'],
             value: 1,
             createdAt: Date.now() - 4
         })
-
         const dbBack = db.backendDB()
-
         const fname = `${args.path}${args.filename}`
         const dat = await exportToJson(dbBack)
         fs.writeFileSync(fname, dat, 'utf8')
