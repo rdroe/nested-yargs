@@ -32,6 +32,8 @@ export type AppArguments = Arguments<{
     left: (string | number)[],  // match arg
     right: (string | number)[],  // match arg
     f: string,
-    filename: string
+    filename: string,
+    p: string,
+    path: string
 
 }>

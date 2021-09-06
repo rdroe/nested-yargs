@@ -1,9 +1,7 @@
 import { AppArguments } from '../../appTypes'
 import { CommandModule } from 'yargs'
 import db from '../../lib/store'
-import { importFromJson, clearDatabase } from '../../lib/idb-backup-and-restore'
-import fs from 'fs'
-
+import { importDb } from '../../hooks'
 const cm: CommandModule = {
     command: 'import [filename]',
     describe: 'read to cache from a json file',
@@ -15,7 +13,7 @@ const cm: CommandModule = {
         path: {
             alias: 'p',
             type: 'string',
-            default: `data/`
+            default: 'data'
         }
     },
     handler: async (args: AppArguments) => {
@@ -25,12 +23,8 @@ const cm: CommandModule = {
             value: 1,
             createdAt: Date.now() - 1
         })
-
-        const file = fs.readFileSync(`${args.path}/${args.filename}`, 'utf8')
-        const dbBack = db.backendDB()
-        await clearDatabase(dbBack)
-        args.result = await importFromJson(dbBack, file)
-        return args
+        args.result = await importDb(args.path, args.filename, db.backendDB())
+        return args.result
     }
 }
 
