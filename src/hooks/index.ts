@@ -4,6 +4,8 @@ import { dbPath } from '../lib/util'
 import fs from 'fs'
 import { importFromJson, clearDatabase, exportToJson } from '../lib/idb-backup-and-restore'
 import shelljs from 'shelljs'
+
+
 export const context: {
     [props: string]: null | Function | Promise<any>
 } = {
@@ -59,6 +61,7 @@ export default hooks
 export const add = (name: string, hook: Function) => {
     hooks[name] = hook
 }
+
 
 
 export async function importDb(path: string, f: string, dbBack: IDBDatabase): Promise<string> {

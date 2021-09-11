@@ -51,12 +51,14 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
     let rawInput: string
     let didUseProgram: boolean = false
     // Obtain input and execute. 
-    // If this is a recursion, with input already present, feed that forward. 
-    if (program.enabled === true && program.array.length) {
+    // If this is a recursion, with input already present, feed that forward.
 
+    // If a program is being run, take the next line (if there is one)
+    // as the user command.
+    if (program.enabled === true && program.array.length) {
         rawInput = program.array.shift()
         console.log('program line:', rawInput)
-        didUseProgram = true
+        didUseProgram = true // track that a program was used; may need to treat it specially on expansion.
     }
 
     if (typeof rawInput === 'undefined') {

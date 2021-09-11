@@ -1,5 +1,5 @@
 import setUp from './src/setUp'
-import hooks_ from './src/hooks'
+import * as hooks_ from './src/hooks'
 import cache_ from './src/commands/cache'
 export const cache = cache_
 export default setUp

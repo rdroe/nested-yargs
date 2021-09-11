@@ -176,14 +176,25 @@ const filterOnArrayIndex = async (arr: Cache[], targets: string[] | '*', targetN
 
     return arr.filter(possResult => filterResult(possResult, targets, targetName))
 }
+type JsonQueryInterpretation = Cache[] | Cache | string | null
 
-const interpretQuery = async (query: CacheQuery): Promise<Cache[] | Cache | string> => {
+const interpretQueryAsLodash = async (filter: string, res1: Cache[]): Promise<JsonQueryInterpretation> => {
+    const lowerFilter = filter.toLowerCase()
+    if (lowerFilter === 'first' || lowerFilter === 'f') {
+        return res1[0]
+    } else if (lowerFilter === 'last' || lowerFilter === 'l') {
+        return res1[res1.length - 1]
+    } else return null
+}
+
+const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretation> => {
 
     const {
         commands = [], names = [], _jq: filter = null
     } = query
 
     let res1: Cache[] = []
+
     if (commands.length) {
         res1 = await queryArrayIndex(commands, 'commands')
         if (names.length) {
@@ -192,17 +203,14 @@ const interpretQuery = async (query: CacheQuery): Promise<Cache[] | Cache | stri
 
     } else if (names.length) {
         res1 = await queryArrayIndex(names, 'names')
-
     }
 
     if (res1.length === 0) return res1
 
     if (filter !== null) {
-        const lowerFilter = filter.toLowerCase()
-        if (lowerFilter === 'first' || lowerFilter === 'f') {
-            return res1[0]
-        } else if (lowerFilter === 'last' || lowerFilter === 'l') {
-            return res1[res1.length - 1]
+        const lodashRes = interpretQueryAsLodash(filter, res1)
+        if (lodashRes !== null) {
+            return lodashRes
         } else {
             return jqEval(res1, filter)
         }
@@ -233,33 +241,56 @@ export const parseCacheInstructions = async (str: string, defaultFilter: string 
     return str.replace(bracketed, strPatch)
 }
 
-export const jqEval = async (obj: any, query: string | undefined
+export const jqEval = async (obj: object, query: string | undefined
     | null) => {
+
     if (typeof query !== 'string') return obj
+
+    // disallow non-object ...
+    if (typeof obj !== 'object') {
+        // except if identity.
+        if (query === '.') return obj
+    }
+
     const str = await jq.run(query, obj, { input: 'json' })
     return JSON.parse(str)
 }
 
+const firstLines = (entry: object) => {
+    if (!entry) return '(falsy entry)'
+    return JSON.stringify(entry, null, 2).split('\n').slice(0, 5).join('\n')
+}
 
 
 export const put = async (entry: Entry) => {
+    let filtered: Cache
 
     try {
         const { commands, names, _jq, value: valueIn } = entry
         const value = await jqEval(valueIn, _jq)
         const createdAt = Date.now()
         const props: Cache = { commands, names, value, createdAt }
-        const filtered: Cache = Object.entries(props)
+        filtered = Object.entries(props)
             .reduce((accum, [key, val]) => {
                 if (val !== undefined && val !== null) {
                     return { ...accum, [key]: val }
                 }
                 return accum
             }, {}) as Cache
+
         return db.cache.put(filtered)
 
     } catch (e) {
-        console.error('Could not put new entry: ' + entry)
+        const message = `Could not put new entry into uidb.cache.
+${firstLines(entry)} ...
+
+internal query data (if we made it that far): 
+${firstLines(filtered)}
+
+Db error:
+${e.message}
+`
+        console.error(message)
     }
 }
 
