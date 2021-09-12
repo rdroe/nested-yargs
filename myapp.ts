@@ -2,9 +2,9 @@
 
 // import ny from './index'
 import { repl } from './index'
-import testModule from './src/commands/testModule/index'
+import match from './src/commands/match'
 
 
-repl([ testModule ])
+repl([ match ])
 
 // replNy([testModule], 'testcli --help')

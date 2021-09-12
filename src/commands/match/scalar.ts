@@ -1,4 +1,4 @@
-import { Options } from 'yargs'
+import { Options, Argv } from 'yargs'
 import { AppOptions, Action, AppArguments } from '../../appTypes'
 
 const left: Options = {
@@ -15,9 +15,11 @@ const right: Options = {
     type: 'array'
 }
 
-export const builder: AppOptions = {
-    left,
-    right
+export const builder = (yargs: Argv) => {
+    return yargs.options({
+        left,
+        right
+    }).help('h').alias('h', 'help')
 }
 
 export const command = 'scalar [options]'
@@ -34,7 +36,8 @@ const action: Action = async (argv: AppArguments) => {
             right: rt
         }
     })
-    return results
+    argv.result = results
+    return argv
 }
 
 export const handler = async (args: AppArguments) => {

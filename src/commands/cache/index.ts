@@ -34,8 +34,7 @@ const scalar: Options = {
 const id: Options = {
     description: 'for get, cache element id',
     alias: 'i',
-    type: 'number',
-    default: -1
+    type: 'number'
 }
 
 const object: Options = {
@@ -100,7 +99,6 @@ const action = async (argv: AppArguments) => {
         argv.result = await where(query)
         return argv
     } else if (cmd === 'put') {
-
         const result = await Promise.all(
             arrObject
                 .concat(scalar ?? [])

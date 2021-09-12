@@ -20,7 +20,7 @@ const hooks: {
 }
 
 export const cache = async (argv: AppArguments, data: object) => {
-
+    console.log('cache argv', argv, data)
     if (!argv || data === undefined) {
         return
     }

@@ -9,7 +9,7 @@ const cm: CommandModule = {
 
     },
     builder: async (yargs: Argv) => {
-        return yargs.command(scalar)
+        return yargs.command(scalar).help('help').alias('help', 'h')
     }
 }
 

@@ -196,8 +196,10 @@ const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretatio
     let res1: Cache[] = []
 
     if (commands.length) {
+
         res1 = await queryArrayIndex(commands, 'commands')
         if (names.length) {
+
             res1 = await filterOnArrayIndex(res1, names, 'names')
         }
 
@@ -208,7 +210,8 @@ const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretatio
     if (res1.length === 0) return res1
 
     if (filter !== null) {
-        const lodashRes = interpretQueryAsLodash(filter, res1)
+        const lodashRes = await interpretQueryAsLodash(filter, res1)
+
         if (lodashRes !== null) {
             return lodashRes
         } else {
