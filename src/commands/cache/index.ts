@@ -1,9 +1,9 @@
 import { AppArguments, Module } from '../../appTypes'
-import { Options, CommandModule } from 'yargs'
+import { Options } from 'yargs'
 import { Entry, Query, put, where, jqEval } from '../../lib/store'
 import back from './back'
 import * as imp from './import'
-const cmds = ['put', 'get', 'eval']
+
 
 const command: Options = {
     description: 'namespace command to get/put from/to',
@@ -53,7 +53,7 @@ const action = async (argv: AppArguments) => {
         object,
         jq: jqQuery
     } = argv
-    console.log('argv', argv)
+
     if ((typeof allCommands === 'number' || typeof allCommands === 'string')) {
         throw new Error('One and only one command is required')
     }
@@ -101,7 +101,6 @@ const action = async (argv: AppArguments) => {
             arrObject
                 .concat(scalar ?? [])
                 .map((ev) => {
-
                     const entry: Entry = {
                         commands,
                         names,
@@ -141,5 +140,6 @@ const cm: Module = {
         id
     }
 }
+
 export default cm
 

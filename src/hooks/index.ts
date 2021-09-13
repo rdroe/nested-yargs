@@ -5,7 +5,6 @@ import fs from 'fs'
 import { importFromJson, clearDatabase, exportToJson } from '../lib/idb-backup-and-restore'
 import shelljs from 'shelljs'
 
-
 export const context: {
     [props: string]: null | Function | Promise<any>
 } = {
@@ -19,8 +18,8 @@ const hooks: {
     resolver: null
 }
 
-export const cache = async (argv: AppArguments, data: object) => {
-    console.log('cache argv', argv, data)
+const cacheResult = async (argv: AppArguments, data: object) => {
+
     if (!argv || data === undefined) {
         return
     }
@@ -55,6 +54,23 @@ export const cache = async (argv: AppArguments, data: object) => {
 
     await put(entry)
 }
+
+export const cache = async (argv: AppArguments, data: { isMultiResult?: boolean, list: { [commandStr: string]: any } }) => {
+
+    if (!data.isMultiResult || !data.list) {
+        return cacheResult(argv, data)
+    }
+    const proms = Object.entries(data.list)
+        .map(([commandStr, cacheable]) => {
+            console.log('commandStr, cacheable', commandStr, cacheable)
+            return cacheResult(
+                { ...argv, 'c:c': commandStr.split(' ') },
+                cacheable
+            )
+        })
+    return Promise.all(proms)
+}
+
 
 export default hooks
 

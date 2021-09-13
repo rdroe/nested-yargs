@@ -81,9 +81,10 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
         if (didUseProgram && input !== rawInput) {
             console.log('program line expanded: ', input)
         }
+
         // if raw matches new, just replace.
         const ret = await executor(input)
-        console.log('calling cache', ret)
+        console.log('results:', ret.result)
         // look at the arguments and results, cache if appropriate.
         await cache(ret.argv, ret.result)
 
