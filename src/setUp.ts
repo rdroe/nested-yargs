@@ -25,7 +25,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                 fn,
                 yargs: yOpts = {}
             } = accum.layer[curr]
-
+            // Accumulate yargs options. This way, subcommands get parent opts, but children can override. (Positional arguments may be complicated; but possibly not.) 
             yargsOptions = { ...yargsOptions, ...yOpts }
             // create the key at which results will eventually be stored, should a function be called and return data. 
             const newNs = `${accum.currentNamespace} ${curr}`.trim()
@@ -68,6 +68,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         currentNamespace: ''
     })
 
+    // With the functions sort of cued up and wrapped with the correct command name and the correct argument set, now map through them and call each.
     if (Object.entries(reduced.fn).length > 0) {
         const mappedResults: {
             [namespace: string]: any
@@ -76,7 +77,9 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
             Object.entries(reduced.fn)
                 .map(async ([key, someFn]) => {
                     try {
+                        // call the enclosed fn + arguments packet
                         const r = await someFn()
+                        // if a result stow it.
                         if (r !== undefined) {
                             mappedResults[key] = r
                         }
@@ -85,14 +88,18 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                         console.error(e.stack)
                     }
                 })
+        // notice that as of this iteration, the parent could get called before children, or in any order.
         await Promise.all(proms)
         const resultCnt = Object.values(mappedResults).length
+        // depending on result count, the result should be structured differently.
+        // nonetheless, each result will be cached appropriately
         if (resultCnt === 1) {
             return Object.values(mappedResults)[0]
         }
         if (resultCnt === 0) {
             return {}
         }
+        // structure this with isMultiResult and list so that, later in nyargs loop.ts and in the cache hook, data gets appraised by caching module and properly stowed later on. 
         return { isMultiResult: true, list: mappedResults }
     }
 

@@ -44,9 +44,6 @@ const object: Options = {
     default: []
 }
 
-
-
-
 const cm: Module = {
     help: {
         commands: {
