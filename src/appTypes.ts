@@ -10,9 +10,26 @@ export interface Action {
     (argv: AppArguments): void
 }
 
-
 export type AppArgv = {
     [arg: string]: string | number | Array<string | number>
+}
+
+export interface Modules {
+    [moduleName: string]: Module
+}
+
+export interface Module {
+    fn: Function,
+    help: {
+        options: object,
+        commands: object,
+        examples?: {
+        }
+    },
+    yargs?: {
+        [optName: string]: Options
+    }
+    submodules?: Modules
 }
 
 export type AppArguments = Arguments<{
@@ -35,5 +52,4 @@ export type AppArguments = Arguments<{
     filename: string,
     p: string,
     path: string
-
 }>

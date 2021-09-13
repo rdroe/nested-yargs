@@ -1,45 +1,56 @@
-import { Options, Argv } from 'yargs'
-import { AppOptions, Action, AppArguments } from '../../appTypes'
+import { Module } from '../../appTypes'
 
-const left: Options = {
-    alias: 'l',
-    description: 'left matchable',
-    demandOption: true,
-    type: 'array'
-}
-
-const right: Options = {
-    alias: 'r',
-    description: 'right matchable',
-    demandOption: true,
-    type: 'array'
-}
-
-export const builder = (yargs: Argv) => {
-    return yargs.options({
-        left,
-        right
-    }).help('h').alias('h', 'help')
-}
-
-export const command = 'scalar [options]'
-export const describe = 'test and log whether -l (scalar) matches -r (scalar) with ==='
-
-const action: Action = async (argv: AppArguments) => {
-    const { left, right } = argv
-    const results = left.map((l, idx) => {
-        const rt = right[idx]
-        return {
-            index: idx,
-            match: l === rt,
-            left: l,
-            right: rt
+const cm: Module = {
+    help: {
+        commands: {
+            $: 'test whether the supplied scalar pairs are equal'
+        },
+        options: {
+            'l (left)': 'comparison value',
+            'r (right)': 'comparison value'
+        },
+        examples: {
+            '-l 1 2 3 -r 1 2 4': 'test whether 1 equals 1, 2 equals 2, and 3 equals 4; output contains a map and list of equalities.'
         }
-    })
-    argv.result = results
-    return argv
+    },
+    fn: async function scalarMatch(argv: { l: any, r: any }) {
+        console.log('argv in sm', argv)
+        let left: any[]
+        let right: any[]
+        const { l, r } = argv
+        if (typeof l !== 'object') {
+            left = [l]
+        } else {
+            left = l
+        }
+        if (typeof r !== 'object') {
+            right = [r]
+        } else {
+            right = r
+        }
+
+        return left.map((ll, idx) => {
+            const rt = right[idx]
+            return {
+                index: idx,
+                match: ll === rt,
+                left: ll,
+                right: rt
+            }
+        })
+    },
+    yargs: {
+        l: {
+            alias: 'left',
+            array: true
+        },
+        r: {
+            alias: 'right',
+            array: true
+        }
+    }
 }
 
-export const handler = async (args: AppArguments) => {
-    return action(args)
-}
+
+
+export default cm

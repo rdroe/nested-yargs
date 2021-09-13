@@ -2,7 +2,7 @@ import { CommandModule } from 'yargs'
 import { cache } from './hooks'
 import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
-
+import { Module, Modules } from './appTypes'
 const program: { enabled: boolean, array: string[] } = {
     enabled: false,
     array: []
@@ -24,7 +24,7 @@ const containsInterrupt = (rawInput: string) => {
 
 /** Given input verified by verifyAndExecuteCli, force the running of the typed command. 
 */
-const getExecuteCli = async (modules: CommandModule[], yargsCaller: Function) => async (input: string): Promise<{ argv: any, result: any }> => {
+const getExecuteCli = async (modules: Modules, yargsCaller: Function) => async (input: string): Promise<{ argv: any, result: any }> => {
 
     let result: any
     let argv: any
@@ -92,8 +92,13 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
     }
 }
 
+export type Executor = (modules: Modules, input: string) => Promise<any>
+
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
-const repl = async (modules: CommandModule[], yargsCaller: (modules: CommandModule[], input: string) => Promise<any>) => {
+const repl = async (
+    modules: Modules,
+    yargsCaller: Executor
+) => {
 
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior. 
     const executeCli = await getExecuteCli(modules, yargsCaller)

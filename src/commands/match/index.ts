@@ -1,17 +1,30 @@
 
-import { CommandModule, Argv } from 'yargs'
-import * as scalar from './scalar'
+import { Argv } from 'yargs'
+import { Module } from '../../appTypes'
+import scalar from './scalar'
 
-const cm: CommandModule = {
-    command: 'match',
-    describe: 'test whether arguments do match',
-    handler: async () => {
-
+const cm: Module = {
+    help: {
+        commands: {
+            '$': 'test whether specified option values are equal'
+        },
+        options: {
+        },
+        examples: {
+        }
     },
-    builder: async (yargs: Argv) => {
-        return yargs.command(scalar).help('help').alias('help', 'h')
+    fn: async function match(args: Argv) {
+        console.log('Running 1+ matches...')
+    },
+    submodules: {
+        scalar
     }
 }
 
 export default cm
 
+/**
+To  replace yargs as engine:
+- for imported array, enhash description properties of arguments and subcommands.
+- write a 'help' function, explicitly
+**/

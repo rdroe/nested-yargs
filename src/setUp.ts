@@ -1,113 +1,66 @@
-import yargs, { CommandModule, Arguments } from 'yargs'
-import { AppArguments } from './appTypes'
-import matchCmd from './commands/match'
+import yargs from 'yargs'
+import { Modules } from './appTypes'
 import stringArgv from 'string-argv'
-import loop from './loop'
+import loop, { Executor } from './loop'
 
-const match: CommandModule = matchCmd
+export default () => { }
 
-// one-shot (default) nested runner.
-export default async (modules: CommandModule[]) => {
+const lookUpAndCall = async (modules: Modules, input: string[], commands: (number | string)[]): Promise<any> => {
 
-    yargs.usage("$0 command")
-    const allModules: CommandModule[] = modules
-    allModules.push(match)
-    const moduleProms = allModules.map(async (module: CommandModule) => {
-        return yargs.command(module)
-    })
+    let yargsOptions = {}
+    let lastCommandFound = false
+    const reduced: {
+        layer: any,
+        help: any,
+        fn: Function[]
+    } = commands.reduce((accum, curr) => {
 
-    await Promise.all(moduleProms)
+        if (accum.layer[curr] && !lastCommandFound) {
+            const { submodules, help, fn, yargs: yOpts = {} } = accum.layer[curr]
+            yargsOptions = { ...yargsOptions, ...yOpts }
 
-    return yargs.demand(1, "You must provide a valid command")
-        .help("h")
-        .alias("h", "help")
-        .argv
-
-
-}
-
-export const repl = async (modules: CommandModule[]) => {
-    return await loop(modules, repl_)
-}
-
-
-const harvestResults = async (awaited: Arguments<{ result: object }>): Promise<object> => {
-    // For now, the imported  modules must always assign "result" on the argv object, which we process here.
-    // This is a bit of a hack ; not sure how to return the result properly by means of yargs calls to Command module submodules
-    const json =
-        awaited.result
-
-    delete awaited.result
-    return json
-}
-
-async function repl_(modules: CommandModule[], input: string = '') {
-    const simArgv = stringArgv(input)
-    try {
-
-        const universalOpts = {
-            'c:n':
-            {
-                alias: 'names',
-                global: true,
-                array: true,
-                describe: 'filter for estting cache address by names'
-            },
-            'c:c':
-            {
-                alias: 'commands',
-                global: true,
-                array: true,
-                describe: 'filter for setting cache address by commands'
+            return {
+                layer: submodules ?? accum.layer,
+                help,
+                fn: (fn) ? [
+                    ...accum.fn,
+                    () => fn(yargs(input).options(yargsOptions).argv)
+                ] : accum.fn
             }
         }
-        yargs
-            .options(universalOpts)
-            .exitProcess(false)
-            .usage("$0 command")
+        lastCommandFound = true
+        return accum
+    }, {
+        layer: modules,
+        help: null,
+        fn: []
+    })
 
-        const allModules: CommandModule[] = modules
-        allModules.push(match)
-        const moduleProms = allModules.map(async (module: CommandModule) => yargs.command(module))
-
-        await Promise.all(moduleProms)
-
-        yargs
-            .exitProcess(false)
-            .demand(1,
-                "You must provide a valid command")
-            .help("h")
-            .alias("h", "help")
-
-    } catch (e) {
-        console.error('Error before parsing: ', e.message)
-        return { argv: {}, result: {} }
+    if (reduced.fn.length > 0) {
+        const proms =
+            reduced.fn.map(async (someFn) => {
+                try {
+                    const r = await someFn()
+                    return r
+                } catch (e) {
+                    console.error(e.message)
+                    console.error(e.stack)
+                }
+            })
+        const allResults = await Promise.all(proms)
+        console.log('all', allResults)
+        return { results: allResults }
     }
 
-    // Use the afterParse function to effect the yargs call; which requires a bit of specialized massaging to work asynchronously
-    try {
-        const parseRes: Arguments = await yargs.parseAsync(simArgv, {}, afterParse)
-
-        if (typeof parseRes.result !== 'object') console.warn('Warning: string is attached as result.')
-
-        const json = await harvestResults(parseRes as Arguments<{ result: object }>)
-        console.log(json)
-        return { result: json, argv: parseRes }
-    } catch (e) {
-        console.error('Error!!' + e.message)
-        return ({ result: { message: e.message }, argv: {} })
-    }
+    return reduced
 }
 
-/* 
-   Helper function that finished up yargs parsing 
-*/
-async function afterParse(err: Error, arg2: Arguments<AppArguments>): Promise<Arguments<AppArguments>> {
+export const caller: Executor = async (modules: Modules, input: string) => {
+    const simArgv = stringArgv(input)
+    const commands = (await yargs(simArgv).argv)._
+    return lookUpAndCall(modules, simArgv, commands)
+}
 
-    if (err) {
-        console.error('Error during yargs-based parsing: ', err.message)
-        return ({ ...arg2, result: { message: err.message } })
-    }
-
-    return arg2
+export const repl = async (modules: Modules) => {
+    return await loop(modules, caller)
 }
