@@ -48,17 +48,18 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                 }
             })
         const allResults = await Promise.all(proms)
-        console.log('all', allResults)
-        return { results: allResults }
+        return allResults
     }
 
-    return reduced
+    return {}
 }
 
 export const caller: Executor = async (modules: Modules, input: string) => {
     const simArgv = stringArgv(input)
-    const commands = (await yargs(simArgv).argv)._
-    return lookUpAndCall(modules, simArgv, commands)
+    const argv = await (yargs(simArgv).argv)
+    const commands = argv._
+    const result = await lookUpAndCall(modules, simArgv, commands)
+    return { argv, result }
 }
 
 export const repl = async (modules: Modules) => {

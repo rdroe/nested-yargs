@@ -1,4 +1,4 @@
-import { AppArguments } from '../../appTypes'
+import { AppArguments, Module } from '../../appTypes'
 import { Options, CommandModule } from 'yargs'
 import { Entry, Query, put, where, jqEval } from '../../lib/store'
 import back from './back'
@@ -53,7 +53,7 @@ const action = async (argv: AppArguments) => {
         object,
         jq: jqQuery
     } = argv
-
+    console.log('argv', argv)
     if ((typeof allCommands === 'number' || typeof allCommands === 'string')) {
         throw new Error('One and only one command is required')
     }
@@ -86,7 +86,6 @@ const action = async (argv: AppArguments) => {
     }
 
     if (cmd === 'get') {
-
         const query: Query = {
             commands: (commands && commands[0] && commands[0] === '*') ? '*' : commands || undefined,
             names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,
@@ -96,10 +95,9 @@ const action = async (argv: AppArguments) => {
         if (typeof argv.id === 'number') {
             query.id = argv.id
         }
-        argv.result = await where(query)
-        return argv
+        return where(query)
     } else if (cmd === 'put') {
-        const result = await Promise.all(
+        return Promise.all(
             arrObject
                 .concat(scalar ?? [])
                 .map((ev) => {
@@ -112,46 +110,36 @@ const action = async (argv: AppArguments) => {
                     }
                     return put(entry)
                 }))
-        argv.result = result
-        return argv
+
     } else if (cmd === 'eval') {
-        const result = await Promise.all(arrObject.map(async (obj) => {
+        return Promise.all(arrObject.map(async (obj) => {
             await jqEval(obj, jqQuery)
         }))
-        argv.result = result
-        return argv
+
     }
 }
-/*
-    builder: (yargs) => {
-        return yargs
-            .command({
-                command: "get [options]",
-                describe: "fetch brackets",
-                handler: getbr.action,
-                builder: getbr.options
 
-            })
+
+const cm: Module = {
+    help: {
+        commands: {
+            $: 'put, get cache vars, etc.'
+        },
+        options: {
+
+        },
+        examples: {
+        }
     },
-*/
-const cm: CommandModule = {
-    command: "cache",
-    describe: 'put, get (etc) variables',
-    builder: (yargs) => {
-        return yargs.
-            command(back).
-            command(imp.default).
-            options({
-                command,
-                names,
-                jq,
-                scalar,
-                object,
-                id
-            })
-    },
-    handler: (a: AppArguments) => action(a)
+    fn: action,
+    yargs: {
+        command,
+        names,
+        jq,
+        scalar,
+        object,
+        id
+    }
 }
-
 export default cm
 

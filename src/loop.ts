@@ -83,7 +83,7 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
         }
         // if raw matches new, just replace.
         const ret = await executor(input)
-
+        console.log('calling cache', ret)
         // look at the arguments and results, cache if appropriate.
         await cache(ret.argv, ret.result)
 
@@ -92,7 +92,7 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
     }
 }
 
-export type Executor = (modules: Modules, input: string) => Promise<any>
+export type Executor = (modules: Modules, input: string) => Promise<{ argv: any, result: any }>
 
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
 const repl = async (
