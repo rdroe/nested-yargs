@@ -1,10 +1,10 @@
-import { AppArguments, Module } from '../../appTypes'
+import { Module } from '../../appTypes'
 import { Options } from 'yargs'
-import { Entry, Query, put, where, jqEval } from '../../lib/store'
+import get from './get'
 import back from './back'
-import * as imp from './import'
-
-
+import put from './put'
+import eval from './eval'
+import imp from './import'
 const command: Options = {
     description: 'namespace command to get/put from/to',
     alias: 'c:c',
@@ -44,85 +44,13 @@ const object: Options = {
     default: []
 }
 
-const action = async (argv: AppArguments) => {
-    const {
-        _: allCommands,
-        'c:c': commands,
-        'c:n': names,
-        scalar,
-        object,
-        jq: jqQuery
-    } = argv
 
-    if ((typeof allCommands === 'number' || typeof allCommands === 'string')) {
-        throw new Error('One and only one command is required')
-    }
-    const [, ...subs] = allCommands
-    if (!subs || subs.length !== 1) {
-        throw new Error('One and only one command is required')
-    }
-    const cmd = subs[0]
-    const isStringOrNumber = (arg: string | number | (string | number)[]) => {
-        if (typeof arg === 'number' || typeof arg === 'string') {
-            return true
-        }
-        return false
-    }
-
-    if (isStringOrNumber(commands)) {
-        throw new Error('String / number is not allowed; only string[]')
-    }
-
-    if (isStringOrNumber(names)) {
-        throw new Error('String / number is not allowed; only string[]')
-    }
-
-    const arrObject: any[] = []
-    if (object.length > 0) {
-        object.forEach((json) => {
-            const obj = JSON.parse(json)
-            arrObject.push(obj)
-        })
-    }
-
-    if (cmd === 'get') {
-        const query: Query = {
-            commands: (commands && commands[0] && commands[0] === '*') ? '*' : commands || undefined,
-            names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,
-            _jq: jqQuery
-        }
-
-        if (typeof argv.id === 'number') {
-            query.id = argv.id
-        }
-        return where(query)
-    } else if (cmd === 'put') {
-        return Promise.all(
-            arrObject
-                .concat(scalar ?? [])
-                .map((ev) => {
-                    const entry: Entry = {
-                        commands,
-                        names,
-                        value: ev,
-                        _jq: jqQuery
-                    }
-                    return put(entry)
-                }))
-
-    } else if (cmd === 'eval') {
-        return Promise.all(arrObject.map(async (obj) => {
-            await jqEval(obj, jqQuery)
-        }))
-
-    }
-}
 
 
 const cm: Module = {
     help: {
         commands: {
-            $: 'put, get cache vars, etc.'
+            $: 'put, get cache vars; also, save or import the backupd cache databases.'
         },
         options: {
 
@@ -130,7 +58,9 @@ const cm: Module = {
         examples: {
         }
     },
-    fn: action,
+    fn: async () => {
+        console.log('Cache operation hub.')
+    },
     yargs: {
         command,
         names,
@@ -138,6 +68,13 @@ const cm: Module = {
         scalar,
         object,
         id
+    },
+    submodules: {
+        get,
+        put,
+        eval,
+        back,
+        import: imp
     }
 }
 

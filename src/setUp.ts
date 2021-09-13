@@ -9,6 +9,8 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
 
     let yargsOptions = {}
     let lastCommandFound = false
+    // The main function is a reducer that ongoingly replaces accumulated state with the pinnacle function call; e.g. 'match scalar' must be arrived at by stacked module-to-submodule transition.
+    // At each stage, the parent functions are called as well. The respective promises are tracked by key-value pair per module name.
     const reduced: {
         layer: any,
         help: any,
@@ -25,17 +27,38 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
             } = accum.layer[curr]
 
             yargsOptions = { ...yargsOptions, ...yOpts }
+            // create the key at which results will eventually be stored, should a function be called and return data. 
             const newNs = `${accum.currentNamespace} ${curr}`.trim()
             return {
                 layer: submodules ?? accum.layer,
                 help,
                 fn: (fn) ? {
                     ...accum.fn,
-                    [newNs]: () => fn(yargs(input).options(yargsOptions).argv)
+                    [newNs]: async () => {
+                        // for each call, we need to put yargs into the appropriate state.
+                        // part of that is extracting the positional arguments at this stage, since we are discarding yargs' management of the subcommand / positional arg distinction. (This is for use with lists of non-dash arguments)
+                        const opts1 =
+                            await yargs(input)
+                                .options(yargsOptions)
+                                .argv
+
+                        const cmdDepth = newNs.split(' ').length
+                        const positional = opts1._.slice(cmdDepth)
+                        const underscore = opts1._.slice(0, cmdDepth)
+                        return fn({
+                            ...opts1,
+                            positional,
+                            // set underscore to be the converse.
+                            // otherwise, all non-dash elements are in _
+                            _: underscore
+                        })
+                    }
                 } : accum.fn,
                 currentNamespace: newNs
             }
         }
+        // we arrive here if a non-command--but also a non-option--is found.
+        // in yargs, a "positional argument".
         lastCommandFound = true
         return accum
     }, {
@@ -63,8 +86,12 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                     }
                 })
         await Promise.all(proms)
-        if (Object.values(mappedResults).length === 1) {
+        const resultCnt = Object.values(mappedResults).length
+        if (resultCnt === 1) {
             return Object.values(mappedResults)[0]
+        }
+        if (resultCnt === 0) {
+            return {}
         }
         return { isMultiResult: true, list: mappedResults }
     }

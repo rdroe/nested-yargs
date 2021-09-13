@@ -1,5 +1,3 @@
-
-import { Argv } from 'yargs'
 import { Module } from '../../appTypes'
 import scalar from './scalar'
 
@@ -13,7 +11,7 @@ const cm: Module = {
         examples: {
         }
     },
-    fn: async function match(args: Argv) {
+    fn: async function match() {
         console.log('Running 1+ matches...')
     },
     submodules: {
@@ -22,9 +20,3 @@ const cm: Module = {
 }
 
 export default cm
-
-/**
-To  replace yargs as engine:
-- for imported array, enhash description properties of arguments and subcommands.
-- write a 'help' function, explicitly
-**/

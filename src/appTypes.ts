@@ -51,5 +51,6 @@ export type AppArguments = Arguments<{
     f: string,
     filename: string,
     p: string,
-    path: string
+    path: string,
+    positional: (string | number)[]
 }>

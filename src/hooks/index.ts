@@ -62,7 +62,6 @@ export const cache = async (argv: AppArguments, data: { isMultiResult?: boolean,
     }
     const proms = Object.entries(data.list)
         .map(([commandStr, cacheable]) => {
-            console.log('commandStr, cacheable', commandStr, cacheable)
             return cacheResult(
                 { ...argv, 'c:c': commandStr.split(' ') },
                 cacheable
@@ -78,15 +77,15 @@ export const add = (name: string, hook: Function) => {
     hooks[name] = hook
 }
 
-
-
 export async function importDb(path: string, f: string, dbBack: IDBDatabase): Promise<string> {
+    if (typeof f !== 'string') throw new Error("-f (--filename) requires a string ")
     const {
         fullpath
     } = dbPath(path, f)
     const file = fs.readFileSync(fullpath, 'utf8')
     await clearDatabase(dbBack)
     await importFromJson(dbBack, file)
+    console.log('imported from ', fullpath)
     return
 }
 

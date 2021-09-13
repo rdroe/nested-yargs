@@ -1,8 +1,7 @@
-import { CommandModule } from 'yargs'
 import { cache } from './hooks'
 import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
-import { Module, Modules } from './appTypes'
+import { Modules } from './appTypes'
 const program: { enabled: boolean, array: string[] } = {
     enabled: false,
     array: []

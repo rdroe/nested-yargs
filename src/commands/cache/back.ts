@@ -1,14 +1,26 @@
-import { AppArguments } from '../../appTypes'
-import { CommandModule } from 'yargs'
+import { AppArguments, Module } from '../../appTypes'
 import db from '../../lib/store'
 import { exportDb } from '../../hooks'
 
-
-
-const cm: CommandModule = {
-    command: 'back [filename]',
-    describe: 'write cache to a json file',
-    builder: {
+export default {
+    help: {
+        commands: {},
+        options: {},
+        examples: {}
+    },
+    fn: async (args: AppArguments) => {
+        const now = Date.now()
+        const newId = await db.cache.add({
+            commands: ['la', 'tra'],
+            names: ['fa', 're'],
+            value: 1,
+            createdAt: now
+        })
+        await db.cache.delete(newId)
+        const dbBack = db.backendDB()
+        return exportDb(args.p, args.f, dbBack)
+    },
+    yargs: {
         filename: {
             alias: 'f',
             type: 'string',
@@ -19,20 +31,5 @@ const cm: CommandModule = {
             type: 'string',
             default: `data`
         }
-    },
-    handler: async (args: AppArguments) => {
-        await db.cache.add({
-            commands: ['la', 'tra'],
-            names: ['fa', 're'],
-            value: 1,
-            createdAt: Date.now() - 4
-        })
-        const dbBack = db.backendDB()
-        args.result = await exportDb(args.p, args.f, dbBack)
-        return args
     }
-
-}
-
-
-export default cm
+} as Module
