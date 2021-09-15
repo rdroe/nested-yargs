@@ -9,8 +9,11 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
 
     let yargsOptions = {}
     let lastCommandFound = false
+    const lastPositionalOrNeg = input.findIndex(arg => arg.charAt(0) === '-')
+    const lastPositional = lastPositionalOrNeg > -1 ? lastPositionalOrNeg : input.length
     // The main function is a reducer that ongoingly replaces accumulated state with the pinnacle function call; e.g. 'match scalar' must be arrived at by stacked module-to-submodule transition.
     // At each stage, the parent functions are called as well. The respective promises are tracked by key-value pair per module name.
+
     const reduced: {
         layer: any,
         help: any,
@@ -43,7 +46,8 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                                 .argv
 
                         const cmdDepth = newNs.split(' ').length
-                        const positional = opts1._.slice(cmdDepth)
+                        console.log('slicing ', cmdDepth, lastPositional, opts1)
+                        const positional = opts1._.slice(cmdDepth, lastPositional)
                         const underscore = opts1._.slice(0, cmdDepth)
                         return fn({
                             ...opts1,
