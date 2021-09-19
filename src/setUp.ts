@@ -7,7 +7,14 @@ export default () => { }
 
 const lookUpAndCall = async (modules: Modules, input: string[], commands: (number | string)[]): Promise<any> => {
 
-    let yargsOptions = {}
+    let yargsOptions = {
+        'commands': {
+            alias: 'c:c',
+        },
+        'names': {
+            alias: 'c:n',
+        }
+    }
     let lastCommandFound = false
     const lastPositionalOrNeg = input.findIndex(arg => arg.charAt(0) === '-')
     const lastPositional = lastPositionalOrNeg > -1 ? lastPositionalOrNeg : input.length
@@ -17,7 +24,9 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
     const reduced: {
         layer: any,
         help: any,
-        fn: { [currNs: string]: Function },
+        fn: {
+            [currNs: string]: () => Promise<{ result: any, argv: any }>
+        },
         currentNamespace: string
     } = commands.reduce((accum, curr) => {
 
@@ -37,7 +46,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                 help,
                 fn: (fn) ? {
                     ...accum.fn,
-                    [newNs]: async () => {
+                    [newNs]: async (): Promise<{ result: any, argv: any }> => {
                         // for each call, we need to put yargs into the appropriate state.
                         // part of that is extracting the positional arguments at this stage, since we are discarding yargs' management of the subcommand / positional arg distinction. (This is for use with lists of non-dash arguments)
                         const opts1 =
@@ -46,16 +55,20 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                                 .argv
 
                         const cmdDepth = newNs.split(' ').length
-                        console.log('slicing ', cmdDepth, lastPositional, opts1)
                         const positional = opts1._.slice(cmdDepth, lastPositional)
                         const underscore = opts1._.slice(0, cmdDepth)
-                        return fn({
+                        const argv1 = {
                             ...opts1,
                             positional,
                             // set underscore to be the converse.
                             // otherwise, all non-dash elements are in _
                             _: underscore
-                        })
+                        }
+                        const result = await fn(argv1)
+                        return {
+                            result,
+                            argv: argv1
+                        }
                     }
                 } : accum.fn,
                 currentNamespace: newNs
@@ -77,6 +90,11 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         const mappedResults: {
             [namespace: string]: any
         } = {}
+
+        const mappedArgv: {
+            [namespace: string]: any
+        } = {}
+
         const proms =
             Object.entries(reduced.fn)
                 .map(async ([key, someFn]) => {
@@ -85,7 +103,8 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                         const r = await someFn()
                         // if a result stow it.
                         if (r !== undefined) {
-                            mappedResults[key] = r
+                            mappedResults[key] = r.result
+                            mappedArgv[key] = r.argv
                         }
                     } catch (e) {
                         console.error(e.message)
@@ -95,16 +114,12 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         // notice that as of this iteration, the parent could get called before children, or in any order.
         await Promise.all(proms)
         const resultCnt = Object.values(mappedResults).length
-        // depending on result count, the result should be structured differently.
-        // nonetheless, each result will be cached appropriately
-        if (resultCnt === 1) {
-            return Object.values(mappedResults)[0]
-        }
+
         if (resultCnt === 0) {
             return {}
         }
         // structure this with isMultiResult and list so that, later in nyargs loop.ts and in the cache hook, data gets appraised by caching module and properly stowed later on. 
-        return { isMultiResult: true, list: mappedResults }
+        return { isMultiResult: true, list: mappedResults, argv: mappedArgv }
     }
 
     return {}

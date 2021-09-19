@@ -55,15 +55,29 @@ const cacheResult = async (argv: AppArguments, data: object) => {
     await put(entry)
 }
 
-export const cache = async (argv: AppArguments, data: { isMultiResult?: boolean, list: { [commandStr: string]: any } }) => {
+export const cache = async (
+    argv: AppArguments,
+    data: {
+        isMultiResult?: boolean,
+        list: {
+            [commandStr: string]: any
+        },
+        argv: {
+            [commandStr: string]: any
+        }
+    }) => {
+
 
     if (!data.isMultiResult || !data.list) {
         return cacheResult(argv, data)
     }
+
     const proms = Object.entries(data.list)
         .map(([commandStr, cacheable]) => {
+            const defaultArgv = { ...argv, 'c:c': commandStr.split(' ') }
+            const ownArgv = data.argv[commandStr]
             return cacheResult(
-                { ...argv, 'c:c': commandStr.split(' ') },
+                ownArgv || defaultArgv,
                 cacheable
             )
         })

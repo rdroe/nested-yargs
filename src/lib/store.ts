@@ -261,7 +261,12 @@ export const jqEval = async (obj: object, query: string | undefined
 
 const firstLines = (entry: object) => {
     if (!entry) return '(falsy entry)'
-    return JSON.stringify(entry, null, 2).split('\n').slice(0, 5).join('\n')
+    try {
+        return JSON.stringify(entry, null, 2).split('\n').slice(0, 5).join('\n')
+    } catch (e) {
+        console.error('Could not show json sample!')
+        return ''
+    }
 }
 
 

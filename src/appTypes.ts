@@ -54,3 +54,19 @@ export type AppArguments = Arguments<{
     path: string,
     positional: (string | number)[]
 }>
+
+interface SingleResult {
+    isMultiResult: false
+    argv: AppArguments
+    result: any
+}
+interface MultiResult {
+    isMultiResult: true
+    list: {
+        [str: string]: any
+    }
+    argv: {
+        [str: string]: any
+    }
+}
+export type Result = SingleResult | MultiResult

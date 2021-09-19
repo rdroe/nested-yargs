@@ -1,12 +1,26 @@
 import { cache } from './hooks'
 import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
-import { Modules } from './appTypes'
+import { Modules, Result } from './appTypes'
 const program: { enabled: boolean, array: string[] } = {
     enabled: false,
     array: []
 }
 
+
+const logResult = (result: Result) => {
+    if (!result.isMultiResult) {
+        console.log(result)
+    } else {
+        Object.entries(result.list).forEach(([idx, res]) => {
+            console.log(`${idx} result:`)
+            console.log(res)
+            console.log(`${idx} computed arguments:`)
+            console.log(result.argv[idx])
+            console.log('all', result)
+        })
+    }
+}
 export const setProgram = (prog: { enabled: boolean, array: string[] }) => {
     program.enabled = prog.enabled
     program.array = prog.array
@@ -83,7 +97,7 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
 
         // if raw matches new, just replace.
         const ret = await executor(input)
-        console.log('results:', ret.result)
+        logResult(ret.result)
         // look at the arguments and results, cache if appropriate.
         await cache(ret.argv, ret.result)
 

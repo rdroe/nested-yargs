@@ -1,6 +1,6 @@
 import { Module, AppArguments } from '../../appTypes'
 
-import { Query, where, jqEval } from '../../lib/store'
+import { Query, where } from '../../lib/store'
 
 
 export const m: Module = {
@@ -32,7 +32,7 @@ export const m: Module = {
             names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,
             _jq: jqQuery
         }
-
+        console.log('test', args)
         if (typeof args.id === 'number') {
             query.id = args.id
         }
