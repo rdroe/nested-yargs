@@ -9,9 +9,11 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
 
     let yargsOptions = {
         'commands': {
+            array: true,
             alias: 'c:c',
         },
         'names': {
+            array: true,
             alias: 'c:n',
         }
     }

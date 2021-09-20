@@ -7,7 +7,6 @@ const program: { enabled: boolean, array: string[] } = {
     array: []
 }
 
-
 const logResult = (result: Result) => {
     if (!result.isMultiResult) {
         console.log(result)
@@ -15,9 +14,12 @@ const logResult = (result: Result) => {
         Object.entries(result.list).forEach(([idx, res]) => {
             console.log(`${idx} result:`)
             console.log(res)
-            console.log(`${idx} computed arguments:`)
-            console.log(result.argv[idx])
-            console.log('all', result)
+            if (result.argv[idx].logArgs === true) {
+                console.log(`${idx} computed arguments:`)
+                console.log(result.argv[idx])
+                console.log('all args:')
+                console.log(result)
+            }
         })
     }
 }
