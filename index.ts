@@ -11,6 +11,8 @@ export { get, post, QueryParams, SaveRequest } from './src/lib/api/call'
 
 import { Arguments } from 'yargs'
 
+require('source-map-support').install();
+
 export type UserArgs<T = {}> = AppArguments & Arguments<T> & {
     /** Non-option arguments */
     _: Array<string | number>;
