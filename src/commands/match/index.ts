@@ -12,10 +12,11 @@ const cm: Module = {
         }
     },
     fn: async function match() {
+        // parent command: runs before children as of this version.
         console.log('Running 1+ matches...')
     },
     submodules: {
-        scalar
+        scalar // child command
     }
 }
 
