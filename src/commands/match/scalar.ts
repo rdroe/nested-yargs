@@ -2,19 +2,12 @@ import { Module } from '../../appTypes'
 
 const cm: Module = {
     help: {
-        commands: {
-            $: 'test whether the supplied scalar pairs are equal'
-        },
-        options: {
-            'l (left)': 'comparison value',
-            'r (right)': 'comparison value'
-        },
+        description: 'test whether the supplied scalar pairs are equal',
         examples: {
             '-l 1 2 3 -r 1 2 4': 'test whether 1 equals 1, 2 equals 2, and 3 equals 4; output contains a map and list of equalities.'
         }
     },
     fn: async function scalarMatch(argv: { l: any, r: any }) {
-        console.log('calling scalar')
         let left: any[]
         let right: any[]
         const { l, r } = argv
@@ -50,7 +43,5 @@ const cm: Module = {
         }
     }
 }
-
-
 
 export default cm

@@ -46,9 +46,7 @@ const object: Options = {
 
 const cm: Module = {
     help: {
-        commands: {
-            $: 'put, get cache vars; also, save or import the backupd cache databases.'
-        },
+        description: 'put or get cache vars using indexedDB; also, save or import the backup cache databases.',
         options: {
 
         },

@@ -13,3 +13,14 @@ export const dbPath = (path: string, filename: string): { fullpath: string, subd
     console.log('dirs and file', subdirs, 'full:', fullpath)
     return { fullpath, subdirs }
 }
+
+export const filterObject = (obj: object, fn:
+    (v: any, k: string) => boolean
+): any => {
+
+    return Object.entries(obj).reduce((accum, [key, val]) => {
+        if (fn(val, key) === true) return { ...accum, [key]: val }
+        return accum
+    }, {})
+
+}

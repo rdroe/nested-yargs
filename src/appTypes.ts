@@ -17,15 +17,14 @@ export type AppArgv = {
 export interface Modules {
     [moduleName: string]: Module
 }
-
+export interface ModuleHelp {
+    description: string,
+    options?: object,
+    examples?: object
+}
 export interface Module {
     fn: Function,
-    help: {
-        options: object,
-        commands: object,
-        examples?: {
-        }
-    },
+    help?: ModuleHelp,
     yargs?: {
         [optName: string]: Options
     }

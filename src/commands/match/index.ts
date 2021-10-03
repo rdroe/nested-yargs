@@ -3,13 +3,11 @@ import scalar from './scalar'
 
 const cm: Module = {
     help: {
-        commands: {
-            '$': 'test whether specified option values are equal'
-        },
+        description: 'test whether specified option values are equal',
         options: {
+            'l (left)': 'comparison value',
+            'r (right)': 'comparison value'
         },
-        examples: {
-        }
     },
     fn: async function match(_: any, y: {
         [childNamespace: string]: Promise<any>

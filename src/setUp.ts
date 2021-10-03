@@ -3,9 +3,11 @@ import { Module, Modules, Result } from './appTypes'
 import stringArgv from 'string-argv'
 import loop, { Executor } from './loop'
 import { showModule } from './help'
+
 export default () => { }
 
 type WrapperFn = (priors: any) => Promise<{ result: any, argv: any }>
+
 interface Accumulator {
     layer: any,
     help: any,
@@ -31,6 +33,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
     const lastPositionalOrNeg = input.findIndex(arg => arg.charAt(0) === '-')
     const lastPositional = lastPositionalOrNeg > -1 ? lastPositionalOrNeg : input.length
     let helpModule: Module
+    let helpPrefix: string
     // The main function is a reducer that replaces accumulated state with the pinnacle function call; e.g. 'match scalar' (see commands/) would traverse parent "match" module, then its submodule properties.
     // As the command hierarchies are traversed, the parent functions are called as well. Currently, a parent command is called before all its children but this will change in a future version.
     // Calls are async. Respective promises are tracked by key-value pair per module name.
@@ -72,7 +75,8 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                 let result: Promise<any>
                 if (preferHelp) {
                     result = null
-                    helpModule = accum.layer[curr]
+                    helpModule = helpModule ?? accum.layer[curr]
+                    helpPrefix = helpPrefix ?? newNs
                 } else {
                     await Promise.all(Object.values(priors))
                     result = await fn(argv1, priors)
@@ -112,6 +116,17 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
 
     const entries = Object.entries(reduced.fn)
     entries.reverse()
+
+    if (entries.length === 0) {
+        if (opts1.help === true) {
+            const topHelp: Module = {
+                fn: () => { },
+                submodules: modules
+            }
+            showModule(topHelp)
+        }
+    }
+
     // With the functions sort of queued up and wrapped with the correct command name and the correct argument set, now map through them and call each.
     if (entries.length > 0) {
 
@@ -129,6 +144,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                     try {
 
                         rollingProm = rollingProm.then(() => {
+
                             return wrapperFn(mappedResults).then((r) => {
                                 // if a result stow it.
                                 if (r !== undefined) {
@@ -137,6 +153,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
                                 }
 
                             })
+
                         })
                     } catch (e) {
                         console.error(e.message)
@@ -148,7 +165,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         await Promise.all(proms)
         await rollingProm
         if (opts1.help === true) {
-            showModule(helpModule, opts1._ ? opts1._.join(' ') : '')
+            showModule(helpModule, helpPrefix || '')
             return {
                 isMultiResult: false,
                 argv: opts1,

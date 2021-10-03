@@ -4,7 +4,7 @@ import { importDb } from '../../hooks'
 
 export default {
     help: {
-        commands: {},
+        description: 'import a json file to the cache db (i.e. a file previously saved using "cache back ..." command',
         options: {},
         examples: {}
     },
@@ -25,7 +25,6 @@ export default {
     yargs: {
         filename: {
             alias: 'f',
-
             type: 'string',
             default: `back-${Date.now()}.json`
         },

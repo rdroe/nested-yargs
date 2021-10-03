@@ -4,9 +4,10 @@ import { exportDb } from '../../hooks'
 
 export default {
     help: {
-        commands: {},
-        options: {},
-        examples: {}
+        description: 'Back up the cache; export it as a json file and write it to disk',
+        examples: {
+            '??? (need to fix args, here)': 'Export cache and save it in a file at "./subdir/myBackup.json"'
+        }
     },
     fn: async (args: AppArguments) => {
         const now = Date.now()
