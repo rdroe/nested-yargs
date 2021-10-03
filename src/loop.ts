@@ -1,13 +1,17 @@
 import { cache } from './hooks'
 import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
-import { Modules, Result } from './appTypes'
+import { AppArguments, Modules, Result } from './appTypes'
+
 const program: { enabled: boolean, array: string[] } = {
     enabled: false,
     array: []
 }
 
 const logResult = (result: Result) => {
+    if (result.argv.help === true) {
+        return
+    }
     if (!result.isMultiResult) {
         console.log(result)
     } else {
@@ -37,16 +41,13 @@ const containsInterrupt = (rawInput: string) => {
     return false
 }
 
-/** Given input verified by verifyAndExecuteCli, force the running of the typed command. 
-*/
+/** Given input verified by verifyAndExecuteCli, force the running of the typed command. */
 const getExecuteCli = async (modules: Modules, yargsCaller: Function) => async (input: string): Promise<{ argv: any, result: any }> => {
-
     let result: any
     let argv: any
     try {
         // call yargs (fn defined above)
         const x = await yargsCaller(modules, input || '')
-
         if (!x) {
             console.log('no input.')
             return
@@ -57,12 +58,16 @@ const getExecuteCli = async (modules: Modules, yargsCaller: Function) => async (
 
     } catch (e) {
         console.log('ERROR ! ! ', e.message)
+        console.log(e.stack)
     }
     return { result, argv }
 }
 
 // This is the primary loop logic. it  makes use of the above direct executor function, but also runs the loop in which the executor and the verification is run repeatedly.
-async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, executor: (arg0: string) => Promise<any>): Promise<{ argv: object, result: object }> {
+async function verifyAndExecuteCli(
+    forwardedInput: string | null,
+    pr: string,
+    executor: (arg0: string) => Promise<{ result: Result, argv: AppArguments }>): Promise<{ argv: object, result: object }> {
     let rawInput: string
     let didUseProgram: boolean = false
     // Obtain input and execute. 
@@ -108,7 +113,7 @@ async function verifyAndExecuteCli(forwardedInput: string | null, pr: string, ex
     }
 }
 
-export type Executor = (modules: Modules, input: string) => Promise<{ argv: any, result: any }>
+export type Executor = (modules: Modules, input: string) => Promise<{ argv: object, result: Result }>
 
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
 const repl = async (

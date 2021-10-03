@@ -1,4 +1,4 @@
-import { AppArguments } from '../appTypes'
+import { AppArguments, Result } from '../appTypes'
 import { put, Entry } from '../lib/store'
 import { dbPath } from '../lib/util'
 import fs from 'fs'
@@ -57,16 +57,12 @@ const cacheResult = async (argv: AppArguments, data: object) => {
 
 export const cache = async (
     argv: AppArguments,
-    data: {
-        isMultiResult?: boolean,
-        list: {
-            [commandStr: string]: any
-        },
-        argv: {
-            [commandStr: string]: any
-        }
-    }) => {
+    data: Result) => {
 
+    if (argv.help === true) {
+        console.log('escaping cache (help)')
+        return
+    }
 
     if (!data.isMultiResult || !data.list) {
         return cacheResult(argv, data)
