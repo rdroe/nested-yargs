@@ -10,7 +10,7 @@
 	"outDir": "./dist",
 	"declaration": true,
 	"allowJs": true,
-	"lib": ["dom"]
+	"lib": ["dom", "es2019"]
     },
     "watchOptions": {
 	"watchDirectory": "useFsEvents"

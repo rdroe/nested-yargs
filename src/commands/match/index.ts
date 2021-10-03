@@ -11,9 +11,11 @@ const cm: Module = {
         examples: {
         }
     },
-    fn: async function match() {
-        // parent command: runs before children as of this version.
-        console.log('Running 1+ matches...')
+    fn: async function match(_: any, y: {
+        [childNamespace: string]: Promise<any>
+    }) {
+        const childResults = await Promise.all(Object.values(y))
+        return childResults.flat().length
     },
     submodules: {
         scalar // child command

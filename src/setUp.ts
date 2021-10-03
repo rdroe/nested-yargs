@@ -5,6 +5,16 @@ import loop, { Executor } from './loop'
 import { showModule } from './help'
 export default () => { }
 
+type WrapperFn = (priors: any) => Promise<{ result: any, argv: any }>
+interface Accumulator {
+    layer: any,
+    help: any,
+    fn: {
+        [currNs: string]: WrapperFn
+    },
+    currentNamespace: string
+}
+
 const lookUpAndCall = async (modules: Modules, input: string[], commands: (number | string)[]): Promise<Result> => {
     // Universal options
     let yargsOptions = {
@@ -24,14 +34,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
     // The main function is a reducer that replaces accumulated state with the pinnacle function call; e.g. 'match scalar' (see commands/) would traverse parent "match" module, then its submodule properties.
     // As the command hierarchies are traversed, the parent functions are called as well. Currently, a parent command is called before all its children but this will change in a future version.
     // Calls are async. Respective promises are tracked by key-value pair per module name.
-    const reduced: {
-        layer: any,
-        help: any,
-        fn: {
-            [currNs: string]: () => Promise<{ result: any, argv: any }>
-        },
-        currentNamespace: string
-    } = commands.reduce((accum, curr) => {
+    const reduced: Accumulator = commands.reduce((accum: Accumulator, curr) => {
 
         if (accum.layer[curr] && !lastCommandFound) {
             const {
@@ -45,45 +48,47 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
             // create the key at which results will eventually be stored, should a function be called and return data.
 
             const newNs = `${accum.currentNamespace} ${curr}`.trim()
+            const wrapperFn: WrapperFn = async (priors: any) => {
+                // for each call, we need to put yargs into the appropriate state.
+                const opts1 =
+                    await yargs.help(false)
+                        .options(yargsOptions)
+                        .parse(input)
+
+                // That requires extracting, tracking, the positional (non-dash) arguments at this stage.
+                const cmdDepth = newNs.split(' ').length
+                const positional = opts1._.slice(cmdDepth, lastPositional)
+                const underscore = opts1._.slice(0, cmdDepth)
+                const preferHelp = opts1.help === true
+
+                const argv1 = {
+                    ...opts1,
+                    positional,
+                    // set underscore to be the converse.
+                    // otherwise, all non-dash elements are in _
+                    _: underscore
+                }
+
+                let result: Promise<any>
+                if (preferHelp) {
+                    result = null
+                    helpModule = accum.layer[curr]
+                } else {
+                    await Promise.all(Object.values(priors))
+                    result = await fn(argv1, priors)
+                }
+                return {
+                    result,
+                    argv: argv1
+                }
+            }
 
             return {
                 layer: submodules ?? accum.layer,
                 help,
                 fn: (fn) ? {
                     ...accum.fn,
-                    [newNs]: async (): Promise<{ result: any, argv: any }> => {
-                        // for each call, we need to put yargs into the appropriate state.
-                        const opts1 =
-                            await yargs.help(false)
-                                .options(yargsOptions)
-                                .parse(input)
-
-                        // That requires extracting, tracking, the positional (non-dash) arguments at this stage.
-                        const cmdDepth = newNs.split(' ').length
-                        const positional = opts1._.slice(cmdDepth, lastPositional)
-                        const underscore = opts1._.slice(0, cmdDepth)
-                        const preferHelp = opts1.help === true
-
-                        const argv1 = {
-                            ...opts1,
-                            positional,
-                            // set underscore to be the converse.
-                            // otherwise, all non-dash elements are in _
-                            _: underscore
-                        }
-
-                        let result: Promise<any>
-                        if (preferHelp) {
-                            result = null
-                            helpModule = accum.layer[curr]
-                        } else {
-                            result = await fn(argv1)
-                        }
-                        return {
-                            result,
-                            argv: argv1
-                        }
-                    }
+                    [newNs]: wrapperFn,
                 } : accum.fn,
                 currentNamespace: newNs
             }
@@ -98,15 +103,17 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         help: null,
         fn: {},
         currentNamespace: ''
-    })
+    } as Accumulator)
 
     const opts1: any =
         yargs.help(false)
             .options(yargsOptions)
             .parse(input)
 
+    const entries = Object.entries(reduced.fn)
+    entries.reverse()
     // With the functions sort of queued up and wrapped with the correct command name and the correct argument set, now map through them and call each.
-    if (Object.entries(reduced.fn).length > 0) {
+    if (entries.length > 0) {
 
         const mappedResults: {
             [namespace: string]: any
@@ -115,19 +122,22 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         const mappedArgv: {
             [namespace: string]: any
         } = {}
-
+        let rollingProm: Promise<void> = Promise.resolve()
         const proms =
-            Object.entries(reduced.fn)
-                .map(async ([key, someFn]) => {
+            entries
+                .map(async ([key, wrapperFn]) => {
                     try {
-                        // call the enclosed fn + arguments packet
-                        const r = await someFn()
-                        // if a result stow it.
-                        if (r !== undefined) {
-                            mappedResults[key] = r.result
-                            mappedArgv[key] = r.argv
-                        }
 
+                        rollingProm = rollingProm.then(() => {
+                            return wrapperFn(mappedResults).then((r) => {
+                                // if a result stow it.
+                                if (r !== undefined) {
+                                    mappedResults[key] = r.result
+                                    mappedArgv[key] = r.argv
+                                }
+
+                            })
+                        })
                     } catch (e) {
                         console.error(e.message)
                         console.error(e.stack)
@@ -136,6 +146,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         // notice that as of this iteration, the parent could get called before children, or in any order.
 
         await Promise.all(proms)
+        await rollingProm
         if (opts1.help === true) {
             showModule(helpModule, opts1._ ? opts1._.join(' ') : '')
             return {

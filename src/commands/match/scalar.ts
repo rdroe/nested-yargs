@@ -14,7 +14,7 @@ const cm: Module = {
         }
     },
     fn: async function scalarMatch(argv: { l: any, r: any }) {
-
+        console.log('calling scalar')
         let left: any[]
         let right: any[]
         const { l, r } = argv
