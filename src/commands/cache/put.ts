@@ -18,6 +18,7 @@ export const m: Module = {
 
     },
     fn: async (argv: AppArguments) => {
+
         const {
             'c:c': commands,
             'c:n': names,

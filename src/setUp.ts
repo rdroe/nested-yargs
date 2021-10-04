@@ -23,10 +23,12 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
         'commands': {
             array: true,
             alias: 'c:c',
+            //            default: ['*'] as string[]
         },
         'names': {
             array: true,
             alias: 'c:n',
+            //          default: ['*'] as string[]
         }
     }
     let lastCommandFound = false
@@ -48,6 +50,7 @@ const lookUpAndCall = async (modules: Modules, input: string[], commands: (numbe
             } = accum.layer[curr]
             // Accumulate yargs options. This way, subcommands get parent opts, but children can override. (Positional arguments may be complicated; but possibly not.) 
             yargsOptions = { ...yargsOptions, ...yOpts }
+
             // create the key at which results will eventually be stored, should a function be called and return data.
 
             const newNs = `${accum.currentNamespace} ${curr}`.trim()

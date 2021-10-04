@@ -19,7 +19,6 @@ const hooks: {
 }
 
 const cacheResult = async (argv: AppArguments, data: object) => {
-
     if (!argv || data === undefined) {
         return
     }
@@ -40,10 +39,12 @@ const cacheResult = async (argv: AppArguments, data: object) => {
 
     const entry: Entry =
     {
+
         commands: argv['c:c']?.length
             ? argv['c:c'].map(cm => `${cm}`)
             : argv._.map(cm => `${cm}`),
 
+        //        commands: argv.positional.map(x => `${x}`) ?? [],
         names: argv['c:n']?.length
             ? argv['c:n'].map(n => `${n}`)
             : [],

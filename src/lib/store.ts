@@ -238,7 +238,9 @@ export const parseCacheInstructions = async (str: string, defaultFilter: string 
         return hasFoundOption === false
     })
     */
+
     const query = cacheInstructionsToQuery(brackets, defaultFilter)
+
     const res = await interpretQuery(query)
     const strPatch = typeof res === 'object' ? JSON.stringify(res) : res
     return str.replace(bracketed, strPatch)
@@ -306,14 +308,19 @@ export const cache = async (commands: string[], data: any, names: string[] = [],
     put({ commands, names, value: data, _jq })
 }
 
-
+const anyIsNull = (c: string[] | '*') => {
+    return c !== '*' && c.filter(c1 => c1 === null).length > 0
+}
 export const where = async (query: Query) => {
+
+    if (anyIsNull(query.commands || [])) throw new Error('Null disallowed in commands[] query argument')
     const { _jq } = query
     let rawResult: Cache[] = []
     if (typeof query.id === 'number' && query.id !== -1) {
         rawResult = await db.cache.where({ id: query.id }).toArray()
         return jqEval(rawResult, _jq || null)
     } else {
+
         return interpretQuery({
             ...query,
             commands: query.commands ?? '*',

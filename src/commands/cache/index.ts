@@ -5,17 +5,6 @@ import back from './back'
 import put from './put'
 import eval from './eval'
 import imp from './import'
-const command: Options = {
-    description: 'namespace command to get/put from/to',
-    alias: 'c:c',
-    type: 'array'
-}
-
-const names: Options = {
-    description: 'namespace name to get/put from/to',
-    alias: 'c:n',
-    type: 'array'
-}
 
 const jq: Options = {
     description: 'query element to apply in put-able or entry object',
@@ -57,8 +46,6 @@ const cm: Module = {
         console.log('Cache operation hub.')
     },
     yargs: {
-        command,
-        names,
         jq,
         scalar,
         object,

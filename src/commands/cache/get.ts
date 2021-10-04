@@ -19,12 +19,12 @@ export const m: Module = {
 
     },
     fn: async (args: AppArguments) => {
+
         const {
             'c:c': commands,
             'c:n': names,
             jq: jqQuery
         } = args
-
         const query: Query = {
             commands: (commands && commands[0] && commands[0] === '*') ? '*' : commands || undefined,
             names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,
