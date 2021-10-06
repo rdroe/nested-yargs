@@ -3,7 +3,9 @@
 
 Isomorphic utilities and caching environment for architecting frontend data on the command line. `nyargs` provides a repl and cache-expansion syntax for interactively building fetched data into useful patterns.
 
-The simple idea is that you import this repl-runner and load your own CLI-command modules into it. You then have a repl in which your custom commands are recognized. Also, with the caching and fetch functionality, it makes it a great web-app tool.
+The simple idea is that you import this repl-runner and load your own CLI-command modules into it. You then have a repl in which your custom commands are recognized. 
+
+When you start a cli app made with nyargs, you will see that your command prompt is replaced with `nyargs > `, awaiting a command.
 
 The cache is backed by IndexedDB. This repo is developed as a laboratory for creating frontend data functionality. Yargs modules, too, can be used from the frontend; so in developing a nyargs project, you are also in part developing a frontend project. 
 
@@ -12,35 +14,111 @@ import myModule from './myModule'
 import otherModule from './otherModule'
 import {repl} from 'nyargs'
 
-repl([myModule, otherModule])
+repl({myModule, otherModule})
 
 ```
 
 ## Structure of Modules
 
-Please see the structure of a yargs CommandModule (a type provided by `@types/yargs`)
+A module (such as myModule or otherModule in the selection above) has some required properties:
 
-For the yargs modules you use in nyargs, they definitely require these properties:
-- options
-- builder
-- handler (async function is required)
-- describe
+myModle.js
+```
+export const myModule = {
+	help: {
+		description: 'verify that two values match'
+	},
+	fn: (arguments) => {
+		const { option_one, option_two } = arguments
+		return option_one + option_two
+	}
+}
+```
 
-Again, [Yargs's docs](https://yargs.js.org/docs) should cover those properties.
+The "fn" property is the actual code that will be run when you call the module from the cli or browser.
 
-## CLI Cache Language
+The arguments parameter contains the yargs-parsed arguments. For example, if you entered the following at the cli-based repl
 
-`nyargs` does default or user-specialized caching of command-line results. for this caching, `fake-indexeddb` is used, which enables developing data models that can also be used in the browser. (Also of note: our importable fetch and post functionality uses isomorphic-fetch.)
+`myModule -option_one 1 -option_two 2`
+
+your function would receive this arguments object:
+
+```
+{
+	_: [ 'myModule' ]
+	option_one: 1,
+	option_two: 2,
+	...
+}
+```
+
+The yargs-style argument object above has 
+- A property for each argument the user passed using `-` or `--`
+- A property `_` whose value is an array of the commands passed. 
+
+See yargs docs for more information about the nyargs argument argument.
+
+
+
+## Output and Automatic Caching 
+
+The result yielded by a nyargs command is both output to the command line and cached for later use. 
+
+At the time of running the above command, it would print the result to the command line; i.e. 
+
+```
+myModule result:
+3
+```
+
+The same result is cached in an easy-to-retrieve way, available to the user's later nyargs command entries for parameters. 
+
+To see the current, unlimited cache contents, enter `cache get`.
+
+`cache get` would output something like 
+
+```json
+[
+  {
+    commands: [ 'myModule' ],
+    names: [],
+    value: 3,
+    createdAt: 1633523023035,
+    id: 1
+  }
+]
+```
+
+The cache syntax (overviewed below) allows the user to feed-forward prior nyargs results and plug them into subsequent command calls.
+
+## CLI Cache Syntax
+
+`nyargs` does default or user-specialized caching of command-line results. This way those results can be fed into subsequent cli calls. 
 
 The following example presumes some programming of the `request id` and `request name` modules the user would be expected to do.
 
-Suppose 'request age' is a user-defined module that accepts parameters and makes a get request. 
+Suppose 'request age' is a user-defined module that accepts parameters and makes a GET http request in the background. 
 
 ```bash 
 nyargs > request id --user amit 
 ```
 
-This would return results (such as a user id) that would be automatically cached for use in future commands. They would be cached under the commands namespace ['request', 'age'].
+In our example, let's say this would return JSON results (such as a { id: 88 }). In the offscreen nyargs module (sort of like the myModule.ts example above), we would return that result from our function (the `fn` property).
+
+The returned data would be the automatically cached data we're talking about. It would be cached and indexed by the commands used. The cache entry would look something like this:
+
+```json
+[
+  {
+    commands: [ 'request', 'id' ],
+    names: [],
+    value: { id: 88 },
+    createdAt: 1633523023035,
+    id: 1
+  }
+]
+```
+
 
 
 ```bash
