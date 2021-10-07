@@ -1,13 +1,17 @@
-
 # nyargs
 
 Isomorphic utilities and caching environment for architecting frontend data on the command line. `nyargs` provides a repl and cache-expansion syntax for interactively building fetched data into useful patterns.
 
-The simple idea is that you import this repl-runner and load your own CLI-command modules into it. You then have a repl in which your custom commands are recognized. 
+The simple idea is that you import this repl-runner and load your own CLI-command modules into it. You then have a repl in which your library of data functions is recognized. 
 
-When you start a cli app made with nyargs, you will see that your command prompt is replaced with `nyargs > `, awaiting a command.
+When you start up a cli app made with nyargs, you will see that your command prompt is replaced with `nyargs > ` awaiting a command.
 
 The cache is backed by IndexedDB. This repo is developed as a laboratory for creating frontend data functionality. Yargs modules, too, can be used from the frontend; so in developing a nyargs project, you are also in part developing a frontend project. 
+
+
+# App
+
+"myModule" and "otherModule" are the code you'll write to utilize nyargs.
 
 ```typescript
 import myModule from './myModule'
@@ -35,11 +39,11 @@ export const myModule = {
 }
 ```
 
-The "fn" property is the actual code that will be run when you call the module from the cli or browser.
+The `fn` property is the actual code that will be run when you call the module from the cli or browser.
 
-The arguments parameter contains the yargs-parsed arguments. For example, if you entered the following at the cli-based repl
+The arguments parameter in `fn` contains the yargs-parsed arguments. For example, if you entered the following at the cli-based repl
 
-`myModule -option_one 1 -option_two 2`
+`nyargs > myModule -option_one 1 -option_two 2`
 
 your function would receive this arguments object:
 
@@ -57,8 +61,6 @@ The yargs-style argument object above has
 - A property `_` whose value is an array of the commands passed. 
 
 See yargs docs for more information about the nyargs argument argument.
-
-
 
 ## Output and Automatic Caching 
 
@@ -90,6 +92,48 @@ To see the current, unlimited cache contents, enter `cache get`.
 ```
 
 The cache syntax (overviewed below) allows the user to feed-forward prior nyargs results and plug them into subsequent command calls.
+#### submodules 
+
+Optionally, add a `submodule` property, an object with keys that are names for subcommands. 
+
+For example, a module shaped like this:
+
+```
+export const hello = {
+	help: {
+		description: 'log "hello" and possibly call child modules'
+	},
+	fn: async (/* arguments , childResults */) => {
+		console.log('hello')
+	},
+	submodules: {
+		world: {
+			fn: async (/* arguments */) => {
+				console.log('world')
+			}
+			help: {
+				description: 'in tandem with parent module, log "hello ... world " ',
+				examples: {
+					'': 'show a message "hello" and another, "world".'
+				}
+			}
+		}
+	}
+	
+}
+
+repl({ hello })
+```
+would allow one of your app's users to enter 
+```
+nyargs > hello world
+```
+and see the expected console.log results (with undefined output beneath, as we did not return any data).
+
+#### help 
+Type '--help' with or without a command to see, respectively, the help contents for all available commands or the entered commands.
+
+All descriptions, examples, and options listed will be shown as part of help. 
 
 ## CLI Cache Syntax
 
@@ -97,7 +141,7 @@ The cache syntax (overviewed below) allows the user to feed-forward prior nyargs
 
 The following example presumes some programming of the `request id` and `request name` modules the user would be expected to do.
 
-Suppose 'request age' is a user-defined module that accepts parameters and makes a GET http request in the background. 
+Suppose 'request age' is a user-defined module command that accepts parameters and makes a GET http request in the background. 
 
 ```bash 
 nyargs > request id --user amit 
@@ -145,17 +189,17 @@ For that reason, the cache syntax (`{request age}`) also accepts a jq filter.
 If the cached data looked like this: 
 
 ```json
-{ "data": 
+[{ "data": 
 	{
 	  "id": 88
 	} 
-}
+}]
 ```
 
 Then your retrieval code could, embedded in cli call, would look like this:
 
 ```bash
-... {request age``.data.id} ...
+... {request age``.[0].data.id} ...
 ```
 
-There, `.data.id` is a jq filter saying essentially "look at the data property, and within data look at the id property."
+There, `.data.id` is a jq filter saying essentially "look at the first element in a presumed array; assume that element is a nested object and retrieve the value at `.data.id`
