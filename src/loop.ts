@@ -104,9 +104,13 @@ async function verifyAndExecuteCli(
 
         // if raw matches new, just replace.
         const ret = await executor(input)
-        logResult(ret.result)
-        // look at the arguments and results, cache if appropriate.
-        await cache(ret.argv, ret.result)
+        try {
+            logResult(ret.result)
+            // look at the arguments and results, cache if appropriate.
+            await cache(ret.argv, ret.result)
+        } catch (e) {
+            console.error('(could not log result)')
+        }
 
         // start fresh
         return verifyAndExecuteCli(null, PROMPT, executor)

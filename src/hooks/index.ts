@@ -104,7 +104,7 @@ export async function importDb(path: string, f: string, dbBack: IDBDatabase): Pr
 // exportDb('data', 'rbdb2/test.json', rbDb.backendDB())
 export async function exportDb(p: string, f: string, dbBack: IDBDatabase): Promise<string> {
     const { subdirs, fullpath } = dbPath(p, f)
-    shelljs.mkdir(subdirs.join('/'))
+    shelljs.mkdir('-p', subdirs.join('/'))
     const fname = fullpath
     const dat = await exportToJson(dbBack)
     fs.writeFileSync(fname, dat, 'utf8')
