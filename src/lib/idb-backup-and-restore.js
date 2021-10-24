@@ -66,7 +66,12 @@ export function importFromJson(idbDatabase, json) {
         transaction.addEventListener('error', reject)
         var importObject = JSON.parse(json)
         for (const storeName of idbDatabase.objectStoreNames) {
+            console.log('importing', storeName, importObject[storeName].length)
             let count = 0
+            if (importObject[storeName].length === 0) {
+                delete importObject[storeName]
+                continue
+            }
             for (const toAdd of importObject[storeName]) {
                 const request = transaction.objectStore(storeName).put(toAdd)
                 request.addEventListener('success', () => {
