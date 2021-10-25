@@ -66,8 +66,10 @@ export function importFromJson(idbDatabase, json) {
         transaction.addEventListener('error', reject)
         var importObject = JSON.parse(json)
         for (const storeName of idbDatabase.objectStoreNames) {
-            console.log('importing', storeName, importObject[storeName].length)
             let count = 0
+            if (importObject[storeName] === undefined) {
+                continue
+            }
             if (importObject[storeName].length === 0) {
                 delete importObject[storeName]
                 continue
