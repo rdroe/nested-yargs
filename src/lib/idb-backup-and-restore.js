@@ -6,8 +6,6 @@
  * @return {Promise<string>}
  */
 export function exportToJson(idbDatabase) {
-
-
     return new Promise((resolve, reject) => {
         const exportObject = {}
         if (idbDatabase.objectStoreNames.length === 0) {
@@ -34,7 +32,6 @@ export function exportToJson(idbDatabase) {
                         } else {
                             // No more values, store is done
                             exportObject[storeName] = allObjects
-
                             // Last store was handled
                             if (
                                 idbDatabase.objectStoreNames.length ===
@@ -79,10 +76,8 @@ export function importFromJson(idbDatabase, json) {
                 request.addEventListener('success', () => {
                     count++
                     if (count === importObject[storeName].length) {
-
                         delete importObject[storeName]
                         if (Object.keys(importObject).length === 0) {
-
                             resolve()
                         }
                     }
