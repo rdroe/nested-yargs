@@ -3,10 +3,22 @@ import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
 import { AppArguments, Modules, Result } from './appTypes'
 
-const program: { enabled: boolean, array: string[] } = {
-    enabled: false,
-    array: []
+type Program = Array<string>
+type Dictionary = { [programName: string]: Program }
+type ProgramRef = { array: string[], dictionary: Dictionary }
+
+const program: ProgramRef = {
+    array: [],
+    dictionary: {}
 }
+
+export const setDictionary = (
+    dict: Dictionary
+) => {
+    program.dictionary = dict
+}
+
+export const getDictionary = () => program.dictionary
 
 const logResult = (result: Result) => {
     if (result.argv.help === true) {
@@ -27,9 +39,22 @@ const logResult = (result: Result) => {
         })
     }
 }
-export const setProgram = (prog: { enabled: boolean, array: string[] }) => {
-    program.enabled = prog.enabled
-    program.array = prog.array
+
+export const queue = (stringOrProg: string | Program) => {
+
+    let lookedUpProg: Array<string>
+
+    if (typeof stringOrProg === 'string') {
+        if (typeof program.dictionary[stringOrProg] !== 'object') {
+            throw new Error(`no program or invalid program at "${stringOrProg}"`)
+        }
+        lookedUpProg = program.dictionary[stringOrProg]
+    } else {
+        lookedUpProg = stringOrProg
+    }
+
+    program.array = lookedUpProg
+
 }
 
 const PROMPT = 'nyargs > '
@@ -75,7 +100,7 @@ async function verifyAndExecuteCli(
 
     // If a program is being run, take the next line (if there is one)
     // as the user command.
-    if (program.enabled === true && program.array.length) {
+    if (program.array.length) {
         rawInput = program.array.shift()
         console.log('program line:', rawInput)
         didUseProgram = true // track that a program was used; may need to treat it specially on expansion.

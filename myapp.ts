@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-
-
-// import ny from './index'
-import { repl } from './index'
+import { repl, loop } from './index'
 import match from './src/commands/match'
 import cache from './src/commands/cache'
+import program from './src/commands/program'
 
-repl({ match, cache })
+loop.setDictionary({
+    matchTwos: ['match scalar --l 2 --r 2']
+})
+
+repl({ match, cache, program })
 
 // replNy([testModule], 'testcli --help')

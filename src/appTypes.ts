@@ -22,6 +22,7 @@ export interface ModuleHelp {
     options?: object,
     examples?: object
 }
+
 export interface Module {
     fn: Function,
     help?: ModuleHelp,
@@ -69,3 +70,12 @@ interface MultiResult {
     }
 }
 export type Result = SingleResult | MultiResult
+
+export type UserArgs<T = {}> = AppArguments & Arguments<T> & {
+    /** Non-option arguments */
+    _: Array<string | number>;
+    /** The script name or node command */
+    $0: string;
+    /** All remaining options */
+    [argName: string]: unknown;
+};
