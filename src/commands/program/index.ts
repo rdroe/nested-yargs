@@ -9,13 +9,19 @@ const m: Module = {
         }
     },
     fn: async (args: UserArgs<{}>) => {
+
         const dict = loop.getDictionary()
+        if (args.positional.length === 1) {
+            if (args.positional[0] === 'List') {
+                console.log('Program dictionary:')
+                console.log(JSON.stringify(dict, null, 2))
+                return null
+            }
+        }
         const array = (args.positional as number[]).map(progIdx => dict[progIdx]).flat()
         loop.queue(array)
         return array
     }
 }
-
-
 
 export default m

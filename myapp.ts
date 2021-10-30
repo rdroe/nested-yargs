@@ -2,7 +2,7 @@
 import { repl, loop } from './index'
 import match from './src/commands/match'
 import cache from './src/commands/cache'
-import program from './src/commands/program'
+import { program } from './index'
 
 loop.setDictionary({
     matchTwos: ['match scalar --l 2 --r 2']
