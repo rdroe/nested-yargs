@@ -99,6 +99,7 @@ export function clearDatabase(idbDatabase) {
             idbDatabase.objectStoreNames,
             'readwrite'
         )
+
         transaction.addEventListener('error', reject)
 
         let count = 0

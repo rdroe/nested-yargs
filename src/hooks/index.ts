@@ -49,7 +49,7 @@ const cacheResult = async (argv: AppArguments, data: object) => {
             ? argv['c:n'].map(n => `${n}`)
             : [],
 
-        _jq: cacheDrilldown,
+        _jq: cacheDrilldown, // why is a jq arg needed here?
         value: data
     }
 
@@ -80,7 +80,6 @@ export const cache = async (
         })
     return Promise.all(proms)
 }
-
 
 export default hooks
 

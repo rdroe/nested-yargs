@@ -273,15 +273,18 @@ const firstLines = (entry: object) => {
 
 
 export const put = async (entry: Entry) => {
+
     let filtered: Cache
 
     try {
+
         const { commands, names, _jq, value: valueIn } = entry
         const value = await jqEval(valueIn, _jq)
         const createdAt = Date.now()
         const props: Cache = { commands, names, value, createdAt }
         filtered = Object.entries(props)
             .reduce((accum, [key, val]) => {
+
                 if (val !== undefined && val !== null) {
                     return { ...accum, [key]: val }
                 }
