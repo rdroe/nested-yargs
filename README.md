@@ -166,7 +166,7 @@ The returned data would be the automatically cached data we're talking about. It
 
 
 ```bash
-nyargs > request name --id {request age}
+nyargs > request name --id {{request age}}
 ```
 
 This bracketed portion would be expanded by nyargs into the last cached value under that namespace. 
@@ -174,7 +174,7 @@ This bracketed portion would be expanded by nyargs into the last cached value un
 When the cli user taps enter, the next line will show the expansion: 
 
 ```bash
-nyargs > request name --id {request age}
+nyargs > request name --id {{request age}}
 RUN AUGMENTED ? > request name --id 88
 ```
 
@@ -199,7 +199,7 @@ If the cached data looked like this:
 Then your retrieval code could, embedded in cli call, would look like this:
 
 ```bash
-... {request age``.[0].data.id} ...
+... {{request age``.[0].data.id}} ...
 ```
 
 There, `.data.id` is a jq filter saying essentially "look at the first element in a presumed array; assume that element is a nested object and retrieve the value at `.data.id`
