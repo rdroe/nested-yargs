@@ -5,26 +5,27 @@
  * @param {IDBDatabase} idbDatabase The database to export from
  * @return {Promise<string>}
  */
-export function exportToJson(idbDatabase) {
+export function exportToJson(idbDatabase: IDBDatabase) {
     return new Promise((resolve, reject) => {
-        const exportObject = {}
+        const exportObject: { [str: string]: any } = {}
         if (idbDatabase.objectStoreNames.length === 0) {
             resolve(JSON.stringify(exportObject))
         } else {
+            const list = (idbDatabase.objectStoreNames as unknown) as string[]
             const transaction = idbDatabase.transaction(
-                idbDatabase.objectStoreNames,
+                list,
                 'readonly'
             )
 
             transaction.addEventListener('error', reject)
 
-            for (const storeName of idbDatabase.objectStoreNames) {
-                const allObjects = []
-                transaction
+            for (const storeName of list) {
+                const allObjects: any[] = [];
+                (transaction as any)
                     .objectStore(storeName)
                     .openCursor()
-                    .addEventListener('success', event => {
-                        const cursor = event.target.result
+                    .addEventListener((success: string, event: EventTarget) => {
+                        const cursor = (event as any).target.result
                         if (cursor) {
                             // Cursor holds value, put it into store data
                             allObjects.push(cursor.value)
@@ -54,15 +55,16 @@ export function exportToJson(idbDatabase) {
  * @param {string}      json        Data to import, one key per object store
  * @return {Promise<void>}
  */
-export function importFromJson(idbDatabase, json) {
-    return new Promise((resolve, reject) => {
+export function importFromJson(idbDatabase: IDBDatabase, json: any) {
+    return new Promise<void>((resolve, reject) => {
+        const list = (idbDatabase.objectStoreNames as unknown) as string[]
         const transaction = idbDatabase.transaction(
-            idbDatabase.objectStoreNames,
+            list,
             'readwrite'
         )
         transaction.addEventListener('error', reject)
         var importObject = JSON.parse(json)
-        for (const storeName of idbDatabase.objectStoreNames) {
+        for (const storeName of list) {
             let count = 0
             if (importObject[storeName] === undefined) {
                 continue
@@ -93,17 +95,21 @@ export function importFromJson(idbDatabase, json) {
  * @param {IDBDatabase} idbDatabase The database to delete all data from
  * @return {Promise<void>}
  */
-export function clearDatabase(idbDatabase) {
-    return new Promise((resolve, reject) => {
+export function clearDatabase(idbDatabase: IDBDatabase) {
+    return new Promise<void>((resolve, reject) => {
+        if (typeof idbDatabase.objectStoreNames !== 'object') {
+            throw new Error('an array is required')
+        }
+        const list = (idbDatabase.objectStoreNames as unknown) as string[]
         const transaction = idbDatabase.transaction(
-            idbDatabase.objectStoreNames,
+            list,
             'readwrite'
         )
 
         transaction.addEventListener('error', reject)
 
         let count = 0
-        for (const storeName of idbDatabase.objectStoreNames) {
+        for (const storeName of list) {
             transaction
                 .objectStore(storeName)
                 .clear()

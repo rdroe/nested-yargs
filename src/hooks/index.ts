@@ -105,8 +105,8 @@ export async function exportDb(p: string, f: string, dbBack: IDBDatabase): Promi
     const { subdirs, fullpath } = dbPath(p, f)
     shelljs.mkdir('-p', subdirs.join('/'))
     const fname = fullpath
-    const dat = await exportToJson(dbBack)
-    fs.writeFileSync(fname, dat, 'utf8')
+    const dat = await exportToJson(dbBack);
+    (fs as any).writeFileSync(fname, dat, 'utf8')
     console.log(`wrote ${fname}`)
     return fname
 }
