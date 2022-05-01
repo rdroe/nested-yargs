@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-import { repl, loop } from './index'
+import { setDictionary  } from './src/loop'
+import { repl } from './src/setUp'
 import match from './src/commands/match'
 import cache from './src/commands/cache'
 import { program } from './index'
 
-loop.setDictionary({
+
+setDictionary({
     matchTwos: ['match scalar --l 2 --r 2']
 })
 
