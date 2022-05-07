@@ -1,5 +1,9 @@
-import { Options, Arguments } from 'yargs'
 
+type Arguments<T> = Options & T
+export type Options = {
+    _?: (string | number | boolean)[]
+    [str: string]: any
+}
 export type DemandOption = string[]
 
 export type AppOptions = {

@@ -4,6 +4,7 @@ import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
 import { AppArguments, Modules, Result } from './appTypes'
 
+
 type Program = Array<string>
 type Dictionary = { [programName: string]: Program }
 type ProgramRef = { array: string[], dictionary: Dictionary }
@@ -88,6 +89,7 @@ const getExecuteCli = async (modules: Modules, yargsCaller: Function) => async (
     }
     return { result, argv }
 }
+
 
 // This is the primary loop logic. it  makes use of the above direct executor function, but also runs the loop in which the executor and the verification is run repeatedly.
 async function verifyAndExecuteCli(

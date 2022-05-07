@@ -3,8 +3,6 @@ import stringArgv from 'string-argv'
 import loop, { Executor } from './loop'
 import { showModule } from './help'
 
-export default () => { }
-
 type WrapperFn = (priors: any) => Promise<{ result: any, argv: any }>
 
 interface Accumulator {
@@ -211,16 +209,9 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
     }
 }
 
-const makeCaller = (yargs_?: any): Executor => {
+
+const makeCaller = (yargs: any): Executor => {
     return async (modules: Modules, input: string) => {
-
-        let yargs: any
-        if (yargs_) { yargs = yargs_ }
-        else {
-            let yargsImported = await import('yargs')
-            yargs = yargsImported.default
-        }
-
         const lookUpAndCall = await makeLookUpAndCall(yargs)
         const simArgv = stringArgv(input)
         const argv = await (yargs.help(false).parse(simArgv))
@@ -230,9 +221,9 @@ const makeCaller = (yargs_?: any): Executor => {
     }
 }
 
-export const caller = makeCaller()
 
-export const repl = async (modules: Modules) => {
-    return await loop(modules, caller)
+export const repl = async (modules: Modules, yargs: any) => {
+    return await loop(modules, makeCaller(yargs))
 }
+
 

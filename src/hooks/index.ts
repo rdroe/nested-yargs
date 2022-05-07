@@ -1,9 +1,9 @@
 import { AppArguments, Result } from '../appTypes'
 import { put, Entry } from '../lib/store'
 import { dbPath } from '../lib/util'
-import fs from 'fs'
 import { importFromJson, clearDatabase, exportToJson } from '../lib/idb-backup-and-restore'
-import shelljs from 'shelljs'
+import { isNode } from '../../index'
+
 
 export const context: {
     [props: string]: null | Function | Promise<any>
@@ -88,10 +88,18 @@ export const add = (name: string, hook: Function) => {
 }
 
 export async function importDb(path: string, f: string, dbBack: IDBDatabase): Promise<string> {
+    if (!isNode()) {
+        throw new Error('Cannot use importDb in non-Node env')
+    }
+    const fs = await import('fs')
     if (typeof f !== 'string') throw new Error("-f (--filename) requires a string ")
     const {
         fullpath
     } = dbPath(path, f)
+    if (!isNode()) {
+        console.error('ERROR: Non-node environment.')
+        return 'ERROR'
+    }
     const file = fs.readFileSync(fullpath, 'utf8')
     await clearDatabase(dbBack)
     await importFromJson(dbBack, file)
@@ -102,6 +110,11 @@ export async function importDb(path: string, f: string, dbBack: IDBDatabase): Pr
 // example for user database:
 // exportDb('data', 'rbdb2/test.json', rbDb.backendDB())
 export async function exportDb(p: string, f: string, dbBack: IDBDatabase): Promise<string> {
+    if (!isNode()) {
+        throw new Error('Cannot use exportDb in non-Node env')
+    }
+    const fs = await import('fs')
+    const shelljs = await import('shelljs')
     const { subdirs, fullpath } = dbPath(p, f)
     shelljs.mkdir('-p', subdirs.join('/'))
     const fname = fullpath

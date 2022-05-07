@@ -1,5 +1,5 @@
-import { Module } from '../../appTypes'
-import { Options } from 'yargs'
+import { Module, Options } from '../../appTypes'
+
 import get from './get'
 import back from './back'
 import put from './put'
