@@ -22,7 +22,7 @@ const depsRef: Deps = {
 } = {}
 
 if (isNode()) {
-    import('source-map-support').then(({ default: sms }) => sms.install());
+    // import('source-map-support').then(({ default: sms }) => sms.install());
 }
 
 
@@ -36,10 +36,31 @@ type Deps = {
     'shelljs'?: Promise<{
         default?: any
         mkdir: Function
-    }>
+    }>,
+    'readline'?: Promise<Readline>
 }
 
-type DepName = 'fs' | 'shelljs'
+
+
+/*
+type SomeConstructor = {
+  new (s: string): SomeObject;
+};
+ */
+interface ReadlineInterface {
+    question: Function
+    write: Function
+    close: Function
+    line: string
+}
+
+export type Readline = {
+    default?: Readline
+    createInterface: (arg: { input: any, output: any, prompt: any }) => ReadlineInterface
+}
+
+
+type DepName = 'fs' | 'shelljs' | 'readline'
 
 type Awaitable = <DN extends keyof Deps>(dn: DN) => Promise<Deps[typeof dn]>
 
