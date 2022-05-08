@@ -4,6 +4,14 @@ import { dbPath } from '../lib/util'
 import { importFromJson, clearDatabase, exportToJson } from '../lib/idb-backup-and-restore'
 import { isNode } from '../../index'
 
+type Fs = {
+    readFileSync: Function,
+    writeFileSync: Function
+}
+
+type ShellJs = {
+    mkdir: Function
+}
 
 export const context: {
     [props: string]: null | Function | Promise<any>
@@ -87,11 +95,10 @@ export const add = (name: string, hook: Function) => {
     hooks[name] = hook
 }
 
-export async function importDb(path: string, f: string, dbBack: IDBDatabase): Promise<string> {
+export async function importDb(fs: Fs, path: string, f: string, dbBack: IDBDatabase): Promise<string> {
     if (!isNode()) {
         throw new Error('Cannot use importDb in non-Node env')
     }
-    const fs = await import('fs')
     if (typeof f !== 'string') throw new Error("-f (--filename) requires a string ")
     const {
         fullpath
@@ -107,19 +114,22 @@ export async function importDb(path: string, f: string, dbBack: IDBDatabase): Pr
     return
 }
 
+
+
+
 // example for user database:
 // exportDb('data', 'rbdb2/test.json', rbDb.backendDB())
-export async function exportDb(p: string, f: string, dbBack: IDBDatabase): Promise<string> {
+export async function exportDb(fs: Fs, shelljs: ShellJs, p: string, f: string, dbBack: IDBDatabase): Promise<string> {
     if (!isNode()) {
         throw new Error('Cannot use exportDb in non-Node env')
     }
-    const fs = await import('fs')
-    const shelljs = await import('shelljs')
+
+
     const { subdirs, fullpath } = dbPath(p, f)
     shelljs.mkdir('-p', subdirs.join('/'))
     const fname = fullpath
     const dat = await exportToJson(dbBack);
-    (fs as any).writeFileSync(fname, dat, 'utf8')
+    fs.writeFileSync(fname, dat, 'utf8')
     console.log(`wrote ${fname}`)
     return fname
 }

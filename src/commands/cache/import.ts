@@ -1,7 +1,7 @@
 import { AppArguments, Module } from '../../appTypes'
 import db from '../../lib/store'
 import { importDb } from '../../hooks'
-
+import { deps } from '../../../index'
 export default {
     help: {
         description: 'import a json file to the cache db (i.e. a file previously saved using "cache back ..." command',
@@ -9,6 +9,7 @@ export default {
         examples: {}
     },
     fn: async (args: AppArguments) => {
+        const fs = await deps.get('fs')
         const now = Date.now()
         const newId = await db.cache.add({
             commands: ['la', 'tra'],
@@ -18,7 +19,7 @@ export default {
         })
         await db.cache.delete(newId)
 
-        const result = await importDb(args.path, args.filename, db.backendDB())
+        const result = await importDb(fs, args.path, args.filename, db.backendDB())
         await db.cache.delete(now)
         return result
     },

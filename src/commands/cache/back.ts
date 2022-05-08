@@ -1,6 +1,7 @@
 import { AppArguments, Module } from '../../appTypes'
 import db from '../../lib/store'
 import { exportDb } from '../../hooks'
+import { deps } from '../../../index'
 
 export default {
     help: {
@@ -9,7 +10,10 @@ export default {
             '-p subdir/foo -f backup.json': 'Export cache and save it in a file at "./subdir/foo/backup.json"'
         }
     },
+
     fn: async (args: AppArguments) => {
+        const fs = await deps.get('fs')
+        const shelljs = await deps.get('shelljs')
         const now = Date.now()
         const newId = await db.cache.add({
             commands: ['la', 'tra'],
@@ -19,7 +23,7 @@ export default {
         })
         await db.cache.delete(newId)
         const dbBack = db.backendDB()
-        return exportDb(args.p, args.f, dbBack)
+        return exportDb(fs, shelljs, args.p, args.f, dbBack)
     },
     yargs: {
         filename: {
