@@ -2,7 +2,12 @@ import "fake-indexeddb/auto";
 import { Dexie } from 'dexie'
 import stringArgv from 'string-argv'
 
-const jq = require('node-jq')
+const jq = {
+    run: (a: any, b: any, c: any) => {
+        return JSON.stringify({ spoofed: 'data' })
+    }
+}
+
 const BRACKETS = ['{{', '}}']
 
 interface Cache {
