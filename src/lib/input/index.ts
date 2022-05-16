@@ -1,16 +1,76 @@
-import { deps, Readline } from '../../../index'
+import { deps, Readline } from '../dynamic'
 
 let curReadline: ReturnType<Readline['createInterface']>
-const hist: string[] = []
-let idx = hist.length
+let didInitHistory = false
+
 type FnGetInput = (pr: string, initialInput?: string) => Promise<string>
 
 let _getInput: Promise<FnGetInput>
 
+const histState: {
+    hist: string[],
+    idx: number,
+    line?: string
+} = {
+    hist: [],
+    idx: 0,
+    line: undefined
+}
+
+// export const triggerInput = makeTriggerInput((curReadline.write as (str: string) => void))
+
+const initHistory = (clearCurrent: Function, write: Function, historyListener: { on: Function }, histState: { hist: string[], idx: number, line?: string }, utils: { matchUp: Function, matchDown: Function, eventName: string }) => {
+
+    const { matchUp, matchDown, eventName } = utils
+    historyListener.on(eventName, (_: any, obj: any) => {
+
+        // if the up arrow is pressed, clear the current terminal contents.
+        if (matchUp(obj)) {
+            // if we are at the extent of history 
+            if (histState.idx === histState.hist.length) {
+                // push in the current contents.
+                histState.hist.push(histState.line)
+            }
+            // clear current and...
+            clearCurrent(curReadline)
+            // back up the ticker 
+            histState.idx = Math.max(0, histState.idx - 1)
+            // and write to cursor the new one
+            write(histState.hist[histState.idx])
+        } else if (matchDown(obj)) {
+            // if down arrow, add one (but hold at length - 1)
+            histState.idx = Math.min(histState.hist.length - 1, histState.idx + 1)
+            // clear, then write
+            clearCurrent(curReadline)
+            write(histState.hist[histState.idx] ?? '')
+        }
+    })
+}
+
 export const getInput: FnGetInput = async (pr, initInput = '') => {
+
+    const renewReader = await deps.get('renewReader')
+    const utils = await deps.get('terminalUtils')
+    const { clearCurrent } = utils
 
     if (!_getInput) {
         _getInput = makeGetInput()
+    }
+
+    if (!curReadline) {
+        curReadline = await renewReader(pr, curReadline) // dep: renewReader
+    }
+
+    if (!didInitHistory) {
+
+        const historyListener = await deps.get('historyListener')
+
+        initHistory(() => {
+            clearCurrent(curReadline)
+        }, (...args: any[]) => curReadline.write(...args), historyListener, histState, utils)
+
+        didInitHistory = true
+
     }
 
     const fn = await _getInput
@@ -18,81 +78,36 @@ export const getInput: FnGetInput = async (pr, initInput = '') => {
 }
 
 
-const clearCurrent = (rl: ReturnType<Readline['createInterface']>) => {
-    rl.write(null, { ctrl: true, name: 'u' });
-}
 
-
-export const triggerInput = (inp = "brackets get -s 'i go'") => {
-
-    curReadline.write(inp)
-    curReadline.write("\n")
-}
-
-export const makeGetInput = async () => {
+const makeGetInput = async () => {
 
     if (_getInput) return _getInput
 
-    const readline = await deps.get('readline')
+    const readline =
+        await deps.get('readline')
+    const renewReader = await deps.get('renewReader')
+    if (readline.getInput) return readline.getInput
 
-    // create the interface.
+    // should run in server only.... create the interface.
     // this is called repeatedly, with each destroyed to tightly control the timing of the prompt presentation.
-    const reader = (pr: string) => {
-        curReadline?.close()
-        // todo: verify that readline module is totally garbage collected
-        // on resetting the reference.
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-            prompt: pr
-        })
-        return rl
-    }
 
-    // At the level of stdin, listen to keypress to control e.g. history, etc.
-    process.stdin.on('keypress', (ch, obj) => {
-        let rl = curReadline
-        let name = obj.name || null
-        if (name === 'up') {
-            if (idx === hist.length) {
-                hist.push(rl.line)
-            }
-            clearCurrent(rl)
-            idx = Math.max(0, idx - 1)
-            rl.write(hist[idx])
-        } else if (name === 'down') {
-            idx = Math.min(hist.length - 1, idx + 1)
-            clearCurrent(rl)
-            rl.write(hist[idx] ?? '')
+    return async (pr: string, initialInput: string = ''): Promise<string> => {
+
+        curReadline = await renewReader(pr, curReadline)
+        if (initialInput) {
+            curReadline.write(initialInput)
         }
-    })
 
-    return (pr: string, initialInput: string = ''): Promise<string> => {
-        curReadline = reader(pr)
-        return new Promise((res) => {
+        const userInput = await new Promise<string>((res) => {
             curReadline.question(pr, (inp: string) => {
-                hist.push(inp)
+                histState.hist.push(inp)
                 curReadline.close()
-                idx = hist.length
+                histState.idx = histState.hist.length
                 return res(inp)
             })
-            if (initialInput) {
-                curReadline.write(initialInput)
-            }
+
         })
+        return userInput
+
     }
 }
-
-
-
-/**
-
-   readline.
-   createInterface
-
-   created object needs:
-   write
-   question
-   close
-*/
-

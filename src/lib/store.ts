@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import { Dexie } from 'dexie'
-import stringArgv from 'string-argv'
+// import stringArgv from 'string-argv'
 
 const jq = {
     run: (a: any, b: any, c: any) => {
@@ -204,7 +204,6 @@ const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretatio
 
         res1 = await queryArrayIndex(commands, 'commands')
         if (names.length) {
-
             res1 = await filterOnArrayIndex(res1, names, 'names')
         }
 
@@ -229,13 +228,15 @@ const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretatio
 export const parseCacheInstructions = async (str: string, defaultFilter: string | null = null) => {
 
     const { cli, brackets, bracketed } = extractBracketedSections_(str)
+    console.log('cli, brackets, bracketed', cli, brackets, bracketed)
     requireValidCacheInstructions(str)
     if (cli.includes(BRACKETS[0]) || cli.includes(BRACKETS[1])) {
         throw new Error('Only one set of cache instructions is allowed for now.')
     }
 
-    const strArgv = stringArgv(cli)
-    let hasFoundOption = false
+    // const strArgv = stringArgv(cli)
+    // let hasFoundOption = false
+
     /*
     const initCmds = strArgv.filter(cmd => {
         const charAt0 = cmd.charAt(0)

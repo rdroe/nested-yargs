@@ -10,11 +10,12 @@
 	"outDir": "./dist",
 	"declaration": true,
 	"allowJs": true,
-	"lib": ["dom", "es2019"]
+	"lib": ["dom", "es2019"],
+        "target": "es2015"
     },
     "watchOptions": {
 	"watchDirectory": "useFsEvents"
     },
-    "include": ["browser.ts", "index.ts","myapp.ts"],
-    "exclude": ["node_modules", "**/*.spec.ts"]
+    "include": ["index.ts","myapp.ts"],
+    "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*"]
 }
