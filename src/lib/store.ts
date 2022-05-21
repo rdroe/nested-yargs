@@ -1,6 +1,8 @@
-// import "fake-indexeddb/auto";
-import { Dexie } from 'dexie'
-// import stringArgv from 'string-argv'
+import { Dexie, DexieOptions } from 'dexie'
+import { isNode } from './dynamic'
+
+// @ts-ignore
+import fakeIndexedDB from 'fake-indexeddb'
 
 const jq = {
     run: (a: any, b: any, c: any) => {
@@ -20,8 +22,8 @@ interface Cache {
 
 export class UiDb extends Dexie {
     public cache: Dexie.Table<Cache>
-    public constructor() {
-        super("UiDb")
+    public constructor(options: DexieOptions) {
+        super("UiDb", options)
         this.version(1).stores({
             cache: 'id++, *names, *commands, value, [commands+names], createdAt'
         });
@@ -29,7 +31,7 @@ export class UiDb extends Dexie {
     }
 }
 
-const db = new UiDb();
+const db = new UiDb({ indexedDB: isNode() ? fakeIndexedDB : indexedDB });
 
 export default db
 

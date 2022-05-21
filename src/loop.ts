@@ -119,6 +119,7 @@ async function verifyAndExecuteCli(
             await cache(ret.argv, ret.result)
         } catch (e) {
             console.error('(could not log result)')
+            console.error(e.message)
         }
 
         // start fresh

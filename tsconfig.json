@@ -16,6 +16,6 @@
     "watchOptions": {
 	"watchDirectory": "useFsEvents"
     },
-    "include": ["index.ts","myapp.ts"],
-    "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*"]
+    "include": ["index.ts", "src/**/*.ts"],
+    "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*", "./src/lib/input/browser/**/*.ts"]
 }

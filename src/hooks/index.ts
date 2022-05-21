@@ -2,7 +2,7 @@ import { AppArguments, Result } from '../appTypes'
 import { put, Entry } from '../lib/store'
 import { dbPath } from '../lib/util'
 import { importFromJson, clearDatabase, exportToJson } from '../lib/idb-backup-and-restore'
-import { isNode } from '../../index'
+import { isNode } from '../lib/dynamic'
 
 type Fs = {
     readFileSync: Function,

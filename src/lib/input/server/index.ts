@@ -1,16 +1,22 @@
-import { Result } from "../../appTypes";
-import { deps } from "../dynamic";
+import { Result } from "../../../appTypes";
+import { deps } from "../../dynamic";
 
-export const printResult = async (result: Result) => {
+// this is totally out of place---but needs its own server-only area.
+import "fake-indexeddb/auto";
+
+export const printResult = async (result: Result): Promise<boolean> => {
     if (result.argv.help === true) {
-        return
+        return true
     }
     if (!result.isMultiResult) {
         console.log(result)
+        return true
     } else {
+        let didLog = false
         Object.entries(result.list).forEach(([idx, res]) => {
             console.log(`${idx} result:`)
             console.log(res)
+            didLog = true
             if (result.argv[idx].logArgs === true) {
                 console.log(`${idx} computed arguments:`)
                 console.log(result.argv[idx])
@@ -18,6 +24,7 @@ export const printResult = async (result: Result) => {
                 console.log(result)
             }
         })
+        return didLog
     }
 }
 

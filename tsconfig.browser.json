@@ -1,0 +1,7 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist-browser"
+    },
+    "extends": "./tsconfig",
+    "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*", "./src/lib/input/server.ts"]
+}

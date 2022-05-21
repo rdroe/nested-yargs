@@ -1,6 +1,6 @@
 import { Result } from '../appTypes'
 
-export * from './input/server'
+export const isNode = new Function("try { return document.window === undefined } catch(e) { return true; }")
 
 const depsRef: Deps = {
 } = {}
@@ -17,7 +17,7 @@ export interface RenewReader {
 }
 
 interface PrintResult {
-    (arg1: Result): Promise<void>
+    (arg1: Result): Promise<boolean>
     default?: PrintResult
 }
 

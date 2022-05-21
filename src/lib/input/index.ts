@@ -28,7 +28,6 @@ const initHistory = (clearCurrent: Function, write: Function, historyListener: {
         }
         // if the up arrow is pressed, clear the current terminal contents.
         if (matchUp(obj)) {
-            console.log('matched up')
             // if we are at the extent of history 
             if (histState.idx === histState.hist.length) {
                 // push in the current contents.
@@ -43,7 +42,6 @@ const initHistory = (clearCurrent: Function, write: Function, historyListener: {
             write(histState.hist[histState.idx])
         } else if (matchDown(obj)) {
             // if down arrow, add one (but hold at length - 1)
-            console.log('matched down')
             histState.idx = Math.min(histState.hist.length - 1, histState.idx + 1)
             // clear, then write
             clearCurrent(curReadline)
@@ -73,9 +71,6 @@ export const getInput: FnGetInput = async (pr, initInput = '') => {
         initHistory(() => {
             clearCurrent(curReadline)
         }, (...args: any[]) => curReadline.write(...args), historyListener, histState, utils)
-
-
-
     }
 
     const fn = await _getInput
