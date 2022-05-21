@@ -3,7 +3,7 @@ import { cache } from './hooks'
 import { parseCacheInstructions } from './lib/store'
 import { getInput } from './lib/input'
 import { AppArguments, Modules, Result } from './appTypes'
-
+import { deps } from './lib/dynamic'
 
 type Program = Array<string>
 type Dictionary = { [programName: string]: Program }
@@ -21,26 +21,6 @@ export const setDictionary = (
 }
 
 export const getDictionary = () => program.dictionary
-
-const logResult = (result: Result) => {
-    if (result.argv.help === true) {
-        return
-    }
-    if (!result.isMultiResult) {
-        console.log(result)
-    } else {
-        Object.entries(result.list).forEach(([idx, res]) => {
-            console.log(`${idx} result:`)
-            console.log(res)
-            if (result.argv[idx].logArgs === true) {
-                console.log(`${idx} computed arguments:`)
-                console.log(result.argv[idx])
-                console.log('all args:')
-                console.log(result)
-            }
-        })
-    }
-}
 
 export const queue = (stringOrProg: string | Program) => {
 
@@ -98,6 +78,7 @@ async function verifyAndExecuteCli(
     executor: (arg0: string) => Promise<{ result: Result, argv: AppArguments }>): Promise<{ argv: object, result: object }> {
     let rawInput: string
     let didUseProgram: boolean = false
+    const printResult = await deps.get('printResult')
     // Obtain input and execute. 
     // If this is a recursion, with input already present, feed that forward.
 
@@ -133,7 +114,7 @@ async function verifyAndExecuteCli(
         // if raw matches new, just replace.
         const ret = await executor(input)
         try {
-            logResult(ret.result)
+            await printResult(ret.result)
             // look at the arguments and results, cache if appropriate.
             await cache(ret.argv, ret.result)
         } catch (e) {

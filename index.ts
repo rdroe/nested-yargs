@@ -2,6 +2,7 @@ import * as setUp from './src/setUp'
 import * as loop_ from './src/loop'
 import * as hooks_ from './src/hooks'
 import * as store_ from './src/lib/store'
+export * as browser from './src/lib/input/browser'
 
 export { cache, match, program } from './src/commands'
 export * from './src/lib/dynamic'

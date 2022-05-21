@@ -1,4 +1,4 @@
-import "fake-indexeddb/auto";
+// import "fake-indexeddb/auto";
 import { Dexie } from 'dexie'
 // import stringArgv from 'string-argv'
 

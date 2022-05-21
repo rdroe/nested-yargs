@@ -1,4 +1,4 @@
-
+import { Result } from '../appTypes'
 
 export * from './input/server'
 
@@ -6,9 +6,19 @@ const depsRef: Deps = {
 } = {}
 
 
-interface RenewReader {
-    (arg1: string, arg2: ReadlineInterface): Promise<ReadlineInterface>
+export interface HistoryListener {
+    default?: any
+    on: Function
+}
+
+export interface RenewReader {
+    (arg1: string, arg2: ReadlineInterface, htmlContainer?: any): Promise<ReadlineInterface>
     default?: RenewReader
+}
+
+interface PrintResult {
+    (arg1: Result): Promise<void>
+    default?: PrintResult
 }
 
 type Deps = {
@@ -21,11 +31,9 @@ type Deps = {
         default?: any
         mkdir: Function
     }>,
+    // todo: delete this realine pretty sure.
     'readline'?: Promise<Readline>,
-    'historyListener'?: Promise<{
-        default: any
-        on: Function
-    }>,
+    'historyListener'?: Promise<HistoryListener>,
     'terminalUtils'?: Promise<{
         default?: {
             matchUp: (arg1: any) => boolean
@@ -38,10 +46,11 @@ type Deps = {
         eventName: string
         clearCurrent: (arg1: any) => void
     }>,
-    'renewReader'?: Promise<RenewReader>
+    'renewReader'?: Promise<RenewReader>,
+    'printResult'?: Promise<PrintResult>
 }
 
-interface ReadlineInterface {
+export interface ReadlineInterface {
     question: Function
     write: Function
     close: Function
@@ -55,7 +64,8 @@ export type Readline = {
     getInput?: (arg1: string, arg2?: string) => Promise<string>
 }
 
-type DepName = 'fs' | 'shelljs' | 'readline' | 'historyListener' | 'terminalUtils' | 'renewReader'
+
+type DepName = 'fs' | 'shelljs' | 'readline' | 'historyListener' | 'terminalUtils' | 'renewReader' | 'printResult'
 
 type Awaitable = <DN extends keyof Deps>(dn: DN) => Promise<Deps[typeof dn]>
 
@@ -73,3 +83,5 @@ export const deps = ({
         depsRef[depName] = newDep
     }
 })
+
+

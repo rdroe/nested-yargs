@@ -23,14 +23,18 @@ const initHistory = (clearCurrent: Function, write: Function, historyListener: {
 
     const { matchUp, matchDown, eventName } = utils
     historyListener.on(eventName, (_: any, obj: any) => {
-
+        if (obj.type && obj.type !== eventName) {
+            return
+        }
         // if the up arrow is pressed, clear the current terminal contents.
         if (matchUp(obj)) {
+            console.log('matched up')
             // if we are at the extent of history 
             if (histState.idx === histState.hist.length) {
                 // push in the current contents.
                 histState.hist.push(histState.line)
             }
+
             // clear current and...
             clearCurrent(curReadline)
             // back up the ticker 
@@ -39,6 +43,7 @@ const initHistory = (clearCurrent: Function, write: Function, historyListener: {
             write(histState.hist[histState.idx])
         } else if (matchDown(obj)) {
             // if down arrow, add one (but hold at length - 1)
+            console.log('matched down')
             histState.idx = Math.min(histState.hist.length - 1, histState.idx + 1)
             // clear, then write
             clearCurrent(curReadline)
@@ -62,14 +67,14 @@ export const getInput: FnGetInput = async (pr, initInput = '') => {
     }
 
     if (!didInitHistory) {
-
+        didInitHistory = true
         const historyListener = await deps.get('historyListener')
 
         initHistory(() => {
             clearCurrent(curReadline)
         }, (...args: any[]) => curReadline.write(...args), historyListener, histState, utils)
 
-        didInitHistory = true
+
 
     }
 
@@ -77,15 +82,15 @@ export const getInput: FnGetInput = async (pr, initInput = '') => {
     return fn(pr, initInput)
 }
 
-
-
 const makeGetInput = async () => {
 
     if (_getInput) return _getInput
 
     const readline =
         await deps.get('readline')
+
     const renewReader = await deps.get('renewReader')
+
     if (readline.getInput) return readline.getInput
 
     // should run in server only.... create the interface.
