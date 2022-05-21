@@ -1,9 +1,6 @@
 import { Result } from "../../../appTypes";
 import { deps } from "../../dynamic";
 
-// this is totally out of place---but needs its own server-only area.
-import "fake-indexeddb/auto";
-
 export const printResult = async (result: Result): Promise<boolean> => {
     if (result.argv.help === true) {
         return true

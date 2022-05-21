@@ -164,16 +164,19 @@ const print = async (arg: any) => {
     await output(' '.repeat('nyargs > '.length), JSON.stringify(arg, null, 2).split('\n'))
 }
 
-export const printResult = async (result: Result) => {
+export const printResult = async (result: Result): Promise<boolean> => {
 
     if (result.argv.help === true) {
-        return
+        return false
     }
 
     if (!result.isMultiResult) {
         await print(result)
+        return true
     } else {
+        let didPrint = false
         await Promise.all(Object.entries(result.list).map(async ([idx, res]) => {
+            didPrint = true
             await print(`${idx} result:`)
             await print(res)
             if (result.argv[idx].logArgs === true) {
@@ -183,5 +186,6 @@ export const printResult = async (result: Result) => {
                 await print(result)
             }
         }))
+        return didPrint
     }
 }

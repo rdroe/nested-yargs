@@ -23,7 +23,7 @@ interface Cache {
 export class UiDb extends Dexie {
     public cache: Dexie.Table<Cache>
     public constructor(options: DexieOptions) {
-        super("UiDb", options)
+        super("UiDb", { indexedDB: options.indexedDB || fakeIndexedDB })
         this.version(1).stores({
             cache: 'id++, *names, *commands, value, [commands+names], createdAt'
         });
@@ -31,7 +31,7 @@ export class UiDb extends Dexie {
     }
 }
 
-const db = new UiDb({ indexedDB: isNode() ? fakeIndexedDB : indexedDB });
+const db = new UiDb({ indexedDB: fakeIndexedDB });
 
 export default db
 
