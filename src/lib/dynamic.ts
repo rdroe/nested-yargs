@@ -1,6 +1,6 @@
 import { Result } from '../appTypes'
 
-export const isNode = new Function("try { return document.window === undefined } catch(e) { return true; }")
+export const isNode = new Function("try { return window.document === undefined } catch(e) { return true; }")
 
 const depsRef: Deps = {
 } = {}
