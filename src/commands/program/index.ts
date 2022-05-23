@@ -1,4 +1,4 @@
-import { loop } from '../../../index'
+import * as loop from '../../loop'
 import { UserArgs, Module } from '../../appTypes'
 
 const m: Module = {
@@ -9,8 +9,11 @@ const m: Module = {
         }
     },
     fn: async (args: UserArgs<{}>) => {
-
+        console.log('args', args, loop.getDictionary)
+        const dic2 = loop.program
+        console.log('direct dict:', dic2)
         const dict = loop.getDictionary()
+        console.log('dict2', dict)
         if (args.positional.length === 1) {
             if (args.positional[0] === 'List') {
                 console.log('Program dictionary:')

@@ -94,10 +94,6 @@ const makeGetInput = async () => {
     return async (pr: string, initialInput: string = ''): Promise<string> => {
 
         curReadline = await renewReader(pr, curReadline)
-        if (initialInput) {
-            curReadline.write(initialInput)
-        }
-
         const userInput = await new Promise<string>((res) => {
             curReadline.question(pr, (inp: string) => {
                 histState.hist.push(inp)
@@ -105,7 +101,13 @@ const makeGetInput = async () => {
                 histState.idx = histState.hist.length
                 return res(inp)
             })
-
+            if (initialInput) {
+                console.log('calling write', initialInput)
+                curReadline.write(initialInput)
+                if (curReadline.line !== initialInput) {
+                    curReadline.line = initialInput
+                }
+            }
         })
         return userInput
 

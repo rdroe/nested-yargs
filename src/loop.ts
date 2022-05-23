@@ -9,7 +9,7 @@ type Program = Array<string>
 type Dictionary = { [programName: string]: Program }
 type ProgramRef = { array: string[], dictionary: Dictionary }
 
-const program: ProgramRef = {
+export const program: ProgramRef = {
     array: [],
     dictionary: {}
 }
@@ -17,10 +17,15 @@ const program: ProgramRef = {
 export const setDictionary = (
     dict: Dictionary
 ) => {
-    program.dictionary = dict
+    console.log('setting diction', dict)
+    program.dictionary = Object.assign(program.dictionary, dict)
+    console.log('after set', program.dictionary)
 }
 
-export const getDictionary = () => program.dictionary
+export const getDictionary = () => {
+    console.log('getting dict', program)
+    return program.dictionary
+}
 
 export const queue = (stringOrProg: string | Program) => {
 
@@ -40,7 +45,7 @@ export const queue = (stringOrProg: string | Program) => {
 }
 
 const PROMPT = 'nyargs > '
-const JQ_DEFAULT = 'max_by(.createdAt).value'
+const JQ_DEFAULT = 'l'
 const containsInterrupt = (rawInput: string) => {
     if (rawInput.includes('davo:dismiss') || rawInput.includes('davo:dis')) {
         return true

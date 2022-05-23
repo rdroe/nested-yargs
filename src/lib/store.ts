@@ -6,6 +6,7 @@ import fakeIndexedDB from 'fake-indexeddb'
 
 const jq = {
     run: (a: any, b: any, c: any) => {
+        console.log('a, b, and c', a, b, c)
         return JSON.stringify({ spoofed: 'data' })
     }
 }
@@ -111,7 +112,7 @@ const cacheInstructionsToQuery = (inner: string | null, defaultQuery: string | n
 }
 
 const extractBracketedSections_ = (str: string): { cli: string, brackets: string | null, bracketed: string | null } => {
-
+    console.log('extract from', str)
     let splitTwo
 
     const splitOne = str.split(BRACKETS[0])
@@ -221,6 +222,7 @@ const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretatio
         if (lodashRes !== null) {
             return lodashRes
         } else {
+
             return jqEval(res1, filter)
         }
     }
@@ -230,7 +232,7 @@ const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretatio
 export const parseCacheInstructions = async (str: string, defaultFilter: string | null = null) => {
 
     const { cli, brackets, bracketed } = extractBracketedSections_(str)
-    console.log('cli, brackets, bracketed', cli, brackets, bracketed)
+    console.log('parsed cache instructions')
     requireValidCacheInstructions(str)
     if (cli.includes(BRACKETS[0]) || cli.includes(BRACKETS[1])) {
         throw new Error('Only one set of cache instructions is allowed for now.')
@@ -251,21 +253,20 @@ export const parseCacheInstructions = async (str: string, defaultFilter: string 
 
     const res = await interpretQuery(query)
     const strPatch = typeof res === 'object' ? JSON.stringify(res) : res
+
     return str.replace(bracketed, strPatch)
 }
 
 export const jqEval = async (obj: object, query: string | undefined
     | null) => {
 
+    console.log('inputs to jqEval', obj, query)
     if (typeof query !== 'string') return obj
 
-    // disallow non-object ...
-    if (typeof obj !== 'object') {
-        // except if identity.
-        if (query === '.') return obj
-    }
+    // except if identity.
+    if (query === '.') return obj
 
-    const str = await jq.run(query, obj, { input: 'json' })
+    const str = jq.run(query, obj, { input: 'json' })
     return JSON.parse(str)
 }
 
@@ -322,6 +323,7 @@ export const cache = async (commands: string[], data: any, names: string[] = [],
 const anyIsNull = (c: string[] | '*') => {
     return c !== '*' && c.filter(c1 => c1 === null).length > 0
 }
+
 export const where = async (query: Query) => {
 
     if (anyIsNull(query.commands || [])) throw new Error('Null disallowed in commands[] query argument')
@@ -329,6 +331,7 @@ export const where = async (query: Query) => {
     let rawResult: Cache[] = []
     if (typeof query.id === 'number' && query.id !== -1) {
         rawResult = await db.cache.where({ id: query.id }).toArray()
+        console.log('jq added by block 1')
         return jqEval(rawResult, _jq || null)
     } else {
 
