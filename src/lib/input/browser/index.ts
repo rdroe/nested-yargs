@@ -93,6 +93,7 @@ const newTermPrompt = (term: TerminalAugmented, pr: string): ReadlineInterface &
         close: () => { },
         write: (str: string) => {
             term.write(str)
+            cmd += str
         },
         attachCustomKeyEventHandler: (arg1: (ev: KeyboardEvent) => boolean) => term.attachCustomKeyEventHandler(arg1),
         buffer: term.buffer,

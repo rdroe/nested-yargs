@@ -3,10 +3,31 @@ import { isNode } from './dynamic'
 
 // @ts-ignore
 import fakeIndexedDB from 'fake-indexeddb'
+const postDotPropFns = ['slice']
+type PostDotPropFns = typeof postDotPropFns[number]
+
+const simpleParseFn = (str: string) => {
+    // (slice)\(([0-9]+)(,([0-9]+)|)\)
+    // (slice)\(([0-9]+)(?:,([0-9]+)|)\)/
+    const regExpStr = '(slice)\\(([0-9]+)(?:,([0-9]+)|)\\)'
+    const regexp = new RegExp(regExpStr);
+    const result = str.match(regexp).filter((elem) => elem !== undefined)
+    if (result) {
+        result.shift()
+        return {
+            fnName: result.shift(),
+            args: result
+        }
+    }
+    return null
+}
+
 
 const jq = {
     run: (a: any, b: any, c: any) => {
-        console.log('a, b, and c', a, b, c)
+        console.log('jq', a, b, c)
+        const parsed = simpleParseFn(a)
+        console.log('parsed', parsed)
         return JSON.stringify({ spoofed: 'data' })
     }
 }
