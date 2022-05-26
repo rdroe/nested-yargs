@@ -9,7 +9,7 @@ export function exportToJson(idbDatabase: IDBDatabase) {
     return new Promise((resolve, reject) => {
         const exportObject: { [str: string]: any } = {}
         if (idbDatabase.objectStoreNames.length === 0) {
-            resolve(JSON.stringify(exportObject))
+            resolve(JSON.stringify(exportObject, null, 2))
         } else {
             const list = (idbDatabase.objectStoreNames as unknown) as string[]
             const transaction = idbDatabase.transaction(
@@ -24,7 +24,7 @@ export function exportToJson(idbDatabase: IDBDatabase) {
                 (transaction as any)
                     .objectStore(storeName)
                     .openCursor()
-                    .addEventListener((success: string, event: EventTarget) => {
+                    .addEventListener('success', (event: EventTarget) => {
                         const cursor = (event as any).target.result
                         if (cursor) {
                             // Cursor holds value, put it into store data
@@ -38,7 +38,7 @@ export function exportToJson(idbDatabase: IDBDatabase) {
                                 idbDatabase.objectStoreNames.length ===
                                 Object.keys(exportObject).length
                             ) {
-                                resolve(JSON.stringify(exportObject))
+                                resolve(JSON.stringify(exportObject, null, 2))
                             }
                         }
                     })
@@ -46,6 +46,7 @@ export function exportToJson(idbDatabase: IDBDatabase) {
         }
     })
 }
+
 
 /**
  * Import data from JSON into an IndexedDB database.

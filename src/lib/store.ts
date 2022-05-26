@@ -1,34 +1,50 @@
 import { Dexie, DexieOptions } from 'dexie'
 import { isNode } from './dynamic'
 
+
 // @ts-ignore
 import fakeIndexedDB from 'fake-indexeddb'
-const postDotPropFns = ['slice']
-type PostDotPropFns = typeof postDotPropFns[number]
+const postDotPropFns = Object.keys(Object.getOwnPropertyDescriptors(Array.prototype))
+console.log('array keys', postDotPropFns)
+type PostDotPropFns = keyof typeof Array.prototype
 
-const simpleParseFn = (str: string) => {
-    // (slice)\(([0-9]+)(,([0-9]+)|)\)
-    // (slice)\(([0-9]+)(?:,([0-9]+)|)\)/
-    const regExpStr = '(slice)\\(([0-9]+)(?:,([0-9]+)|)\\)'
+type FunctionCall = {
+    fnName: PostDotPropFns,
+    args: number
+}
+
+const isNum = (val: string) => /^\d+$/.test(val);
+
+const simpleParseFnCall = (str: string) => {
+    const regExpStr = `(${postDotPropFns.join('|')})\\(([0-9]+)(?:,\s*([0-9]+)|)\\)`
     const regexp = new RegExp(regExpStr);
-    const result = str.match(regexp).filter((elem) => elem !== undefined)
-    if (result) {
-        result.shift()
+
+    const result = str.match(regexp)
+        .filter((elem) => elem !== undefined)
+
+    const result2 = result.map((elem) => {
+        return isNum(elem) ? parseInt(elem) : elem
+    })
+
+    if (result2.length >= 3) {
+        result2.shift()
         return {
-            fnName: result.shift(),
-            args: result
+            fnName: result2.shift(),
+            args: result2
+        } as {
+            fnName: keyof typeof postDotPropFns,
+            args: number[]
         }
     }
-    return null
+    throw new Error('Invalid jq query:' + str)
 }
 
 
 const jq = {
     run: (a: any, b: any, c: any) => {
-        console.log('jq', a, b, c)
-        const parsed = simpleParseFn(a)
-        console.log('parsed', parsed)
-        return JSON.stringify({ spoofed: 'data' })
+        const parsed = simpleParseFnCall(a)
+        const answer = (Array.prototype[parsed.fnName] as Function).call(b, ...parsed.args)
+        return JSON.stringify(answer, null, 2)
     }
 }
 
@@ -77,6 +93,11 @@ const requireValidCacheInstructions = (str: string) => {
     }
     if (reasons.length) throw new Error(reasons.join('\n'))
     return result
+}
+
+export const clearCacheDb = async () => {
+
+    return db.cache.toCollection().delete()
 }
 
 const chooseCommands = (explicitCmds: undefined | string) => {
@@ -243,7 +264,6 @@ const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretatio
         if (lodashRes !== null) {
             return lodashRes
         } else {
-
             return jqEval(res1, filter)
         }
     }

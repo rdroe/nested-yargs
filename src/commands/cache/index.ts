@@ -5,6 +5,7 @@ import back from './back'
 import put from './put'
 import eval from './eval'
 import imp from './import'
+import clear from './clear'
 
 const jq: Options = {
     description: 'query element to apply in put-able or entry object',
@@ -56,7 +57,8 @@ const cm: Module = {
         put,
         eval,
         back,
-        import: imp
+        import: imp,
+        clear
     }
 }
 

@@ -120,16 +120,12 @@ export async function importDb(fs: Fs, path: string, f: string, dbBack: IDBDatab
 // example for user database:
 // exportDb('data', 'rbdb2/test.json', rbDb.backendDB())
 export async function exportDb(fs: Fs, shelljs: ShellJs, p: string, f: string, dbBack: IDBDatabase): Promise<string> {
-    if (!isNode()) {
-        throw new Error('Cannot use exportDb in non-Node env')
-    }
-
 
     const { subdirs, fullpath } = dbPath(p, f)
     shelljs.mkdir('-p', subdirs.join('/'))
     const fname = fullpath
     const dat = await exportToJson(dbBack);
     fs.writeFileSync(fname, dat, 'utf8')
-    console.log(`wrote ${fname}`)
+    console.log(`wrote ${fname}; data: ${dat}`)
     return fname
 }
