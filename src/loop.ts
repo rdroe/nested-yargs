@@ -110,7 +110,7 @@ async function verifyAndExecuteCli(
 
     // If it is different (if cache-replacing was used) verify to run.
     if (!didUseProgram && input !== rawInput) {
-        return verifyAndExecuteCli(input, 'RUN AGUMENTED ? > ', executor) // loop, also giving chance to enter new input 
+        return verifyAndExecuteCli(input, 'AGUMENTED COMMAND > ', executor) // loop, also giving chance to enter new input 
     } else {
         if (didUseProgram && input !== rawInput) {
             console.log('program line expanded: ', input)
@@ -128,7 +128,7 @@ async function verifyAndExecuteCli(
         }
 
         // start fresh
-        return verifyAndExecuteCli(null, PROMPT, executor)
+        return verifyAndExecuteCli(null, pr || PROMPT, executor)
     }
 }
 
@@ -137,14 +137,15 @@ export type Executor = (modules: Modules, input: string) => Promise<{ argv: obje
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
 const repl = async (
     modules: Modules,
-    yargsCaller: Executor
+    yargsCaller: Executor,
+    prompt?: string
 ) => {
 
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior. 
     const executeCli = await getExecuteCli(modules, yargsCaller)
 
     // kick off the actual loop that talks to user and repeats execution
-    await verifyAndExecuteCli(null, PROMPT, executeCli)
+    await verifyAndExecuteCli(null, prompt || PROMPT, executeCli)
 }
 
 export default repl

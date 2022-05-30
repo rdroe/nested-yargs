@@ -222,8 +222,8 @@ const makeCaller = (yargs: any): Executor => {
 }
 
 
-export const repl = async (modules: Modules, yargs: any) => {
-    return await loop(modules, makeCaller(yargs))
+export const repl = async (modules: Modules, yargs: any, prompt?: string) => {
+    return await loop(modules, makeCaller(yargs), prompt)
 }
 
 

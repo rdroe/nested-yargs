@@ -21,12 +21,22 @@ interface PrintResult {
     default?: PrintResult
 }
 
+interface TerminalUtils {
+    default?: TerminalUtils,
+    matchUp: (arg1: any) => boolean
+    matchDown: (arg1: any) => boolean
+    eventName: string
+    clearCurrent: (arg1: any) => void
+}
+
+type PartialFs = {
+    default?: PartialFs
+    writeFileSync: Function,
+    readFileSync: Function
+}
+
 type Deps = {
-    'fs'?: Promise<{
-        default?: any
-        writeFileSync: Function,
-        readFileSync: Function
-    }>,
+    'fs'?: Promise<PartialFs>,
     'shelljs'?: Promise<{
         default?: any
         mkdir: Function
@@ -34,18 +44,7 @@ type Deps = {
     // todo: delete this realine pretty sure.
     'readline'?: Promise<Readline>,
     'historyListener'?: Promise<HistoryListener>,
-    'terminalUtils'?: Promise<{
-        default?: {
-            matchUp: (arg1: any) => boolean
-            matchDown: (arg1: any) => boolean
-            eventName: string
-            clearCurrent: (arg1: any) => void
-        },
-        matchUp: (arg1: any) => boolean
-        matchDown: (arg1: any) => boolean
-        eventName: string
-        clearCurrent: (arg1: any) => void
-    }>,
+    'terminalUtils'?: Promise<TerminalUtils>,
     'renewReader'?: Promise<RenewReader>,
     'printResult'?: Promise<PrintResult>
 }
@@ -85,3 +84,20 @@ export const deps = ({
 })
 
 
+export const setDeps = ({ historyListener, terminalUtils, renewReader, printResult, readline, fs, shelljs }: {
+    historyListener: HistoryListener,
+    terminalUtils: TerminalUtils,
+    renewReader: RenewReader,
+    printResult: PrintResult,
+    readline: Readline,
+    fs: PartialFs,
+    shelljs: { mkdir: Function, default?: { mkdir: Function } }
+}) => {
+    deps.set('fs', Promise.resolve(fs))
+    deps.set('shelljs', Promise.resolve(shelljs))
+    deps.set('historyListener', Promise.resolve(historyListener))
+    deps.set('terminalUtils', Promise.resolve(terminalUtils))
+    deps.set('renewReader', Promise.resolve(renewReader))
+    deps.set('readline', Promise.resolve(readline))
+    deps.set('printResult', Promise.resolve(printResult))
+}
