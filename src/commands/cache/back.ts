@@ -1,5 +1,5 @@
 import { AppArguments, Module } from '../../appTypes'
-import db from '../../lib/store'
+
 import { exportDb } from '../../hooks'
 import { deps } from '../../../index'
 
@@ -15,6 +15,7 @@ export default {
         const fs = await deps.get('fs')
         const shelljs = await deps.get('shelljs')
         const now = Date.now()
+        const db = await deps.get('db')
         const newId = await db.cache.add({
             commands: ['la', 'tra'],
             names: ['fa', 're'],

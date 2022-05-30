@@ -1,5 +1,5 @@
 import { AppArguments, Module } from '../../appTypes'
-import db from '../../lib/store'
+
 import { importDb } from '../../hooks'
 import { deps } from '../../../index'
 export default {
@@ -9,6 +9,7 @@ export default {
         examples: {}
     },
     fn: async (args: AppArguments) => {
+        const db = await deps.get('db')
         const fs = await deps.get('fs')
         const now = Date.now()
         const newId = await db.cache.add({

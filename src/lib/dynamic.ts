@@ -1,7 +1,7 @@
 import { Result } from '../appTypes'
+import { Dexie } from 'dexie'
 
 export const isNode = new Function("try { return window.document === undefined } catch(e) { return true; }")
-
 const depsRef: Deps = {
 } = {}
 
@@ -46,7 +46,9 @@ type Deps = {
     'historyListener'?: Promise<HistoryListener>,
     'terminalUtils'?: Promise<TerminalUtils>,
     'renewReader'?: Promise<RenewReader>,
-    'printResult'?: Promise<PrintResult>
+    'printResult'?: Promise<PrintResult>,
+    'db'?: Promise<Db>,
+    'Dexie'?: Promise<DexieType>
 }
 
 export interface ReadlineInterface {
@@ -64,7 +66,7 @@ export type Readline = {
 }
 
 
-type DepName = 'fs' | 'shelljs' | 'readline' | 'historyListener' | 'terminalUtils' | 'renewReader' | 'printResult'
+type DepName = 'fs' | 'shelljs' | 'readline' | 'historyListener' | 'terminalUtils' | 'renewReader' | 'printResult' | 'db' | 'Dexie'
 
 type Awaitable = <DN extends keyof Deps>(dn: DN) => Promise<Deps[typeof dn]>
 
@@ -84,15 +86,24 @@ export const deps = ({
     }
 })
 
+type DexieType = (typeof Dexie)
 
-export const setDeps = ({ historyListener, terminalUtils, renewReader, printResult, readline, fs, shelljs }: {
+type Db = any
+
+export const setDeps = ({ historyListener, terminalUtils, renewReader, printResult, readline, fs, shelljs, db, Dexie }: {
     historyListener: HistoryListener,
     terminalUtils: TerminalUtils,
     renewReader: RenewReader,
     printResult: PrintResult,
     readline: Readline,
     fs: PartialFs,
-    shelljs: { mkdir: Function, default?: { mkdir: Function } }
+    shelljs: {
+        mkdir: Function, default?: { mkdir: Function }
+
+    },
+    db: Db,
+    Dexie: DexieType
+
 }) => {
     deps.set('fs', Promise.resolve(fs))
     deps.set('shelljs', Promise.resolve(shelljs))
@@ -101,4 +112,7 @@ export const setDeps = ({ historyListener, terminalUtils, renewReader, printResu
     deps.set('renewReader', Promise.resolve(renewReader))
     deps.set('readline', Promise.resolve(readline))
     deps.set('printResult', Promise.resolve(printResult))
+    deps.set('db', Promise.resolve(db))
+    deps.set('Dexie', Promise.resolve(Dexie))
 }
+

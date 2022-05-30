@@ -2,7 +2,8 @@
 // @ts-ignore
 import getProperty from 'dotprop'
 // import 'fake-indexeddb/auto'
-import { Dexie, DexieOptions } from 'dexie'
+import { deps } from './dynamic'
+import { Cache } from './input/browser/db'
 
 
 export const FILTER_ARG = 'filters'
@@ -111,30 +112,6 @@ const runFilter = (data: object, stages: (FunctionCall | DotpropString)[]): obje
 
 const BRACKETS = ['{{', '}}']
 
-interface Cache {
-    id?: number
-    names: Array<string> | '*'
-    commands: Array<string> | '*'
-    value: any
-    createdAt: number
-}
-
-export class UiDb extends Dexie {
-    public cache: Dexie.Table<Cache>
-
-    public constructor() {
-        super("UiDb")
-        this.version(1).stores({
-            cache: 'id++, *names, *commands, value, [commands+names], createdAt'
-        });
-        this.cache = this.table('cache')
-    }
-}
-
-const db = new UiDb;
-
-export default db
-
 export interface Query {
     id?: number
     commands: string[] | '*'
@@ -158,7 +135,7 @@ const requireValidCacheInstructions = (str: string) => {
 }
 
 export const clearCacheDb = async () => {
-
+    const db = await deps.get('db')
     return db.cache.toCollection().delete()
 }
 
@@ -260,6 +237,7 @@ const filterResult = (result: Cache, targets: string[] | '*', indexName: 'comman
 }
 
 const queryArrayIndex = async (targets: string[] | '*', indexName: 'commands' | 'names'): Promise<Cache[]> => {
+    const db = await deps.get('db')
     const q = db.cache
     let res
 
@@ -406,7 +384,7 @@ export const put = async (entry: Entry) => {
                 return accum
             }, {}) as Cache
 
-        return db.cache.put(filtered)
+        return (await deps.get('db')).cache.put(filtered)
 
     } catch (e) {
         const message = `Could not put new entry into uidb.cache.
@@ -436,7 +414,7 @@ export const where = async (query: Query) => {
     const { [FILTER_ARG]: _jq } = query
     let rawResult: Cache[] = []
     if (typeof query.id === 'number' && query.id !== -1) {
-        rawResult = await db.cache.where({ id: query.id }).toArray()
+        rawResult = (await deps.get('db')).cache.where({ id: query.id }).toArray()
 
         return evaluateFilter(rawResult, _jq || null)
     } else {
@@ -450,7 +428,7 @@ export const where = async (query: Query) => {
     }
 }
 
-export const upsertByName = async (unknownDexie: Dexie, tableName: string, name: string) => {
+export const upsertByName = async (unknownDexie: unknown, tableName: string, name: string) => {
     const dexieDb = unknownDexie as any
     if (dexieDb[tableName] === undefined) throw new Error('table does not exist; ' + tableName)
     const found = await dexieDb[tableName].where({ name }).first()

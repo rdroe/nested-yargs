@@ -1,5 +1,7 @@
 import { Result } from '../../../appTypes';
 import { ReadlineInterface, RenewReader, HistoryListener, setDeps } from '../../dynamic'
+import { db, Dexie } from './db'
+
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
 const latestTextArea = () => textAreas.length ? textAreas[textAreas.length - 1] : null
@@ -315,7 +317,9 @@ setDeps({
     printResult,
     renewReader,
     terminalUtils,
-    historyListener
+    historyListener,
+    db: db,
+    Dexie
 })
 
 
