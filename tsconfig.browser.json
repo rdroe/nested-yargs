@@ -3,7 +3,7 @@
         "composite": true,
         "outDir": "./dist-browser"
     },
-    "extends": "./tsconfig",
+    "extends": "./tsconfig.server",
     "include": ["./index.ts", "./src/**/*.ts"],
     "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*", "./dist-browser/**/*",  "./src/lib/input/server/**/*.ts"]
 }
