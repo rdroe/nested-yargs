@@ -7,7 +7,7 @@
     "url": "https://github.com/rdroe/nyargs.git"
   },
   "scripts": {
-    "build": "npx tsc",
+    "build": "npx tsc -p tsconfig.json",
     "dev-browser": "npx tsc -p tsconfig.browser.json && npx tsc -p tsconfig.browser.json -w",
     "dev": "npx tsc -w",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -32,6 +32,7 @@
     "ansi-escapes": "^5.0.0",
     "dexie": "^3.0.3",
     "dotenv": "^10.0.0",
+    "dotprop": "^1.2.1",
     "fake-indexeddb": "^3.1.7",
     "isomorphic-fetch": "^3.0.0",
     "keypress": "^0.2.1",

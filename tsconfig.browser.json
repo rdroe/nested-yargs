@@ -4,5 +4,6 @@
         "outDir": "./dist-browser"
     },
     "extends": "./tsconfig",
+    "include": ["./index.ts", "./src/**/*.ts"],
     "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*", "./dist-browser/**/*",  "./src/lib/input/server/**/*.ts"]
 }

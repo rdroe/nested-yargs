@@ -46,8 +46,7 @@ export type AppArguments = Arguments<{
     'c:c': string[], // commands index for put to cache
     'c:n': string[],  // namse index for put to cache 
     scalar: (string | number)[], // cache command : scalar 
-    _jq: string, // jq search pattern for cache
-    jq: string,
+    filters: string[]
     id: number,
     i: number,
     left: (string | number)[],  // match arg

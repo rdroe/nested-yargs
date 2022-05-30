@@ -1,33 +1,156 @@
-import { Terminal } from 'xterm';
 import { Result } from '../../../appTypes';
 import { ReadlineInterface, RenewReader, HistoryListener, setDeps } from '../../dynamic'
-import { FitAddon } from 'xterm-addon-fit'
+const DO_AUTO_SCROLL = true
+const textAreas: HTMLTextAreaElement[] = []
+const latestTextArea = () => textAreas.length ? textAreas[textAreas.length - 1] : null
+const prompts = new Map<HTMLTextAreaElement, string>()
 
-console.log('importing browser/index')
-const terminal: (ReadlineInterface & {
-    attachCustomKeyEventHandler: Function,
-    buffer?: any
-    prompt: Function
-    writeln: Function,
-    setPrompt: Function,
-    currentPrompt: string
-})[] = []
+const state = new Map<HTMLTextAreaElement, { lastFive: KeyboardEvent[] }>()
+const callables = new Map<HTMLTextAreaElement, Function>()
+const submitters = new Map<HTMLTextAreaElement, Function>()
+const printAreas = new Map<HTMLTextAreaElement, HTMLElement>()
+const whitelistedTypes = ['keydown']
 
-const outputForPasting = (strs: string[]) => {
-    let ln = strs.shift()
-
-    terminal[0].writeln(ln, () => {
-        if (strs.length) {
-            outputForPasting(strs)
-        }
-    })
-
+const mapCallable = (textArea: HTMLTextAreaElement, fn: Function) => {
+    callables.set(textArea, fn)
+}
+const getCallable = (textArea: HTMLTextAreaElement): Function => {
+    return callables.get(textArea)
 }
 
-const getLastTwo = () => {
+const mapPrompt = (textArea: HTMLTextAreaElement, pr: string) => {
+    prompts.set(textArea, pr)
+}
 
-    const lastFive = state.get('lastFive')
-    console.log('last five', lastFive)
+const getPrompt = (textArea: HTMLTextAreaElement): string => {
+    return prompts.get(textArea)
+}
+
+const mapSubmitter = (textArea: HTMLTextAreaElement, fn: Function) => {
+    submitters.set(textArea, fn)
+}
+
+const getSubmitter = (textArea: HTMLTextAreaElement): Function => {
+    return submitters.get(textArea)
+}
+
+
+const mapPrintArea = (textArea: HTMLTextAreaElement, elem: HTMLElement) => {
+    printAreas.set(textArea, elem)
+}
+
+
+const getPrintArea = (textArea: HTMLTextAreaElement): HTMLElement => {
+    return printAreas.get(textArea)
+}
+
+
+const displayPrompt = (textArea: HTMLTextAreaElement) => {
+    const prompt = getPrompt(textArea)
+    const label = textArea.parentElement?.querySelector('.prompt-text')
+    if (!label) throw new Error(`Can't find .prompt-text for the specificed <textarea>`)
+    label.innerHTML = `<span>${prompt}</span>`
+}
+
+const textAreaUtils = (textArea: HTMLTextAreaElement = latestTextArea()) => {
+    return {
+        get line(): string {
+            return textArea.value
+        },
+        matchUp: (obj: any) => {
+            return obj.key === 'ArrowUp'
+        },
+        matchDown: (obj: any) => {
+            return obj.key === 'ArrowDown'
+        },
+        eventName: 'keydown',
+        clearCurrent: () => {
+            textArea.value = ''
+        },
+    }
+}
+
+const readlineFunctions = (ta: HTMLTextAreaElement): ReadlineInterface => {
+    const utils = textAreaUtils(ta)
+    return {
+        write: (arg: string) => ta.value = `${ta.value}${arg}`,
+        close: () => { },
+        get line() { return utils.line },
+        question: (pr: string, fn: Function) => {
+
+            mapPrompt(ta, pr)
+            displayPrompt(ta)
+            ta.removeEventListener('keydown', submitCurrentInput)
+            return new Promise((resolve) => {
+                mapSubmitter(ta, (arg: string) => {
+                    ta.removeEventListener('keydown', submitCurrentInput)
+                    resolve(fn(arg))
+                })
+                ta.addEventListener('keydown', submitCurrentInput)
+
+            })
+        }
+    }
+}
+
+const getOrInitPrintArea = (ta: HTMLTextAreaElement) => {
+
+    let printArea = getPrintArea(ta)
+    if (!printArea) {
+        mapPrintArea(ta, addElem('pre', {
+            class: `print-area print-area-${textAreas.length}`,
+            style: 'width: 50vw; height: 100%; margin: 0; padding: 0;'
+        }))
+        printArea = getPrintArea(ta)
+    }
+
+    if (!printArea) {
+        throw new Error('Could not find or create print area')
+    }
+    return printArea
+}
+
+const print = (arg: string | number | object, ta: HTMLTextAreaElement = latestTextArea()) => {
+    const printArea = getOrInitPrintArea(ta)
+    const text = typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+    printArea.innerHTML = `${printArea.innerHTML}
+${text}
+`
+}
+
+const printResult = async (result: Result): Promise<boolean> => {
+    if (result.argv.help === true) {
+        return false
+    }
+    print('')
+    if (!result.isMultiResult) {
+        print(result)
+        if (DO_AUTO_SCROLL) {
+            window.scroll({ top: document.body.getBoundingClientRect().height })
+        }
+        return true
+    } else {
+        let didPrint = false
+        Object.entries(result.list).forEach(async ([idx, res]) => {
+            didPrint = true
+            print(`${idx} result:`)
+            print(res)
+            if (result.argv[idx].logArgs === true) {
+                print(`${idx} computed arguments:`)
+                print(result.argv[idx])
+                print('all args:')
+                print(result)
+            }
+        })
+        if (DO_AUTO_SCROLL) {
+            window.scroll({ top: document.body.getBoundingClientRect().height })
+        }
+        return didPrint
+    }
+}
+
+const getLastTwo = (ta: HTMLTextAreaElement) => {
+    const { lastFive } = state.get(ta)
     const lastTwo = lastFive.slice(lastFive.length - 2).reduce((accum: string, ke: KeyboardEvent) => {
         if (ke.type !== 'keydown') {
             return accum
@@ -35,280 +158,108 @@ const getLastTwo = () => {
 
         return `${accum}-${ke.key}`
     }, '')
-    console.log('last two', lastTwo)
+
     return lastTwo
 }
 
-const cursorInfo = (term: TerminalAugmented, promptLength: number, cmd: string) => {
-    const { x /*, y*/ } = term.buffer._core.coreService._bufferService.buffers._activeBuffer
-    const offsetCursor = x - promptLength
-    const leftOfCursor = cmd.slice(0, offsetCursor)
-    const rightOfCursor = cmd.slice(offsetCursor)
-    return { cursor: x, offsetCursor, leftOfCursor, rightOfCursor }
+interface BaseAttribs {
+    style?: string
+    'class'?: string
+    id?: string
 }
 
-const state = new Map<any, any>()
+interface BaseOptions {
+    parent: HTMLElement
+}
 
-state.set('lastFive', [])
+const addElem = <
+    Attribs extends BaseAttribs = BaseAttribs,
+    Opts extends BaseOptions = BaseOptions
+>(tag: string, attribs: Attribs, opts: Opts | null = null): HTMLElement => {
 
-type TerminalAugmented = InstanceType<typeof Terminal> & {
-    prompt: Function
-    writeln: Function
-    attachCustomKeyEventHandler: InstanceType<typeof Terminal>['attachCustomKeyEventHandler']
-    buffer?: any
-    line: string
-};
-
-
-const newTermPrompt = (term: TerminalAugmented, pr: string): ReadlineInterface & {
-    line: string,
-    attachCustomKeyEventHandler: Function,
-    buffer: any,
-    prompt: Function,
-    writeln: Function,
-    setPrompt: Function,
-    currentPrompt: string
-} => {
-    let innerPrompt = pr
-    term.prompt = function(pr1 = innerPrompt) {
-        term.write('\r\n' + pr1);
-    };
-    let cmd = '';
-
-    /*
-    (term as any).onData(async (str: string) => {
-        console.log('onData 131', typeof str)
-        const lastTwo = getLastTwo()
-        console.log('last two 131', lastTwo)
-        if (lastTwo === '-Meta-v' || lastTwo === '-Control-v') {
-            if (typeof str === 'string') {
-                console.log('outputing', str)
-                term.paste(str)
-            } else {
-                throw new Error('Non-string data passed to terminal')
-            }
-        }
-
-    });
-    */
-    /*
-    term.paste = (data) => {
-        console.log('write transplant', data); term.write(data)
-        }
-        */
-    return {
-        get line() {
-            return cmd
-        },
-        set line(arg: string) {
-            cmd = arg
-        },
-        close: () => { },
-        write: (str: string) => {
-            const { x, y } = term.buffer._core.coreService._bufferService.buffers._activeBuffer
-            console.log('before write', x, cmd)
-            term.write(str)
-            cmd += str
-        },
-        setPrompt: (str: string) => {
-            innerPrompt = str
-        },
-        attachCustomKeyEventHandler: (arg1: (ev: KeyboardEvent) => boolean) => term.attachCustomKeyEventHandler(arg1),
-        buffer: term.buffer,
-        get currentPrompt() {
-            return innerPrompt
-        },
-        question: (pr1: string, fn: Function) => {
-            innerPrompt = pr1
-            return new Promise((resolve) => {
-
-                term.prompt(innerPrompt)
-                let disposable = term.onKey(function({ domEvent: ev, key }) {
-                    const printable = (
-                        !ev.altKey && !ev.ctrlKey && !ev.metaKey
-                    );
-
-                    if (['ArrowUp', 'ArrowDown'].includes(ev.key)) {
-                        // do nothing: history access
-                    } else if (ev.ctrlKey && ev.code === "KeyV" && ev.type === "keydown") {
-                        navigator.clipboard.readText()
-                            .then(text => {
-                                const { leftOfCursor, rightOfCursor } = cursorInfo(term, innerPrompt.length, cmd)
-                                const newText = `${text}${rightOfCursor}`
-                                term.write('\x1b[0K') // del to end of line
-                                term.write(newText) // write remainder
-                                term.write(rightOfCursor.length ? ('\x1b[' + `${rightOfCursor.length}D`) : '') // possibly move cursor.
-                                cmd = `${leftOfCursor}${newText}`
-                            })
-                    } else if (ev.keyCode == 13) {
-                        if (cmd === 'clear') {
-                            term.clear();
-                        }
-                        disposable.dispose()
-                        const result = fn(cmd)
-                        cmd = '';
-                        return resolve(result)
-                    } else if (ev.keyCode == 8) {
-                        const { offsetCursor, leftOfCursor, rightOfCursor } = cursorInfo(term, innerPrompt.length, cmd)
-                        if (offsetCursor > 0) {
-                            term.write('\b \b')
-                            term.write('\x1b[0K') // del to end of line
-                            term.write(rightOfCursor) // write remainder
-                            term.write(rightOfCursor.length ? ('\x1b[' + `${rightOfCursor.length}D`) : '') // possibly move cursor.
-                            cmd = `${leftOfCursor.substr(0, leftOfCursor.length - 1)}${rightOfCursor}`
-                        }
-                    } else if (printable) {
-                        const { offsetCursor, leftOfCursor, rightOfCursor } = cursorInfo(term, innerPrompt.length, cmd)
-                        if (['ArrowLeft'].includes(ev.key)) {
-                            if (offsetCursor > 0) {
-                                term.write(key)
-                            }
-                        } else if ('ArrowRight' === ev.key) {
-                            if (rightOfCursor) {
-                                term.write(key)
-                            }
-                        } else {
-                            term.write(`${key}${rightOfCursor}` + (rightOfCursor.length ? ('\x1b[' + `${rightOfCursor.length}D`) : ''));
-                            cmd = `${leftOfCursor}${key}${rightOfCursor}`
-                        }
-                    }
-                })
-            })
-        },
-        prompt: (pr1: string = innerPrompt) => {
-            term.prompt(pr1)
-        },
-        writeln: (str: string, fn: () => void) => {
-            term.writeln(str, fn)
-        }
+    const options = opts ? opts : { parent: document.body }
+    const elem = document.createElement(tag)
+    Object.entries(attribs).forEach(([key, val]) => {
+        elem.setAttribute(key, val)
+    })
+    const parentElem = options.parent
+    if (!parentElem || !parentElem.appendChild) {
+        throw new Error(`Supposed parent element (${parentElem}) has no "appendChild" method`)
     }
+    parentElem.appendChild(elem)
+    return elem
+}
+
+function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
+    if (elem.tagName === 'TEXTAREA') return true
+    return false
+}
+
+const makeTextArea = (): HTMLTextAreaElement => {
+    const taLen = textAreas.length
+    const parent = addElem('div', {
+        style: 'width: 35%; height: 10%; position: fixed; right: 0; bottom: 0; overflow: visible;',
+        class: `text-area-container text-area-container-${taLen}`,
+        id: `text-area-container-${taLen}`
+    })
+
+    addElem('div', {
+
+        'class': `prompt-text promp-text-${taLen}`,
+        'style': 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;'
+    }, {
+        parent
+    })
+
+    const ta = addElem('textarea', {
+        id: `textarea-${taLen}`,
+        class: `prompt-text promp-text-${taLen}`,
+        style: 'height: 100%; width: 100%;'
+    }, {
+        parent
+    })
+
+    if (!isTextArea(ta)) {
+        throw new Error(`Cannot return non-textarea`)
+    }
+
+    return ta
+
 }
 
 export const historyListener: HistoryListener = {
-    on: (keydown: string, fn: (_: any, kbe: KeyboardEvent) => boolean) => {
-        if (keydown !== 'keydown') {
+    on: (evName: string, fn: (_: any, kbe: KeyboardEvent) => boolean) => {
+        if (whitelistedTypes.includes(evName) === false) {
             throw new Error('historyListener is only made for "keydown" kind of node readline spoofing.')
         }
-
-        terminal[0].attachCustomKeyEventHandler((arg: KeyboardEvent) => {
-            console.log('attached custom fired')
-            const lastFive = state.get('lastFive')
-            lastFive.push(arg)
-            if (lastFive.length === 6) {
-                lastFive.shift()
-            }
-
-            return fn(null, arg)
-        })
-
-
+        const latestTerminal = latestTextArea()
+        mapCallable(latestTerminal, fn)
+        latestTerminal.removeEventListener('keydown', nyargsHandler)
+        latestTerminal.addEventListener('keydown', nyargsHandler)
     }
 }
 
 export const terminalUtils = {
-    matchUp: (obj: any) => {
-        return obj.key === 'ArrowUp'
-    },
-    matchDown: (obj: any) => {
-        return obj.key === 'ArrowDown'
-    },
-
+    matchUp: (obj: KeyboardEvent) => textAreaUtils().matchUp(obj),
+    matchDown: (obj: KeyboardEvent) => textAreaUtils().matchDown(obj),
     eventName: 'keydown',
-    clearCurrent: (rl: { write: Function }) => {
-
-        const { x, y } = terminal[0].buffer._core.coreService._bufferService.buffers._activeBuffer
-        const len = x - terminal[0].currentPrompt.length
-        let cnt = 0
-        terminal[0].line = ''
-        while (cnt < len) {
-            terminal[0].write('\b \b');
-            cnt += 1
-        }
-
-    }
+    clearCurrent: () => { textAreaUtils().clearCurrent() }
 }
 
-
-const output = (indent: string, strs: (string | number)[]): Promise<void> => {
-    return new Promise((resolve) => {
-
-        const output_ = () => {
-            let ln = strs.shift()
-            terminal[0].writeln(indent + ln, () => {
-                if (strs.length) {
-                    output_()
-                } else {
-                    resolve()
-                    return
-                }
-            })
-        }
-        output_()
-    })
-}
-
-
-
-export const renewReader: RenewReader = async (
-    shellPrompt: string) => {
-
-    if (terminal[0]) {
-        terminal[0].setPrompt(shellPrompt)
-        return terminal[0]
-
+export const renewReader: RenewReader = async (pr: string): Promise<ReadlineInterface> => {
+    let latestTerminal = latestTextArea()
+    if (latestTerminal === null) {
+        textAreas.push(makeTextArea())
+        latestTerminal = latestTextArea()
+        state.set(latestTerminal, { lastFive: [] })
     }
-    // curElement?.close()
-    // var term = new Terminal() as TerminalAugmented
-    // terminals.set(term, new Map())
+    if (latestTerminal === null) throw new Error('Could not find or create a textarea-based terminal')
 
-    const term = new Terminal({ fontSize: 10 }) as TerminalAugmented
-
-    const fitAddon = new FitAddon()
-    term.loadAddon(fitAddon)
-
-    const htmlElem = document.querySelector('#terminal')
-    if (!htmlElem) throw new Error('Bad html selector')
-    term.open(htmlElem as HTMLElement)
-    terminal[0] = newTermPrompt(term, shellPrompt)
-    return terminal[0]
-}
-
-// todo: i don't actually thing this needs to be async
-const print = async (arg: string | number | object) => {
-
-    const printable = typeof arg === 'object' ? JSON.stringify(arg, null, 2).split('\n') : [arg]
-    await output(' '.repeat(terminal[0].currentPrompt.length), printable)
-}
-
-export const printResult = async (result: Result): Promise<boolean> => {
-
-    if (result.argv.help === true) {
-        return false
-    }
-    print('')
-    if (!result.isMultiResult) {
-        await print(result)
-        return true
-    } else {
-        let didPrint = false
-        await Promise.all(Object.entries(result.list).map(async ([idx, res]) => {
-            didPrint = true
-            await print(`${idx} result:`)
-            await print(res)
-            if (result.argv[idx].logArgs === true) {
-                await print(`${idx} computed arguments:`)
-                await print(result.argv[idx])
-                await print('all args:')
-                await print(result)
-            }
-        }))
-        return didPrint
-    }
+    return readlineFunctions(latestTerminal)
 }
 
 export const fs = {
     writeFileSync: (fname: string, dat: string, encoding: 'utf8' = 'utf8') => {
-
         const encodingMap = {
             'utf8': 'utf-8'
         }
@@ -337,5 +288,34 @@ export const readline = {
     })
 }
 
-console.log('setting deps in nyargs!')
-setDeps({ fs, printResult, renewReader, readline, shelljs: { mkdir: (...args: any[]) => { } }, terminalUtils, historyListener })
+function submitCurrentInput(ke: KeyboardEvent) {
+    const ta = ke.target as HTMLTextAreaElement
+    const last2 = getLastTwo(ta)
+    if (last2 === '-Control-Enter') {
+        const resolver = getSubmitter(ta)
+        return resolver(ta.value)
+    }
+}
+
+function nyargsHandler(keyboardEvent: KeyboardEvent): void {
+    const currState = state.get(keyboardEvent.target as HTMLTextAreaElement)
+    const { lastFive } = currState
+    lastFive.push(keyboardEvent)
+    if (lastFive.length === 6) {
+        lastFive.shift()
+    }
+    const histFunc = getCallable(keyboardEvent.target as HTMLTextAreaElement)
+    return histFunc(null, keyboardEvent)
+}
+
+setDeps({
+    fs,
+    readline,
+    shelljs: { mkdir: (...args: any[]) => { } },
+    printResult,
+    renewReader,
+    terminalUtils,
+    historyListener
+})
+
+

@@ -1,4 +1,4 @@
-import { deps, Readline } from '../dynamic'
+import { deps, isNode, Readline } from '../dynamic'
 
 let curReadline: ReturnType<Readline['createInterface']>
 let didInitHistory = false
@@ -28,8 +28,8 @@ const initHistory = (clearCurrent: Function, write: Function, historyListener: {
         }
         // if the up arrow is pressed, clear the current terminal contents.
         if (matchUp(obj)) {
-            // if we are at the extent of history 
-            if (histState.idx === histState.hist.length) {
+            // if we are at the extent of history
+            if (histState.line || histState.idx === histState.hist.length) {
                 // push in the current contents.
                 histState.hist.push(histState.line)
             }
@@ -74,6 +74,7 @@ export const getInput: FnGetInput = async (pr, initInput = '') => {
     }
 
     const fn = await _getInput
+    if (!isNode()) { clearCurrent(curReadline) }
     return fn(pr, initInput)
 }
 
@@ -96,13 +97,14 @@ const makeGetInput = async () => {
         curReadline = await renewReader(pr, curReadline)
         const userInput = await new Promise<string>((res) => {
             curReadline.question(pr, (inp: string) => {
-                histState.hist.push(inp)
-                curReadline.close()
+                if (inp.trim()) {
+                    histState.hist.push(inp)
+                }
+                curReadline.close() // note: no-op in browser
                 histState.idx = histState.hist.length
                 return res(inp)
             })
             if (initialInput) {
-                console.log('calling write', initialInput)
                 curReadline.write(initialInput)
                 if (curReadline.line !== initialInput) {
                     curReadline.line = initialInput

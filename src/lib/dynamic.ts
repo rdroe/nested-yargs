@@ -26,7 +26,7 @@ interface TerminalUtils {
     matchUp: (arg1: any) => boolean
     matchDown: (arg1: any) => boolean
     eventName: string
-    clearCurrent: (arg1: any) => void
+    clearCurrent: (rl?: ReadlineInterface) => void
 }
 
 type PartialFs = {
@@ -67,6 +67,7 @@ export type Readline = {
 type DepName = 'fs' | 'shelljs' | 'readline' | 'historyListener' | 'terminalUtils' | 'renewReader' | 'printResult'
 
 type Awaitable = <DN extends keyof Deps>(dn: DN) => Promise<Deps[typeof dn]>
+
 
 const getDeps: Awaitable = async (dn: DepName) => {
     if (!depsRef[dn]) throw new Error(`No dep available at ${dn}`)

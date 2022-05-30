@@ -1,24 +1,24 @@
 import { Module, AppArguments } from '../../appTypes'
-import { jqEval } from '../../lib/store'
+import { evaluateFilter } from '../../lib/store'
 
 export const m: Module = {
     help: {
-        description: 'use jq to evaluate a test "--object" value',
+        description: 'use filters to evaluate a test "--object" value',
         options: {
-            'object': 'a string of typed out json to test evaluation on',
-            'jq': 'using the jq language (or nyargs custom operators), drill down into the test object to display only a subset of the data'
+            'object': 'a string of typed-out json to test evaluation on',
+            'filters': 'using a pipeline of array filters and the dot-prop query language, drill down into the test object to display only a subset of the data'
         },
         examples: {
-            [`--object '{"foo":"bar"}' --jq .foo`]: 'show "bar" (by drilling down using jq)',
-            [`--object '{"foo":"bar"}' '{"foo": "baz"}' --jq .foo`]: 'show "bar" and "baz" (by drilling down using jq)',
-
+            [`--object '{"foo":"bar"}' --filters .foo`]: 'show "bar" (by drilling down using filters)',
+            [`--object '{"foo":"bar", "arr": ["a","b", { "element": "c" } ]}' --filters .arr[0] slice(0)`]:
+                'here, the filter pipeline consists of two elements: .arr[0] and slice(0). these are run as stages, feeding forward the result and running the next operator. if the argument looks like a function call that exists on Array.prototype, it will be treated as such. otherwiee it is treated using the dot-prop library.'
         }
 
     },
     fn: async (argv: AppArguments) => {
         const {
             object,
-            jq: jqQuery,
+            filters: filtersQuery,
         } = argv
 
         const arrObject: any[] = []
@@ -32,7 +32,7 @@ export const m: Module = {
 
 
         return Promise.all(arrObject.map(async (obj) => {
-            await jqEval(obj, jqQuery)
+            await evaluateFilter(obj, filtersQuery)
         }))
 
     }

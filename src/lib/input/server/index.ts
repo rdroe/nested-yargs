@@ -1,6 +1,7 @@
 import { Result } from "../../../appTypes";
 import { deps } from "../../dynamic";
 
+
 export const printResult = async (result: Result): Promise<boolean> => {
     if (result.argv.help === true) {
         return true

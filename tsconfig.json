@@ -18,6 +18,6 @@
 	"watchDirectory": "useFsEvents"
     },
     "references": [{ "path": "./tsconfig.browser.json" }],
-    "include": ["./index.ts", "./src/**/*.ts", "./src/lib/dynamic.ts"],
+    "include": ["./index.ts",  "./src/lib/input/server/**/*.ts"],
     "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*", "./dist-browser/**/*", "./src/lib/input/browser/**/*.ts"]
 }

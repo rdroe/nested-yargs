@@ -17,13 +17,11 @@ export const program: ProgramRef = {
 export const setDictionary = (
     dict: Dictionary
 ) => {
-    console.log('setting diction', dict)
     program.dictionary = Object.assign(program.dictionary, dict)
-    console.log('after set', program.dictionary)
 }
 
 export const getDictionary = () => {
-    console.log('getting dict', program)
+
     return program.dictionary
 }
 
@@ -45,6 +43,7 @@ export const queue = (stringOrProg: string | Program) => {
 }
 
 const PROMPT = 'nyargs > '
+let userPrompt = PROMPT
 const JQ_DEFAULT = 'l'
 const containsInterrupt = (rawInput: string) => {
     if (rawInput.includes('davo:dismiss') || rawInput.includes('davo:dis')) {
@@ -79,8 +78,9 @@ const getExecuteCli = async (modules: Modules, yargsCaller: Function) => async (
 // This is the primary loop logic. it  makes use of the above direct executor function, but also runs the loop in which the executor and the verification is run repeatedly.
 async function verifyAndExecuteCli(
     forwardedInput: string | null,
-    pr: string,
-    executor: (arg0: string) => Promise<{ result: Result, argv: AppArguments }>): Promise<{ argv: object, result: object }> {
+    executor: (arg0: string) => Promise<{ result: Result, argv: AppArguments }>,
+    tempPrompt: string = userPrompt
+): Promise<{ argv: object, result: object }> {
     let rawInput: string
     let didUseProgram: boolean = false
     const printResult = await deps.get('printResult')
@@ -97,8 +97,8 @@ async function verifyAndExecuteCli(
 
     if (typeof rawInput === 'undefined') {
         rawInput = forwardedInput
-            ? await getInput(pr, forwardedInput)
-            : await getInput(pr)
+            ? await getInput(tempPrompt, forwardedInput)
+            : await getInput(tempPrompt)
     }
 
     if (containsInterrupt(rawInput)) {
@@ -109,8 +109,9 @@ async function verifyAndExecuteCli(
     const input = await parseCacheInstructions(rawInput, JQ_DEFAULT)
 
     // If it is different (if cache-replacing was used) verify to run.
+    console.log('input compared / raw', input, rawInput, (input === rawInput) ? 'match' : 'not matching')
     if (!didUseProgram && input !== rawInput) {
-        return verifyAndExecuteCli(input, 'AGUMENTED COMMAND > ', executor) // loop, also giving chance to enter new input 
+        return verifyAndExecuteCli(input, executor, 'AUGMENTED > ') // loop, also giving chance to enter new input 
     } else {
         if (didUseProgram && input !== rawInput) {
             console.log('program line expanded: ', input)
@@ -128,7 +129,7 @@ async function verifyAndExecuteCli(
         }
 
         // start fresh
-        return verifyAndExecuteCli(null, pr || PROMPT, executor)
+        return verifyAndExecuteCli(null, executor)
     }
 }
 
@@ -140,12 +141,12 @@ const repl = async (
     yargsCaller: Executor,
     prompt?: string
 ) => {
-
+    userPrompt = prompt ? prompt : userPrompt
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior. 
     const executeCli = await getExecuteCli(modules, yargsCaller)
 
     // kick off the actual loop that talks to user and repeats execution
-    await verifyAndExecuteCli(null, prompt || PROMPT, executeCli)
+    await verifyAndExecuteCli(null, executeCli)
 }
 
 export default repl

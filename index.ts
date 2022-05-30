@@ -17,3 +17,6 @@ export { repl } from './src/setUp'
 export { get, post, QueryParams, SaveRequest } from './src/lib/api/call'
 export const loop = loop_
 export const store = store_
+
+export { deps } from './src/lib/dynamic'
+

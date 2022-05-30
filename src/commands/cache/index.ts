@@ -7,11 +7,11 @@ import eval from './eval'
 import imp from './import'
 import clear from './clear'
 
-const jq: Options = {
+const filters: Options = {
     description: 'query element to apply in put-able or entry object',
-    alias: 'j',
-    type: 'string',
-    default: '.'
+    alias: 'f',
+    type: 'array',
+    default: ['.']
 }
 
 const scalar: Options = {
@@ -47,7 +47,7 @@ const cm: Module = {
         console.log('Cache operation hub.')
     },
     yargs: {
-        jq,
+        filters,
         scalar,
         object,
         id

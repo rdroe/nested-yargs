@@ -4,6 +4,7 @@ import { dbPath } from '../lib/util'
 import { importFromJson, clearDatabase, exportToJson } from '../lib/idb-backup-and-restore'
 import { isNode } from '../lib/dynamic'
 
+
 type Fs = {
     readFileSync: Function,
     writeFileSync: Function
@@ -57,8 +58,8 @@ const cacheResult = async (argv: AppArguments, data: object) => {
             ? argv['c:n'].map(n => `${n}`)
             : [],
 
-        _jq: cacheDrilldown, // why is a jq arg needed here?
-        value: data
+        value: data,
+        filters: argv?.filters
     }
 
     await put(entry)
