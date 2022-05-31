@@ -1,71 +1,9 @@
-import setAllDeps from './shims'
-import { Result } from "../../../appTypes";
-import { deps } from "../../dynamic";
 import * as setUp from '../../../setUp'
 import * as loop_ from '../../../loop'
 import * as hooks_ from '../../../hooks'
 import * as store_ from '../../store'
-
-setAllDeps()
-
-export const printResult = async (result: Result): Promise<boolean> => {
-    if (result.argv.help === true) {
-        return true
-    }
-    if (!result.isMultiResult) {
-        console.log(result)
-        return true
-    } else {
-        let didLog = false
-        Object.entries(result.list).forEach(([idx, res]) => {
-            console.log(`${idx} result:`)
-            console.log(res)
-            didLog = true
-            if (result.argv[idx].logArgs === true) {
-                console.log(`${idx} computed arguments:`)
-                console.log(result.argv[idx])
-                console.log('all args:')
-                console.log(result)
-            }
-        })
-        return didLog
-    }
-}
-
-export const makeTriggerInput: ((arg1: (str: string) => void) => (str: string) => void) =
-    (write) => (inp = "brackets get -s 'i go'") => {
-        write(inp)
-        write("\n")
-    }
-
-export const terminalUtils = {
-    matchUp: (obj: any) => obj.name === 'up',
-    matchDown: (obj: any) => obj.name === 'down',
-    eventName: 'keypress',
-    clearCurrent: (rl: { write: Function }) => {
-        rl.write(null, { ctrl: true, name: 'u' });
-    }
-}
-
-export const renewReader = async (pr: string, curElement: { close?: Function }) => {
-
-    const readline = await deps.get('readline')
-    curElement?.close()
-    // todo: verify that readline module is totally garbage collected
-    // on resetting the reference.
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        prompt: pr
-    })
-    return rl
-}
-
-//
-
-export { db, Dexie } from './db'
+import './shims'
 export { cache, match, program } from '../../../commands'
-export * from '../../../lib/dynamic'
 export default setUp
 export const hooks = hooks_
 export { AppOptions, Action, AppArgv, AppArguments, Module, UserArgs } from '../../../appTypes'
@@ -74,5 +12,3 @@ export { repl } from '../../../setUp'
 export { get, post, QueryParams, SaveRequest } from '../../../lib/api/call'
 export const loop = loop_
 export const store = store_
-
-
