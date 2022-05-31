@@ -1,7 +1,7 @@
 import { AppArguments, Module } from '../../appTypes'
 
 import { importDb } from '../../hooks'
-import { deps } from '../../../index'
+import { deps } from '../../lib/dynamic'
 export default {
     help: {
         description: 'import a json file to the cache db (i.e. a file previously saved using "cache back ..." command',

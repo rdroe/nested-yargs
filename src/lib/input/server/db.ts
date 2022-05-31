@@ -1,14 +1,6 @@
-
 import 'fake-indexeddb/auto'
 import { Dexie as DexieCore } from 'dexie'
-
-export interface Cache {
-    id?: number
-    names: Array<string> | '*'
-    commands: Array<string> | '*'
-    value: any
-    createdAt: number
-}
+import { Cache } from '../../../appTypes'
 
 export class UiDb extends DexieCore {
     public cache: Dexie.Table<Cache>

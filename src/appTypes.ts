@@ -82,3 +82,11 @@ export type UserArgs<T = {}> = AppArguments & Arguments<T> & {
     /** All remaining options */
     [argName: string]: unknown;
 };
+
+export interface Cache {
+    id?: number
+    names: Array<string> | '*'
+    commands: Array<string> | '*'
+    value: any
+    createdAt: number
+}

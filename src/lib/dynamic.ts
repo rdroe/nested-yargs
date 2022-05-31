@@ -74,6 +74,7 @@ type Awaitable = <DN extends keyof Deps>(dn: DN) => Promise<Deps[typeof dn]>
 const getDeps: Awaitable = async (dn: DepName) => {
     if (!depsRef[dn]) throw new Error(`No dep available at ${dn}`)
     return depsRef[dn].then((resolvedDep) => {
+        console.log('resolved dd ' + dn, resolvedDep)
         if (resolvedDep.default) return resolvedDep.default
         return resolvedDep
     })

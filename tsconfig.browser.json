@@ -1,9 +1,21 @@
 {
     "compilerOptions": {
-        "composite": true,
-        "outDir": "./dist-browser"
+	"module": "CommonJS",
+	"esModuleInterop": true,
+	"moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+	"noImplicitAny": true,
+	"removeComments": true,
+	"preserveConstEnums": true,
+	"sourceMap": true,
+	"outDir": "./dist-browser",
+	"declaration": true,
+	"allowJs": true,
+	"lib": ["dom", "es2019"],
+        "target": "esNext",
+        "skipLibCheck": true,
+        "composite": true
     },
-    "extends": "./tsconfig.server",
-    "include": ["./index.ts", "./src/**/*.ts"],
-    "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*", "./dist-browser/**/*",  "./src/lib/input/server/**/*.ts"]
+    "include": ["./src/**/*.ts"],
+    "exclude": ["node_modules", "**/*.spec.ts", "./dist-server/**/*", "./dist-browser/**/*",  "./src/lib/input/server/**/*"]
 }

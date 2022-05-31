@@ -1,10 +1,8 @@
-
 // @ts-ignore
 import getProperty from 'dotprop'
 // import 'fake-indexeddb/auto'
 import { deps } from './dynamic'
-import { Cache } from './input/browser/db'
-
+import { Cache } from '../appTypes'
 
 export const FILTER_ARG = 'filters'
 

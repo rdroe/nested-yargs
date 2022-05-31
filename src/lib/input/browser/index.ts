@@ -4,7 +4,6 @@ import * as hooks_ from '../../../hooks'
 import * as store_ from '../../store'
 import './shims'
 export { cache, match, program } from '../../../commands'
-
 export * from '../../../lib/dynamic'
 
 export default setUp

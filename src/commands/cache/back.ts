@@ -1,7 +1,6 @@
 import { AppArguments, Module } from '../../appTypes'
-
 import { exportDb } from '../../hooks'
-import { deps } from '../../../index'
+import { deps } from '../../lib/dynamic'
 
 export default {
     help: {

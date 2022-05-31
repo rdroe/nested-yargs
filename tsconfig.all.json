@@ -1,8 +1,0 @@
-{
-    "compilerOptions": {
-        "composite": true,
-        "outDir": "./dist-all"
-    },
-    "extends": "./tsconfig",
-    "exclude": ["node_modules", "**/*.spec.ts", "./dist/**/*", "./dist-browser/**/*"]
-}
