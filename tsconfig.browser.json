@@ -17,5 +17,5 @@
         "composite": true
     },
     "include": ["./src/**/*.ts"],
-    "exclude": ["node_modules", "**/*.spec.ts", "./dist-server/**/*", "./dist-browser/**/*",  "./src/lib/input/server/**/*"]
+    "exclude": ["node_modules", "**/*.spec.ts", "./dist-server/**/*", "./dist-browser/**/*",  "./src/lib/input/server/**/*", "./example"]
 }

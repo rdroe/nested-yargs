@@ -19,6 +19,6 @@
 	"watchDirectory": "useFsEvents"
     },
     "include": ["./src/**/*.ts" ],
-    "exclude": ["node_modules", "**/*.spec.ts",  "./dist-browser/**/*", "./dist-server/**/*", "./src/lib/input/browser/**/*"]
+    "exclude": ["node_modules", "**/*.spec.ts",  "./dist-browser/**/*", "./dist-server/**/*", "./src/lib/input/browser/**/*", "./example"]
 }
 
