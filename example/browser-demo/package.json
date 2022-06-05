@@ -33,8 +33,9 @@
         "js-build": "esbuild public/js/glue.js --bundle --outfile=public/main.js",
         "app-build": "node build.js",
         "css-build": "esbuild --bundle css/main.css --outfile=public/css/style.css",
-        "mon": "yarn nodemon --exec \"yarn ts-build && yarn app-build\" --watch ../../dist-browser --watch ./src --ext js,ts,mjs,ts --ignore public",
+        "mon": "yarn nodemon --exec \"yarn ts-build && yarn css-build && yarn app-build\" --watch ../../dist-browser --watch ./src --watch ./css --ext js,ts,mjs,ts,css  --ignore public",
         "start": "yarn http-server"
+        
     },
     "packageManager": "yarn@3.2.0"
 }

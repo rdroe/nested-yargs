@@ -7,11 +7,13 @@ const textAreas: HTMLTextAreaElement[] = []
 const latestTextArea = () => textAreas.length ? textAreas[textAreas.length - 1] : null
 const prompts = new Map<HTMLTextAreaElement, string>()
 
-const state = new Map<HTMLTextAreaElement, { lastFive: KeyboardEvent[] }>()
+const lastFive: KeyboardEvent[] = []
 const callables = new Map<HTMLTextAreaElement, Function>()
 const submitters = new Map<HTMLTextAreaElement, Function>()
 const printAreas = new Map<HTMLTextAreaElement, HTMLElement>()
 const whitelistedTypes = ['keydown']
+
+const allMaps: Map<string, Map<HTMLTextAreaElement, any>> = new Map
 
 const mapCallable = (textArea: HTMLTextAreaElement, fn: Function) => {
     callables.set(textArea, fn)
@@ -36,7 +38,6 @@ const getSubmitter = (textArea: HTMLTextAreaElement): Function => {
     return submitters.get(textArea)
 }
 
-
 const mapPrintArea = (textArea: HTMLTextAreaElement, elem: HTMLElement) => {
     printAreas.set(textArea, elem)
 }
@@ -46,6 +47,27 @@ const getPrintArea = (textArea: HTMLTextAreaElement): HTMLElement => {
     return printAreas.get(textArea)
 }
 
+const maps = {
+    init: <MapValuesType = any>(name: string) => {
+        allMaps.set(name, new Map<HTMLTextAreaElement, MapValuesType>())
+    },
+    sett: <V>(mapName: string, key: HTMLTextAreaElement, value: V) => {
+        const map1 = allMaps.get(mapName)
+        if (!map1) return
+        map1.set(key, value)
+    },
+    get: (mapName: string, key: HTMLTextAreaElement) => {
+        const map1 = allMaps.get(mapName)
+        if (!map1) return
+        return map1.get(key)
+    }
+}
+
+maps.init<boolean>('toggled')
+
+const taParent = (elem: HTMLElement) => {
+    return elem.parentElement
+}
 
 const displayPrompt = (textArea: HTMLTextAreaElement) => {
     const prompt = getPrompt(textArea)
@@ -82,14 +104,14 @@ const readlineFunctions = (ta: HTMLTextAreaElement): ReadlineInterface => {
 
             mapPrompt(ta, pr)
             displayPrompt(ta)
-            ta.removeEventListener('keydown', submitCurrentInput)
+            document.removeEventListener('keydown', handleKeypress, true)
             return new Promise((resolve) => {
-                mapSubmitter(ta, (arg: string) => {
-                    ta.removeEventListener('keydown', submitCurrentInput)
-                    resolve(fn(arg))
+                mapSubmitter(ta, async (arg: string) => {
+                    document.removeEventListener('keydown', handleKeypress, true)
+                    const res = await fn(arg)
+                    return resolve(res)
                 })
-                ta.addEventListener('keydown', submitCurrentInput)
-
+                document.addEventListener('keydown', handleKeypress, true)
             })
         }
     }
@@ -99,11 +121,26 @@ const getOrInitPrintArea = (ta: HTMLTextAreaElement) => {
 
     let printArea = getPrintArea(ta)
     if (!printArea) {
-        mapPrintArea(ta, addElem('pre', {
-            class: `print-area print-area-${textAreas.length}`,
-            style: 'width: 50vw; height: 100%; margin: 0; padding: 0;'
-        }))
+        const num = textAreas.indexOf(ta)
+        if (num === -1) throw new Error('Error; could not find cached text area to match that one')
+        const added = addElem('div', {
+            class: `print-area print-area-${num}`,
+            style: 'margin: 0; padding: 0;'
+        })
+
+        const text = addElem('pre', {
+            class: `print-area-text print-area-text-${num}`,
+        }, {
+            parent: added
+        })
+
+        mapPrintArea(ta, text)
         printArea = getPrintArea(ta)
+        // if printArea shares a parent with its textarea, re-added textarea to put it on top
+        if (ta?.parentElement?.parentElement === added.parentElement) {
+            added.parentElement.appendChild(ta.parentElement)
+            ta.focus()
+        }
     }
 
     if (!printArea) {
@@ -118,6 +155,14 @@ const print = (arg: string | number | object, ta: HTMLTextAreaElement = latestTe
     printArea.innerHTML = `${printArea.innerHTML}
 ${text}
 `
+
+    if (DO_AUTO_SCROLL) {
+        const printAreaContainer = getPrintArea(ta)
+        const scrollable = printAreaContainer?.parentElement
+        if (scrollable) {
+            scrollable.scroll({ top: printAreaContainer.getBoundingClientRect().height })
+        }
+    }
 }
 
 const printResult = async (result: Result): Promise<boolean> => {
@@ -127,9 +172,6 @@ const printResult = async (result: Result): Promise<boolean> => {
     print('')
     if (!result.isMultiResult) {
         print(result)
-        if (DO_AUTO_SCROLL) {
-            window.scroll({ top: document.body.getBoundingClientRect().height })
-        }
         return true
     } else {
         let didPrint = false
@@ -151,11 +193,18 @@ const printResult = async (result: Result): Promise<boolean> => {
     }
 }
 
-const getLastTwo = (ta: HTMLTextAreaElement) => {
-    const { lastFive } = state.get(ta)
-    const lastTwo = lastFive.slice(lastFive.length - 2).reduce((accum: string, ke: KeyboardEvent) => {
+
+const getLastN = (elem: HTMLElement | true, n: number) => {
+    let first: EventTarget
+    const lastTwo = lastFive.slice(lastFive.length - n).reduce((accum: string, ke: KeyboardEvent) => {
+        // all events must be from the most recent recipient
+        first = first ?? ke.target
         if (ke.type !== 'keydown') {
             return accum
+        }
+
+        if (elem !== true) {
+            if (elem !== ke.target) return accum
         }
 
         return `${accum}-${ke.key}`
@@ -163,6 +212,8 @@ const getLastTwo = (ta: HTMLTextAreaElement) => {
 
     return lastTwo
 }
+
+const getLastTwo = (ta: HTMLTextAreaElement) => getLastN(ta, 2)
 
 interface BaseAttribs {
     style?: string
@@ -184,12 +235,20 @@ const addElem = <
     Object.entries(attribs).forEach(([key, val]) => {
         elem.setAttribute(key, val)
     })
+
     const parentElem = options.parent
+
     if (!parentElem || !parentElem.appendChild) {
         throw new Error(`Supposed parent element (${parentElem}) has no "appendChild" method`)
     }
+
     parentElem.appendChild(elem)
     return elem
+}
+
+function isNyargsArea(elem: any): elem is HTMLTextAreaElement {
+
+    return isTextArea(elem) && elem.classList.contains('ny-text-area')
 }
 
 function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
@@ -200,13 +259,12 @@ function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
 const makeTextArea = (): HTMLTextAreaElement => {
     const taLen = textAreas.length
     const parent = addElem('div', {
-        style: 'width: 35%; height: 10%; position: fixed; right: 0; bottom: 0; overflow: visible;',
+        style: 'overflow: visible;',
         class: `text-area-container text-area-container-${taLen}`,
         id: `text-area-container-${taLen}`
     })
 
     addElem('div', {
-
         'class': `prompt-text promp-text-${taLen}`,
         'style': 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;'
     }, {
@@ -215,8 +273,9 @@ const makeTextArea = (): HTMLTextAreaElement => {
 
     const ta = addElem('textarea', {
         id: `textarea-${taLen}`,
-        class: `prompt-text promp-text-${taLen}`,
-        style: 'height: 100%; width: 100%;'
+        class: `prompt-text promp-text-${taLen} ny-text-area`,
+        style: 'height: 100%; width: 100%;',
+        autofocus: true
     }, {
         parent
     })
@@ -224,7 +283,7 @@ const makeTextArea = (): HTMLTextAreaElement => {
     if (!isTextArea(ta)) {
         throw new Error(`Cannot return non-textarea`)
     }
-
+    maps.sett('toggled', ta, true)
     return ta
 
 }
@@ -236,8 +295,7 @@ export const historyListener: HistoryListener = {
         }
         const latestTerminal = latestTextArea()
         mapCallable(latestTerminal, fn)
-        latestTerminal.removeEventListener('keydown', nyargsHandler)
-        latestTerminal.addEventListener('keydown', nyargsHandler)
+
     }
 }
 
@@ -253,7 +311,6 @@ export const renewReader: RenewReader = async (pr: string): Promise<ReadlineInte
     if (latestTerminal === null) {
         textAreas.push(makeTextArea())
         latestTerminal = latestTextArea()
-        state.set(latestTerminal, { lastFive: [] })
     }
     if (latestTerminal === null) throw new Error('Could not find or create a textarea-based terminal')
 
@@ -290,25 +347,98 @@ export const readline = {
     })
 }
 
-function submitCurrentInput(ke: KeyboardEvent) {
-    const ta = ke.target as HTMLTextAreaElement
-    const last2 = getLastTwo(ta)
-    if (last2 === '-Control-Enter') {
-        const resolver = getSubmitter(ta)
-        return resolver(ta.value)
-    }
-}
-
-function nyargsHandler(keyboardEvent: KeyboardEvent): void {
-    const currState = state.get(keyboardEvent.target as HTMLTextAreaElement)
-    const { lastFive } = currState
+function recordKeypress(keyboardEvent: KeyboardEvent): void {
     lastFive.push(keyboardEvent)
     if (lastFive.length === 6) {
         lastFive.shift()
     }
-    const histFunc = getCallable(keyboardEvent.target as HTMLTextAreaElement)
-    return histFunc(null, keyboardEvent)
 }
+
+function handleKeypress(ke: KeyboardEvent) {
+    recordKeypress(ke)
+    handleTextKeypress(ke)
+    handleAnyKeypress(ke)(true, () => {
+        const lastFour = getLastN(true, 4)
+        if (lastFour.startsWith('-Control-Shift-:-')) {
+            lastFive.map(ev => ev.preventDefault())
+            const keypress = lastFour.split('-Control-Shift-:-')[1]
+            const sel = `.ny-text-area#textarea-${keypress}`
+            const ta = document.querySelector(sel)
+
+            if (isNyargsArea(ta)) {
+                const isOn = toggleTa(ta)
+                if (isOn) {
+                    ta.focus()
+                } else {
+                    ta.blur()
+                }
+            } else {
+                throw new Error('naming clash; only text areas should have "ny-text-area" class')
+            }
+
+
+
+        }
+    })
+}
+
+function handleAnyKeypress(ke: KeyboardEvent) {
+    return (elem: Window | HTMLElement | true, fn: Function) => {
+
+        if (elem === true || ke.target === elem) {
+            fn()
+        }
+    }
+}
+
+function toggleTa(ta: HTMLTextAreaElement): boolean {
+    const toggled = maps.get('toggled', ta)
+    const pa = taParent(ta)
+    const printArea = getPrintArea(ta)
+    const newTog = !toggled
+
+    if (newTog) {
+        pa.classList.remove('is-offscreen')
+        if (printArea?.parentElement) printArea.parentElement.classList.remove('is-offscreen')
+    } else {
+        pa.classList.add('is-offscreen')
+        if (printArea?.parentElement) printArea.parentElement.classList.add('is-offscreen')
+    }
+    maps.sett('toggled', ta, newTog)
+    return newTog
+}
+
+function handleTextKeypress(ke: KeyboardEvent) {
+
+    if (document.activeElement !== ke.target) {
+        return
+    }
+    if (!isNyargsArea(ke.target)) {
+        return
+    }
+    const histFunc = getCallable(ke.target as HTMLTextAreaElement)
+
+    // call specific handler for kepyresses for this (focused) element
+    if (histFunc) {
+        histFunc(null, ke)
+    }
+
+    const ta = ke.target
+
+    const last2 = getLastTwo(ta)
+    const last3 = getLastN(ta, 3)
+
+    if (last2 === '-Control-Enter') {
+        const resolver = getSubmitter(ta)
+        ke.stopPropagation()
+        return resolver(ta.value)
+    } else if (last3 === '-Control-Shift-K' || last3 === '-Shift-Control-K') {
+        toggleTa(ta)
+
+        ke.stopPropagation()
+    }
+}
+
 
 setDeps({
     fs,

@@ -91,10 +91,10 @@ async function verifyAndExecuteCli(
     // as the user command.
     if (program.array.length) {
         rawInput = program.array.shift()
-        console.log('program line:', rawInput)
+        console.log('program line', rawInput)
         didUseProgram = true // track that a program was used; may need to treat it specially on expansion.
     }
-
+    console.log('program', program.array)
     if (typeof rawInput === 'undefined') {
         rawInput = forwardedInput
             ? await getInput(tempPrompt, forwardedInput)
@@ -123,6 +123,7 @@ async function verifyAndExecuteCli(
             await printResult(ret.result)
             // look at the arguments and results, cache if appropriate.
             await cache(ret.argv, ret.result)
+            console.log('cached result')
         } catch (e) {
             console.error('(could not log result)')
             console.error(e.message)

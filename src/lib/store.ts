@@ -266,14 +266,20 @@ const filterOnArrayIndex = async (arr: Cache[], targets: string[] | '*', targetN
 }
 type JsonQueryInterpretation = Cache[] | Cache | string | null
 
-const interpretQueryAsLodash = async (filter: string[], res1: Cache[]): Promise<JsonQueryInterpretation> => {
-    if (filter.length !== 1) return null
-    const lowerFilter = filter[0].toLowerCase()
+const simpleFilter = (lowerFilter: string, res1: Cache[]): JsonQueryInterpretation => {
     if (lowerFilter === 'first' || lowerFilter === 'f') {
         return res1[0]
     } else if (lowerFilter === 'last' || lowerFilter === 'l') {
         return res1[res1.length - 1]
-    } else return null
+    }
+    return null
+}
+
+const interpretQueryAsLodash = async (filter: string[], res1: Cache[]): Promise<JsonQueryInterpretation> => {
+    if (filter.length !== 1) return null
+    const lowerFilter = filter[0].toLowerCase()
+
+    return simpleFilter(lowerFilter, res1)
 }
 
 const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretation> => {

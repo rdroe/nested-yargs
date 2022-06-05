@@ -1,5 +1,5 @@
 import { deps, isNode, Readline } from '../dynamic'
-
+import { queue } from '../../loop'
 let curReadline: ReturnType<Readline['createInterface']>
 let didInitHistory = false
 
@@ -17,7 +17,6 @@ const histState: {
     line: undefined
 }
 
-// export const triggerInput = makeTriggerInput((curReadline.write as (str: string) => void))
 
 const initHistory = (clearCurrent: Function, write: Function, historyListener: { on: Function }, histState: { hist: string[], idx: number, line?: string }, utils: { matchUp: Function, matchDown: Function, eventName: string }) => {
 
@@ -96,9 +95,18 @@ const makeGetInput = async () => {
 
         curReadline = await renewReader(pr, curReadline)
         const userInput = await new Promise<string>((res) => {
-            curReadline.question(pr, (inp: string) => {
+
+            curReadline.question(pr, (rawInput: string) => {
+                let inp: string
+
+                const splitted = rawInput.split('\n').filter(elem => !!elem)
+                console.log('split up', splitted)
+                inp = splitted.shift()
+                if (splitted.length) {
+                    queue(splitted)
+                }
                 if (inp.trim()) {
-                    histState.hist.push(inp)
+                    histState.hist.push(rawInput)
                 }
                 curReadline.close() // note: no-op in browser
                 histState.idx = histState.hist.length
