@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+	"module": "CommonJS",
+	"esModuleInterop": true,
+	"moduleResolution": "node",
+	"noImplicitAny": true,
+	"removeComments": true,
+	"preserveConstEnums": true,
+	"sourceMap": true,
+	"outDir": "./dist",
+	"declaration": true,
+	"allowJs": true,
+	"lib": ["dom", "es2019"],
+	"rootDir": ".",
+        "skipLibCheck": true,
+        "paths": {"nyargs": ["../nyargs/dist/", "../nyargs/dist-browser/"]}
+        
+    },
+    "watchOptions": {
+	"watchDirectory": "useFsEvents"
+    },
+    "include": ["myapp.ts"],
+    "exclude": [ "**/*.spec.ts"]
+}
