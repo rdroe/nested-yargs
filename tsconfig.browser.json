@@ -16,6 +16,6 @@
         "skipLibCheck": true,
         "composite": true
     },
-    "include": ["./src/**/*.ts"],
+    "include": ["./src/**/*.ts", "./src/appTypes.d.ts"],
     "exclude": ["node_modules", "**/*.spec.ts", "./dist-server/**/*", "./dist-browser/**/*",  "./src/lib/input/server/**/*", "./example"]
 }

@@ -17,10 +17,10 @@
     "watchOptions": {
 	"watchDirectory": "useFsEvents"
     },
+    "include": [],
     "references": 
         [
             { "path": "./tsconfig.server.json"},
             { "path": "./tsconfig.browser.json"}
         ]
-    
 }
