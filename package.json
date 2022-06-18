@@ -1,7 +1,8 @@
 {
   "name": "nyargs",
   "version": "0.2.18",
-  "description": "Dev template for nested-subcommand cli tools",
+    "description": "Dev template for nested-subcommand cli tools",
+    "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/rdroe/nyargs.git"

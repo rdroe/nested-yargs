@@ -10,3 +10,4 @@ dist-server/
 *~
 .env
 yarn-error.log
+.yarnrc.yml
