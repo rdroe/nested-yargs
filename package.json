@@ -9,7 +9,8 @@
   },
   "workspaces": [
     "example/browser-demo",
-    "example/server-demo"
+    "example/server-demo",
+    "."
   ],
   "scripts": {
     "build": "npx tsc -b",

@@ -1,4 +1,4 @@
-import { Module, UserArgs } from 'nyargs'
+import { Module, UserArgs } from 'nyargs/dist-browser/src/appTypes'
 
 type BrowserArgs = {
     action: string,

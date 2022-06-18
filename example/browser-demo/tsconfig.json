@@ -13,7 +13,7 @@
 	"allowJs": true,
 	"lib": ["dom", "es2019", "ES2015"],
 	"noEmit": false,
-	"paths": {"nyargs": ["../nyargs/dist/", "../nyargs/dist-browser/"]},
+	"paths": {"nyargs/*": ["../../../*"]},
         "target": "es2019",
         "skipLibCheck": true,
         "allowSyntheticDefaultImports": true

@@ -5,7 +5,7 @@ import { Cache } from '../../../appTypes'
 
 
 export class UiDb extends DexieCore {
-    public cache: Dexie.Table<Cache>
+    public cache: DexieCore.Table<Cache>
 
     public constructor() {
         super("UiDb")
