@@ -1,6 +1,6 @@
 {
     "workspaces": [
-        "../../../nyargs"
+        "../../"
     ],
     "name": "byargs",
     "version": "1.0.0",
