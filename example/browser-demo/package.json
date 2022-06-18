@@ -15,7 +15,7 @@
     "dependencies": {
         "http-server": "^14.1.0",
         "nodemon": "^2.0.16",
-        "nyargs": "workspace:^",
+        "nyargs": "workspace:*",
         "xterm": "^4.18.0",
         "yargs": "^17.5.1"
     },

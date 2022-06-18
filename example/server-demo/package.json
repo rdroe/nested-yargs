@@ -1,6 +1,6 @@
 {
     "workspaces": [
-        "../../../nyargs"
+        "../../"
     ],
     "name": "myapp",
     "version": "1.0.0",
@@ -8,7 +8,7 @@
     "license": "MIT",
     "dependencies": {
         "@types/yargs": "^17.0.10",
-        "nyargs": "wokspace:*",
+        "nyargs": "workspace:*",
         "shelljs": "^0.8.5",
         "typescript": "^4.6.4",
         "yargs": "^17.5.1"
