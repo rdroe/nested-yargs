@@ -26,16 +26,14 @@
         "typescript": "^4.6.4"
     },
     "scripts": {
-        "note": "echo \"first build typescript; then build javascript, which will work off of typescript output; at any time, build css. esbuild will output the files referred to in main under current settings\"",
+        "note": "echo \"first build typescript; then build javascript, which will work off of typescript output; at any time, build css. to understand the goal of the build, see main.js. main.js imports the results of the build.",
         "ts-dev": "tsc -w",
         "ts-build": "tsc",
-        "js-build:neutral": "esbuild public/js/glue.js --bundle --outfile=public/main.js --platform=neutral",
-        "js-build": "esbuild public/js/glue.js --bundle --outfile=public/main.js",
-        "app-build": "node build.js",
+        "js-build": "node build.js",
         "css-build": "esbuild --bundle css/main.css --outfile=public/css/style.css",
-        "mon": "yarn nodemon --exec \"yarn ts-build && yarn css-build && yarn app-build\" --watch ../../dist-browser --watch ./src --watch ./css --ext js,ts,mjs,ts,css  --ignore public",
+        "mon": "yarn nodemon --exec \"yarn ts-build && yarn css-build && yarn js-build\" --watch ../../dist-browser --watch ./src --watch ./css --ext js,ts,mjs,ts,css  --ignore public",
         "start": "yarn http-server",
-        "mon2": "yarn nodemon --exec \"yarn ts-build && yarn app-build\" --watch ../../dist-browser --watch ./src --ext js,ts,mjs,ts --ignore public"
+        "mon2": "yarn nodemon --exec \"yarn ts-build && yarn js-build\" --watch ../../dist-browser --watch ./src --ext js,ts,mjs,ts --ignore public"
     },
     "packageManager": "yarn@3.2.0"
 }
