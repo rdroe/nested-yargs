@@ -2,8 +2,10 @@ import 'fake-indexeddb/auto'
 import { Dexie as DexieCore } from 'dexie'
 import { Cache } from '../../../appTypes'
 
+export const Dexie = DexieCore
+
 export class UiDb extends DexieCore {
-    public cache: Dexie.Table<Cache>
+    public cache: DexieCore.Table<Cache>
 
     public constructor() {
         super("UiDb")
@@ -14,5 +16,5 @@ export class UiDb extends DexieCore {
     }
 }
 
-export const Dexie = DexieCore
+
 export const db = new UiDb;

@@ -72,6 +72,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jquery@npm:^3.5.14":
+  version: 3.5.14
+  resolution: "@types/jquery@npm:3.5.14"
+  dependencies:
+    "@types/sizzle": "*"
+  checksum: 159d6f804ed1a204b3f79f2d591a271d82e866bd45bd49fb6ef40561a25dbe0f47ec7815681b44cc2db5598425f72811e7e80ab0e983d980470998ac56feb375
+  languageName: node
+  linkType: hard
+
 "@types/keypress@npm:^2.0.30":
   version: 2.0.30
   resolution: "@types/keypress@npm:2.0.30"
@@ -118,6 +127,13 @@ __metadata:
     "@types/glob": "*"
     "@types/node": "*"
   checksum: 559b81efba72f2b231485b26510aad68cccfe98dc74087d67dafd5511462997884db0ef18e0e56bf61a3a5789aa65a54dc04845a488bb0528d4a699e6151b99c
+  languageName: node
+  linkType: hard
+
+"@types/sizzle@npm:*":
+  version: 2.3.3
+  resolution: "@types/sizzle@npm:2.3.3"
+  checksum: 586a9fb1f6ff3e325e0f2cc1596a460615f0bc8a28f6e276ac9b509401039dd242fa8b34496d3a30c52f5b495873922d09a9e76c50c2ab2bcc70ba3fb9c4e160
   languageName: node
   linkType: hard
 
@@ -1512,6 +1528,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jquery@npm:^3.6.0":
+  version: 3.6.0
+  resolution: "jquery@npm:3.6.0"
+  checksum: 8fd5fef4aa48fd374ec716dd1c1df1af407814a228e15c1260ca140de3a697c2a77c30c54ff1d238b6a3ab4ddc445ddeef9adce6c6d28e4869d85eb9d3951c0e
+  languageName: node
+  linkType: hard
+
 "json-buffer@npm:3.0.0":
   version: 3.0.0
   resolution: "json-buffer@npm:3.0.0"
@@ -1892,6 +1915,7 @@ __metadata:
   resolution: "nyargs@workspace:../.."
   dependencies:
     "@types/isomorphic-fetch": ^0.0.36
+    "@types/jquery": ^3.5.14
     "@types/keypress": ^2.0.30
     "@types/shelljs": ^0.8.9
     "@types/source-map-support": ^0.5.4
@@ -1902,6 +1926,7 @@ __metadata:
     dotprop: ^1.2.1
     fake-indexeddb: ^3.1.7
     isomorphic-fetch: ^3.0.0
+    jquery: ^3.6.0
     keypress: ^0.2.1
     shelljs: ^0.8.5
     source-map-support: ^0.5.21
