@@ -366,6 +366,7 @@ __metadata:
     esbuild: ^0.14.38
     http-server: ^14.1.0
     nodemon: ^2.0.16
+    nyargs: "workspace:*"
     typescript: ^4.6.4
     xterm: ^4.18.0
     yargs: ^17.5.1
@@ -1793,6 +1794,7 @@ __metadata:
   resolution: "myapp@workspace:."
   dependencies:
     "@types/yargs": ^17.0.10
+    nyargs: "workspace:*"
     shelljs: ^0.8.5
     typescript: ^4.6.4
     yargs: ^17.5.1
@@ -1908,7 +1910,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nyargs@workspace:../..":
+"nyargs@workspace:*, nyargs@workspace:../..":
   version: 0.0.0-use.local
   resolution: "nyargs@workspace:../.."
   dependencies:

@@ -96,7 +96,7 @@ export const add = (name: string, hook: Function) => {
     hooks[name] = hook
 }
 
-export async function importDb(fs: Fs, path: string, f: string, dbBack: IDBDatabase): Promise<string> {
+export async function importDb(fs: any, path: any, f?: any, dbBack?: any): Promise<string> {
     if (!isNode()) {
         throw new Error('Cannot use importDb in non-Node env')
     }
@@ -120,7 +120,7 @@ export async function importDb(fs: Fs, path: string, f: string, dbBack: IDBDatab
 
 // example for user database:
 // exportDb('data', 'rbdb2/test.json', rbDb.backendDB())
-export async function exportDb(fs: Fs, shelljs: ShellJs, p: string, f: string, dbBack: IDBDatabase): Promise<string> {
+export async function exportDb(fs: any, shelljs: any, p: any, f?: any, dbBack?: any): Promise<string> {
 
     const { subdirs, fullpath } = dbPath(p, f)
     shelljs.mkdir('-p', subdirs.join('/'))

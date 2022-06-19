@@ -12,15 +12,11 @@
 	"lib": ["dom", "es2019"],
         "target": "es2015",
         "skipLibCheck": true,
-        "noEmit": true
+        "noEmit": false,
+	"outDir": "dist"
     },
     "watchOptions": {
 	"watchDirectory": "useFsEvents"
     },
-    "exclude": ["./src/export"],
-    "references": 
-        [
-            { "path": "./tsconfig.server.json"},
-            { "path": "./tsconfig.browser.json"}
-        ]
+    "include": ["./src/export"]
 }

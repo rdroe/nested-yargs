@@ -1,10 +1,16 @@
 import { Result } from '../appTypes'
 import { Dexie } from 'dexie'
+import * as commands_ from '../commands'
 
 export const isNode = new Function("try { return window.document === undefined } catch(e) { return true; }")
+
 const depsRef: Deps = {
 } = {}
 
+let initResolve: Function
+const init = new Promise((resolve) => {
+    initResolve = resolve
+})
 
 export interface HistoryListener {
     default?: any
@@ -71,6 +77,8 @@ type DepName = 'fs' | 'shelljs' | 'readline' | 'historyListener' | 'terminalUtil
 type Awaitable = <DN extends keyof Deps>(dn: DN) => Promise<Deps[typeof dn]>
 
 const getDeps: Awaitable = async (dn: DepName) => {
+    await init
+
     if (!depsRef[dn]) throw new Error(`No dep available at ${dn}`)
     return depsRef[dn].then((resolvedDep) => {
         if (resolvedDep.default) return resolvedDep.default
@@ -89,6 +97,7 @@ type DexieType = (typeof Dexie)
 
 type Db = any
 
+
 export const setDeps = ({ historyListener, terminalUtils, renewReader, printResult, readline, fs, shelljs, db, Dexie }: {
     historyListener: HistoryListener,
     terminalUtils: TerminalUtils,
@@ -104,6 +113,7 @@ export const setDeps = ({ historyListener, terminalUtils, renewReader, printResu
     Dexie: DexieType
 
 }) => {
+
     deps.set('fs', Promise.resolve(fs))
     deps.set('shelljs', Promise.resolve(shelljs))
     deps.set('historyListener', Promise.resolve(historyListener))
@@ -113,5 +123,13 @@ export const setDeps = ({ historyListener, terminalUtils, renewReader, printResu
     deps.set('printResult', Promise.resolve(printResult))
     deps.set('db', Promise.resolve(db))
     deps.set('Dexie', Promise.resolve(Dexie))
+    initResolve()
+}
+
+export const commands = () => {
+
+    if (isNode()) {
+
+    }
 }
 
