@@ -17,7 +17,7 @@
     "watchOptions": {
 	"watchDirectory": "useFsEvents"
     },
-    "exclude": ["./src/export"],
+    "exclude": ["./src/export", "./example"],
     "references": 
         [
             { "path": "./tsconfig.server.json"},

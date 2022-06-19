@@ -2,7 +2,6 @@
   "name": "nyargs",
   "version": "0.3.0",
   "description": "Dev template for nested-subcommand cli tools",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/rdroe/nyargs.git"
@@ -17,7 +16,7 @@
     "dev-browser": "npx tsc -p tsconfig.browser.json && npx tsc -p tsconfig.browser.json -w",
     "dev": "npx tsc -w --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "yarn build-one && yarn tsc -p tsconfig.universal.json"  
+    "build": "yarn build-one && yarn tsc -p tsconfig.universal.json"
   },
   "author": "rdroe",
   "license": "ISC",
