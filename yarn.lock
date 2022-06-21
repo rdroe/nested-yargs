@@ -1779,6 +1779,7 @@ __metadata:
   resolution: "myapp@workspace:example/server-demo"
   dependencies:
     "@types/yargs": ^17.0.10
+    nyargs: "workspace:*"
     shelljs: ^0.8.5
     typescript: ^4.6.4
     yargs: ^17.5.1
@@ -1894,7 +1895,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nyargs@workspace:.":
+"nyargs@workspace:*, nyargs@workspace:.":
   version: 0.0.0-use.local
   resolution: "nyargs@workspace:."
   dependencies:
@@ -1912,6 +1913,7 @@ __metadata:
     isomorphic-fetch: ^3.0.0
     jquery: ^3.6.0
     keypress: ^0.2.1
+    nodemon: ^2.0.16
     shelljs: ^0.8.5
     source-map-support: ^0.5.21
     string-argv: ^0.3.1

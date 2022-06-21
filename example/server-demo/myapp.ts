@@ -1,5 +1,5 @@
 import { cache, program, match, setDictionary, repl } from 'nyargs/dist-server/src/lib/input/server'
-
+// import { cache, program, match, setDictionary, repl } from '../../dist-server/src/lib/input/server'
 import yargs from 'yargs'
 
 setDictionary({

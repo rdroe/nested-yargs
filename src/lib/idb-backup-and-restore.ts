@@ -58,6 +58,7 @@ export function exportToJson(idbDatabase: IDBDatabase) {
  */
 export function importFromJson(idbDatabase: IDBDatabase, json: any) {
     return new Promise<void>((resolve, reject) => {
+        if (!idbDatabase) return resolve()
         const list = (idbDatabase.objectStoreNames as unknown) as string[]
         const transaction = idbDatabase.transaction(
             list,
@@ -98,6 +99,7 @@ export function importFromJson(idbDatabase: IDBDatabase, json: any) {
  */
 export function clearDatabase(idbDatabase: IDBDatabase) {
     return new Promise<void>((resolve, reject) => {
+        if (!idbDatabase) return resolve()
         if (typeof idbDatabase.objectStoreNames !== 'object') {
             throw new Error('an array is required')
         }

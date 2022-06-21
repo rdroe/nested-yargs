@@ -9,6 +9,7 @@ import * as call_ from '../lib/api/call'
 import * as setUp_ from '../setUp'
 import * as loop_ from '../loop'
 import * as dynamic_ from '../lib/dynamic'
+import { Dexie as Dexie_ } from 'dexie'
 
 type ExportFn<T> = Promise<T>
 
@@ -20,6 +21,9 @@ export let idbBackupAndRestore: ExportFn<typeof idbBackupAndRestore_>
 export let call: ExportFn<typeof call_>
 export let loop: ExportFn<typeof loop_>
 export let dynamic: ExportFn<typeof dynamic_>
+export let Dexie: ExportFn<typeof Dexie_>
+export type Dexie = typeof Dexie_
+
 if (isNode()) {
     commands = import('../../dist-server/src/commands')
 } else {
@@ -74,3 +78,15 @@ if (isNode()) {
 }
 
 
+if (isNode()) {
+    // @ts-ignore
+    import('fake-indexeddb/auto').then(() => {
+        import('dexie').then(({ Dexie: DexieImport }) => {
+            Dexie = Promise.resolve(DexieImport)
+        })
+    })
+} else {
+    import('dexie').then(({ Dexie: DexieImport }) => {
+        Dexie = Promise.resolve(DexieImport)
+    })
+}

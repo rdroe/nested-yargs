@@ -1,4 +1,6 @@
 import { Result } from '../../../appTypes';
+
+
 import { ReadlineInterface, RenewReader, HistoryListener, setDeps } from '../../dynamic'
 import { db, Dexie } from './db'
 
@@ -439,7 +441,6 @@ function handleTextKeypress(ke: KeyboardEvent) {
     }
 }
 
-
 setDeps({
     fs,
     readline,
@@ -451,5 +452,3 @@ setDeps({
     db: db,
     Dexie
 })
-
-

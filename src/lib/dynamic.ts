@@ -1,9 +1,16 @@
 import { Result } from '../appTypes'
 import { Dexie } from 'dexie'
-import * as commands_ from '../commands'
 
-export const isNode = new Function("try { return window.document === undefined } catch(e) { return true; }")
+export const isNode = () => {
 
+    try {
+        const fn = new Function("try { return window.document === undefined } catch(e) { return true; }")
+        return fn()
+    } catch (e) {
+        console.log('presuming browser environment because isNode() errored out')
+        return false
+    }
+}
 const depsRef: Deps = {
 } = {}
 

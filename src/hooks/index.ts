@@ -97,6 +97,7 @@ export const add = (name: string, hook: Function) => {
 }
 
 export async function importDb(fs: any, path: any, f?: any, dbBack?: any): Promise<string> {
+
     if (!isNode()) {
         throw new Error('Cannot use importDb in non-Node env')
     }
@@ -109,6 +110,8 @@ export async function importDb(fs: any, path: any, f?: any, dbBack?: any): Promi
         return 'ERROR'
     }
     const file = fs.readFileSync(fullpath, 'utf8')
+    console.log('dbBack', dbBack)
+
     await clearDatabase(dbBack)
     await importFromJson(dbBack, file)
     console.log('imported from ', fullpath)
@@ -116,10 +119,6 @@ export async function importDb(fs: any, path: any, f?: any, dbBack?: any): Promi
 }
 
 
-
-
-// example for user database:
-// exportDb('data', 'rbdb2/test.json', rbDb.backendDB())
 export async function exportDb(fs: any, shelljs: any, p: any, f?: any, dbBack?: any): Promise<string> {
 
     const { subdirs, fullpath } = dbPath(p, f)

@@ -16,5 +16,4 @@ export class UiDb extends DexieCore {
     }
 }
 
-
 export const db = new UiDb;
