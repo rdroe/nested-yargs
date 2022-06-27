@@ -46,7 +46,8 @@ export const get: getCall = (rqBase: string, queryParams: QueryParams, options: 
             const separator = accum ? '&' : '?'
             return `${accum}${separator}${key}=${val}`
         }, '')
-
-    return fetch(`${rqBase}${concattedParams}`, options)
+    const fetchCall = fetch(`${rqBase}${concattedParams}`, options)
+    console.log('return from fetch', fetchCall)
+    return fetchCall
 }
 

@@ -98,18 +98,12 @@ export const add = (name: string, hook: Function) => {
 
 export async function importDb(fs: any, path: any, f?: any, dbBack?: any): Promise<string> {
 
-    if (!isNode()) {
-        throw new Error('Cannot use importDb in non-Node env')
-    }
     if (typeof f !== 'string') throw new Error("-f (--filename) requires a string ")
     const {
         fullpath
     } = dbPath(path, f)
-    if (!isNode()) {
-        console.error('ERROR: Non-node environment.')
-        return 'ERROR'
-    }
-    const file = fs.readFileSync(fullpath, 'utf8')
+    console.log('importing path', fullpath, '(from', path, f, ')')
+    const file = await fs.readFileSync(fullpath, 'utf8')
     console.log('dbBack', dbBack)
 
     await clearDatabase(dbBack)

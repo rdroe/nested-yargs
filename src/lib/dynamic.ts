@@ -45,7 +45,8 @@ interface TerminalUtils {
 type PartialFs = {
     default?: PartialFs
     writeFileSync: Function,
-    readFileSync: Function
+    readFileSync: Function,
+    readFile?: Function
 }
 
 type Deps = {

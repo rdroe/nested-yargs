@@ -3,7 +3,7 @@ import { Result } from '../../../appTypes';
 
 import { ReadlineInterface, RenewReader, HistoryListener, setDeps } from '../../dynamic'
 import { db, Dexie } from './db'
-
+import { get, QueryParams } from '../../api/call'
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
 const latestTextArea = () => textAreas.length ? textAreas[textAreas.length - 1] : null
@@ -47,6 +47,18 @@ const mapPrintArea = (textArea: HTMLTextAreaElement, elem: HTMLElement) => {
 
 const getPrintArea = (textArea: HTMLTextAreaElement): HTMLElement => {
     return printAreas.get(textArea)
+}
+
+const getTextEncoding = (convertible: string) => {
+    const encodingMap: { [k: string]: string } = {
+        'utf8': 'utf-8'
+    }
+
+    if (!encodingMap[convertible]) {
+        throw new Error(`only utf8 encoding is allowed right now.`)
+    }
+
+    return encodingMap[convertible]
 }
 
 const maps = {
@@ -319,17 +331,21 @@ export const renewReader: RenewReader = async (pr: string): Promise<ReadlineInte
     return readlineFunctions(latestTerminal)
 }
 
+const readFile = async (path: string, encoding: string, params: QueryParams = {}, basePath: string = '.'): Promise<string> => {
+    const fullPath = `${basePath}/${path}`
+    const convertedEncoding = getTextEncoding(encoding)
+
+    return get(fullPath, params, {})
+        .then(async (response) => {
+            return response.text()
+        })
+}
+
 export const fs = {
     writeFileSync: (fname: string, dat: string, encoding: 'utf8' = 'utf8') => {
-        const encodingMap = {
-            'utf8': 'utf-8'
-        }
 
-        if (!encodingMap[encoding]) {
-            throw new Error(`only utf8 encoding is allowed right now.`)
-        }
-
-        var dataStr = `data:text/json;charset=${encodingMap[encoding]},${dat.replace('\n', '\r\n')}`
+        const convertedEncoding = getTextEncoding(encoding)
+        var dataStr = `data:text/json;charset=${convertedEncoding},${dat.replace('\n', '\r\n')}`
         const dlAnchorElem = document.createElement('a')
         document.body.appendChild(dlAnchorElem)
         dlAnchorElem.setAttribute("href", dataStr);
@@ -337,7 +353,12 @@ export const fs = {
         dlAnchorElem.click();
         dlAnchorElem.remove();
     },
-    readFileSync: () => { }
+    readFileSync: (path: string, encoding: string, basePath: string = '.') => {
+        console.warn('Cannot read files synchronously in browser; relapsing to async.')
+        return readFile(path, encoding, {}, basePath)
+
+    },
+    readFile
 }
 
 export const readline = {
