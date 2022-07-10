@@ -60,9 +60,50 @@ import fs from 'fs'
 import shelljs from 'shelljs'
 import readline from 'readline'
 import { db, Dexie } from './db'
+import { Arguments } from "yargs";
+
+/*
+    readFileSync: (path: string, encoding: string, basePath: string = '.') => {
+        console.warn('Cannot read files synchronously in browser; relapsing to async.')
+        return readFile(path, encoding, {}, basePath)
+
+    },
+const readFile = async (path: string, encoding: string, params: QueryParams = {}, basePath: string = '.'): Promise<string> => {
+    const fullPath = `${basePath}/${path}`
+    const convertedEncoding = getTextEncoding(encoding)
+
+    return get(fullPath, params, {})
+        .then(async (response) => {
+            return response.text()
+        })
+}
+
+type PartialFs = {
+    default?: PartialFs
+    writeFileSync: Function,
+    readFileSync: (path: string, encoding: string, opts: any) => Promise<string>,
+    readFile?: (path: string, encoding: string, params?: QueryParams, basePath?: string) => Promise<string>
+}
+    
+*/
+
 
 setDeps({
-    fs,
+    fs: {
+        readFileSync: async (path: string, encoding: string, opts: any): Promise<string> => {
+            const returnable = fs.readFileSync(path, { encoding, ...opts })
+            if (typeof returnable === 'string') {
+                return returnable
+            }
+        },
+        readFile: async (path: string, encoding: string, opts: any): Promise<string> => {
+            const returnable = fs.readFileSync(path, { encoding, ...opts })
+            if (typeof returnable === 'string') {
+                return returnable
+            }
+        },
+        writeFileSync: fs.writeFileSync
+    },
     shelljs,
     readline,
     historyListener: {

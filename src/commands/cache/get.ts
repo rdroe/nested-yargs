@@ -25,6 +25,7 @@ export const m: Module = {
             'c:n': names,
             filters: jqQuery
         } = args
+
         const query: Query = {
             commands: (commands && commands[0] && commands[0] === '*') ? '*' : commands || undefined,
             names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,

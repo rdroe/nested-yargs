@@ -2,6 +2,8 @@ import { Result } from '../appTypes'
 import { Dexie } from 'dexie'
 import { QueryParams } from './api/call'
 
+
+
 export const isNode = () => {
 
     try {
@@ -46,8 +48,8 @@ interface TerminalUtils {
 type PartialFs = {
     default?: PartialFs
     writeFileSync: Function,
-    readFileSync: (path: string, encoding: string, opts: any) => Promise<string>,
-    readFile?: (path: string, encoding: string, params?: QueryParams, basePath?: string) => Promise<string>
+    readFileSync: (path: string, encoding: any, opts: any) => Promise<string>,
+    readFile?: (path: string, encoding: string | object, params?: QueryParams, basePath?: string) => Promise<string>
 }
 
 type Deps = {

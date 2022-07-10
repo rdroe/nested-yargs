@@ -1,6 +1,5 @@
 import * as commands_ from '../commands'
 import { isNode } from '../lib/dynamic'
-
 import * as store_ from '../lib/store'
 import * as hook1_ from '../../dist-server/src/hooks'
 import * as hook2_ from '../../dist-browser/src/hooks'
@@ -70,6 +69,7 @@ if (isNode()) {
 } else {
     loop = import('../../dist-browser/src/loop')
 }
+
 
 if (isNode()) {
     dynamic = import('../../dist-server/src/lib/dynamic')
