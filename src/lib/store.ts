@@ -8,18 +8,61 @@ export const FILTER_ARG = 'filters'
 
 const postDotPropFns = Object.keys(Object.getOwnPropertyDescriptors(Array.prototype))
 
-type PostDotPropFns = keyof typeof Array.prototype
+// Different from calling Array.prototype functions, this is where we store 
+const filterFunctions = {
+    map: (dataBeingReduced: any[], ...dotPropFilters: string[]) => {
 
+        if (dotPropFilters.length > 1) {
+            throw new Error('mapping with dot prop filters should not have more than one argument')
+        }
 
-type FunctionCall = {
-    fnName: PostDotPropFns,
-    args: (string | number)[]
+        return dataBeingReduced.map((obj) => {
+
+            const mapRet = getProperty(obj, dotPropFilters[0])
+            return mapRet
+        })
+    }
 }
 
-const isValidFunctionCall = (fnCall: any): fnCall is FunctionCall => {
+interface FunctionCall {
+    fnName: keyof typeof filterFunctions | keyof typeof Array.prototype
+    args: (string | number)[]
+    isCustomCall?: boolean
+}
+
+interface CustomCall extends FunctionCall {
+    fnName: keyof typeof filterFunctions,
+    isCustomCall: true
+}
+
+
+interface ArrayCall extends FunctionCall {
+    fnName: keyof typeof Array.prototype
+}
+
+
+const isValidFnCall = (fnCall: any): fnCall is FunctionCall => {
     if (fnCall === null) return false
     if (typeof fnCall.fnName !== 'string' || fnCall.fnName.length === 0) return false
-    if (!Array.prototype[fnCall.fnName]) return false
+    if (!Array.isArray(fnCall.args)) return false
+    return true
+}
+
+const isValidCustomCall = (fnCall: any): fnCall is CustomCall => {
+    if (!isValidFnCall(fnCall)) {
+        return false
+    }
+    if (!filterFunctions[fnCall.fnName as keyof typeof filterFunctions]) return false
+    return fnCall.isCustomCall === true
+}
+
+const isValidArrayFnCall = (fnCall: any): fnCall is ArrayCall => {
+    if (!isValidFnCall(fnCall)) {
+        return false
+    }
+    if (!Array.prototype[
+        (fnCall.fnName as keyof typeof Array.prototype)]) return false
+    if (fnCall.isCustomCall) return false
     return true
 }
 
@@ -46,10 +89,37 @@ const parseDotprop = (str: string): DotpropString => {
     }
 }
 
-const simpleParseFnCall = (str: string) => {
-    const regExpStr = `(${postDotPropFns.join('|')})\\(([0-9]+)(?:,\s*([0-9]+)|)\\)`
-    const regexp = new RegExp(regExpStr);
+const parseCustomCall = (str: string) => {
+    const fnNames = Object.keys(filterFunctions)
+    const regExpStr = `(${fnNames.join('|')})\\(([a-zA-Z0-9\.\-\_\/]+)(?:,\s*([a-zA-Z0-9\.\-\_\/]+)|)(?:,\s*([a-zA-Z0-9\.\-\_\/]+)|)(?:,\s*([a-zA-Z0-9\.\-\_\/]+)|)\\)`
 
+    const regexp = new RegExp(regExpStr);
+    const matched = str.match(regexp)
+    if (matched === null || !matched.filter) return null
+
+    const result = matched
+        .filter((elem) => elem !== undefined)
+
+    const result2 = result.map((elem) => {
+        return isNum(elem) ? parseInt(elem) : elem
+    })
+
+
+    result2.shift()
+    const fnName1 = result2.shift()
+
+    const parsedCall = {
+        fnName: fnName1,
+        args: result2,
+        isCustomCall: true
+    }
+    return parsedCall
+}
+
+
+const simpleParseFnCall = (str: string) => {
+    const regExpStr = `Array\\.(${postDotPropFns.join('|')})\\(([0-9]+)(?:,\s*([0-9]+)|)\\)`
+    const regexp = new RegExp(regExpStr);
 
     const matched = str.match(regexp)
 
@@ -64,22 +134,37 @@ const simpleParseFnCall = (str: string) => {
 
 
     result2.shift()
+    const fnName1 = result2.shift()
+
+    if (typeof fnName1 !== 'string' || !Array.prototype[fnName1 as keyof typeof Array.prototype]) throw new Error(`fnName should be in Array.prototype.`)
+
+
+
     const parsedCall = {
-        fnName: result2.shift(),
-        args: result2
+        fnName: fnName1,
+        args: result2,
+        isCustomCall: false
     }
 
     return parsedCall
 }
 
 const parseFnOrDotprop = (str: string): FunctionCall | DotpropString => {
+
+    const parsedCustomCall = parseCustomCall(str)
+    if (isValidCustomCall(parsedCustomCall)) {
+        return parsedCustomCall
+    }
+
     const parsedCall = simpleParseFnCall(str)
-    if (isValidFunctionCall(parsedCall)) {
+    if (isValidArrayFnCall(parsedCall)) {
         return parsedCall
     }
+
     const parsedDotprop = parseDotprop(str)
+
     if (!isValidDotprop(parsedDotprop)) {
-        throw new Error(`Query stage is neither a dotprop entry nor a simple array-based function call: "${str}"`)
+        throw new Error(`Query stage is neither a dotprop entry nor a custom filter function nor a  simple array-based function call: "${str}"`)
     }
     return parsedDotprop
 }
@@ -96,11 +181,23 @@ const parseQuery = (splitted /* raw */: string[]): (FunctionCall | DotpropString
 const runFilter = (data: object, stages: (FunctionCall | DotpropString)[]): object => {
 
     return stages.reduce((accum: object, curr: FunctionCall | DotpropString) => {
+
         let final
         if (isValidDotprop(curr)) {
             final = getProperty(accum, curr.string)
-        } else {
+        } else if (isValidCustomCall(curr)) {
 
+            const currFnName = curr.fnName
+            if (typeof currFnName !== 'string') throw new Error(`Property fnName should have been string of length in ${curr}`)
+            if (currFnName.length < 1) throw new Error(`Property fnName should have been string of length in ${curr}`)
+            const callable = filterFunctions[currFnName]
+
+            if (typeof callable !== 'function') throw new Error(`Tried to run custom filter ${currFnName}, but it was not present or not a function. Function-call data: ${curr}`)
+
+            final = (callable as (...args: any[]) => any)(accum, ...curr.args)
+
+        } else {
+            if (!isValidArrayFnCall(curr)) throw new Error(`An unfit custom filter entry was found: ${curr}`)
             final = (Array.prototype[curr.fnName]).call(accum, ...curr.args)
         }
 
