@@ -1,14 +1,11 @@
-import { AppArguments } from "../../appTypes";
-import { clearCacheDb } from "../../lib/store";
-
-
+import { clearCacheDb } from "../../runtime/store";
 
 export default {
     help: {
         description: 'totally delete a cached db',
         examples: { '': 'totally clear "cache" db entries' },
     },
-    fn: (_: AppArguments) => {
+    fn: () => {
         return clearCacheDb()
     }
 }

@@ -1,7 +1,12 @@
-import { Module, AppArguments } from '../../appTypes'
-import { Entry, put } from '../../lib/store'
+import { JsonObjects, Module } from '../../shared/utils/types'
+import { Entry, put } from '../../runtime/store'
 
-export const m: Module = {
+
+export const m: Module<{
+    scalar: number | string | boolean,
+    object: JsonObjects
+}> = {
+
     help: {
         description: 'get cache variables',
         options: {
@@ -15,10 +20,8 @@ export const m: Module = {
             "--c:c data fetch --object '{}'": 'put an empty object into cache with "commands" index of ["data", "fetch"] (as if the user had called a command "data fetch" and received an empty object as result)',
             "--c:c data fetch --object '{\"foo\": \"bar\", \"baz\": \"bar\"}' --filters .foo --c:n name1 name2'": "put the string 'bar' into cache with commands index of [\"data\", \"fetch\"] (as if the user had called 'data fetch...' and received a result) and a names index of [\"name1\", \"name2\"]"
         }
-
     },
-    fn: async (argv: AppArguments) => {
-
+    fn: async (argv) => {
         const {
             'c:c': commands,
             'c:n': names,
@@ -27,11 +30,10 @@ export const m: Module = {
             filters: jqQuery
         } = argv
 
-
         const arrObject: any[] = []
 
         if (object.length > 0) {
-            object.forEach((json) => {
+            object.forEach((json: string) => {
                 const obj = JSON.parse(json)
                 arrObject.push(obj)
             })

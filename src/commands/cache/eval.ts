@@ -1,7 +1,9 @@
-import { Module, AppArguments } from '../../appTypes'
-import { evaluateFilter } from '../../lib/store'
+import { Module } from '../../shared/utils/types'
+import { evaluateFilter } from '../../runtime/store'
 
-export const m: Module = {
+export const m: Module<{
+    object: { length: number, forEach: typeof Array.prototype.forEach }
+}> = {
     help: {
         description: 'use filters to evaluate a test "--object" value',
         options: {
@@ -15,7 +17,7 @@ export const m: Module = {
         }
 
     },
-    fn: async (argv: AppArguments) => {
+    fn: async (argv) => {
         const {
             object,
             filters: filtersQuery,

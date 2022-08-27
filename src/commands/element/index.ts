@@ -1,6 +1,5 @@
-import { Module, UserArgs } from '../../appTypes'
+import { BaseArguments, Module } from '../../shared/utils/types'
 import jquery from 'jquery'
-
 
 const $ = jquery
 
@@ -11,6 +10,7 @@ type BrowserArgs = {
     parent?: string,
     style: string
 }
+
 /**
    arr1: defined as unnecessary
    arr2: analyzed against the defined arr1
@@ -19,7 +19,7 @@ const includes = (arr1: any[], arr2: any[]) => {
     return arr2.find((elemIn2: any) => arr1.includes(elemIn2))
 }
 
-const warnExtra = (unnecessaries: string[], args: UserArgs<BrowserArgs>): string | false => {
+const warnExtra = (unnecessaries: string[], args: BaseArguments & { action: string }): string | false => {
     const doesInclude = includes(unnecessaries, Object.keys(args))
     return doesInclude
         ? `Warning; the action ${args.action} does not make use of ${unnecessaries.join(", ")}`
@@ -34,7 +34,8 @@ const ret: {
     data: any[],
     warnings: string[]
 } = { data: [], warnings: [] }
-const browser = async (args: UserArgs<BrowserArgs>): Promise<typeof ret> => {
+
+const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class: any, tag: any, style: any }>['fn'] = async (args): Promise<typeof ret> => {
     // const objStyle: null | Json = args.style ? JSON.parse(args.style) : null
 
     if (args.action === actions[CREATE]) {

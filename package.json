@@ -1,42 +1,40 @@
 {
-  "name": "nyargs",
-  "version": "0.3.2",
-  "description": "Dev template for nested-subcommand cli tools",
+  "name": "nyargs-build",
+  "version": "0.8.0",
+  "description": "javascript notebooks",
   "repository": {
     "type": "git",
     "url": "https://github.com/rdroe/nyargs.git"
   },
-  "workspaces": [
-    "example/browser-demo",
-    "example/server-demo",
-    "."
-  ],
   "scripts": {
-    "build-one": "npx tsc -b",
-    "dev-browser": "npx tsc -p tsconfig.browser.json && npx tsc -p tsconfig.browser.json -w",
-    "dev": "npx tsc -w --project tsconfig.json",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "yarn build-one && yarn tsc -p tsconfig.universal.json",
-    "mon": "yarn nodemon --exec \"yarn build\" --watch ./src --watch ./example --ext ts"
+    "mon": "tsc && yarn tsc -w"
   },
   "author": "rdroe",
   "license": "ISC",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "dist-browser",
-    "dist-server"
-  ],
+  "exports": {
+    ".": "./v0.8/dist/index.js",
+    "./br": "./v0.8/dist/browser/exports.js"
+  },
+  "engines": {
+    "yarn": ">=2.0.0",
+    "ndoe": ">=16.0.0"
+  },
+  "typesVersions": {
+    "*": {
+      "br": [
+        "v0.8/dist/browser/exports"
+      ]
+    }
+  },
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.35",
     "nodemon": "^2.0.16",
-    "ts-node": "^9.0.0",
-    "typescript": "^4.0.2"
+    "ts-node": "^9.0.0"
   },
   "dependencies": {
     "@types/jquery": "^3.5.14",
     "@types/keypress": "^2.0.30",
+    "@types/node": "^18.7.5",
     "@types/shelljs": "^0.8.9",
     "@types/source-map-support": "^0.5.4",
     "@types/yargs": "^17.0.10",
@@ -51,9 +49,10 @@
     "shelljs": "^0.8.5",
     "source-map-support": "^0.5.21",
     "string-argv": "^0.3.1",
+    "typescript": "^4.7.4",
     "xterm": "^4.18.0",
     "xterm-addon-fit": "^0.5.0",
     "yargs": "^17.5.1"
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@3.2.2"
 }

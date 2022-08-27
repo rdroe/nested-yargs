@@ -1,22 +1,33 @@
-import { Module } from '../../appTypes'
+import { Module } from '../../shared/utils/types'
 
-const cm: Module = {
+type Matchable = object | null | undefined | number | boolean | string
+type Matchables = Matchable[]
+
+interface MatchResult {
+    index: number
+    match: boolean
+    left: Matchable
+    right: Matchable
+}
+
+const cm: Module<{ l: Matchable | Matchables, r: Matchable | Matchables }, MatchResult[]> = {
     help: {
         description: 'test whether the supplied scalar pairs are equal',
         examples: {
-            '-l 1 2 3 -r 1 2 4': 'test whether 1 equals 1, 2 equals 2, and 3 equals 4; output contains a map and list of equalities.'
+            '-l 1 2 3 -r 1 2 4': 'test whether 1 equals 1, 2 equals 2, and 3 equals 4; output contains a map and list of equalities.',
+            '--left 1 2 3 --right 1 2 4': 'test whether 1 equals 1, 2 equals 2, and 3 equals 4; output contains a map and list of equalities.'
         }
     },
-    fn: async function scalarMatch(argv: { l: any, r: any }) {
-        let left: any[]
-        let right: any[]
+    fn: async function scalarMatch(argv) {
+        let left: Matchables
+        let right: Matchables
         const { l, r } = argv
-        if (typeof l !== 'object') {
+        if (!Array.isArray(l)) {
             left = [l]
         } else {
             left = l
         }
-        if (typeof r !== 'object') {
+        if (!Array.isArray(r)) {
             right = [r]
         } else {
             right = r

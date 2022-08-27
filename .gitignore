@@ -1,8 +1,6 @@
+v0.8
 .yarn
 node_modules/
-dist/
-dist-browser/
-dist-server/
 **/.DS_Store
 \#*
 **/\#
@@ -11,3 +9,6 @@ dist-server/
 .env
 yarn-error.log
 .yarnrc.yml
+*.tsbuildinfo
+**/*.js.map
+**/*.d.ts

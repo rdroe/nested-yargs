@@ -1,29 +1,27 @@
-import { AppArguments, Module } from '../../appTypes'
-import { exportDb } from '../../hooks'
-import { deps } from '../../lib/dynamic'
+import { Module } from '../../shared/utils/types'
+import { exportDb } from '../../runtime/cache'
+import { get } from '../../shared'
 
-export default {
+const m: Module<{ p: any, b: any, f: any }> = {
     help: {
-        description: 'Back up the cache; export it as a json file and write it to disk',
+        description: 'Back up the cache; in node, export it as a json file and write it to disk; or in browser, download to user',
         examples: {
-            '-p subdir/foo -f backup.json': 'Export cache and save it in a file at "./subdir/foo/backup.json"'
+            '-p subdir/foo -f backup.json': 'Export cache and save it in a file at "./subdir/foo/backup.json" or download to browser as subdir_foo_backup.json'
         }
     },
-
-    fn: async (args: AppArguments) => {
-        const fs = await deps.get('fs')
-        const shelljs = await deps.get('shelljs')
+    fn: async (args, chCalls) => {
         const now = Date.now()
-        const db = await deps.get('db')
+        const db = await get('db')
         const newId = await db.cache.add({
             commands: ['la', 'tra'],
             names: ['fa', 're'],
             value: 1,
             createdAt: now
         })
+        console.log('chCalls', chCalls)
         await db.cache.delete(newId)
         const dbBack = db.backendDB()
-        return exportDb(fs, shelljs, args.p, args.f, dbBack)
+        return exportDb(args.p, args.f, dbBack)
     },
     yargs: {
         filename: {
@@ -37,4 +35,8 @@ export default {
             default: `data`
         }
     }
-} as Module
+}
+
+export default m
+
+

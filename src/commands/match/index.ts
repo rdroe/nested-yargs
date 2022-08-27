@@ -1,4 +1,4 @@
-import { Module } from '../../appTypes'
+import { Module } from '../../shared/utils/types'
 import scalar from './scalar'
 
 const cm: Module = {
@@ -9,7 +9,7 @@ const cm: Module = {
             'r (right)': 'comparison value'
         },
     },
-    fn: async function match(_: any, y: {
+    fn: async function match(_, y: {
         [childNamespace: string]: Promise<any>
     }) {
         const childResults = await Promise.all(Object.values(y))

@@ -3,24 +3,27 @@
 	"module": "CommonJS",
 	"esModuleInterop": true,
 	"moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
 	"noImplicitAny": true,
 	"removeComments": true,
 	"preserveConstEnums": true,
 	"sourceMap": true,
+	"outDir": "./v0.8/dist/",
 	"declaration": true,
 	"allowJs": true,
 	"lib": ["dom", "es2019"],
-        "target": "es2015",
+        "target": "esnext",
         "skipLibCheck": true,
-        "noEmit": true
+        "composite": true,
+        "rootDir": "./src/",
+        "baseUrl": "./src/",
     },
-    "watchOptions": {
-	"watchDirectory": "useFsEvents"
-    },
-    "exclude": ["./src/export", "./example"],
-    "references": 
-        [
-            { "path": "./tsconfig.server.json"},
-            { "path": "./tsconfig.browser.json"}
-        ]
+    "include": [
+	"./src"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts",
+        "../server"
+    ]
 }

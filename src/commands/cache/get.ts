@@ -1,9 +1,8 @@
-import { Module, AppArguments } from '../../appTypes'
+import { Module } from '../../shared/utils/types'
 
-import { Query, where } from '../../lib/store'
+import { Query, where } from '../../runtime/store'
 
-
-export const m: Module = {
+export const m: Module<{ id: number }> = {
     help: {
         description: 'get cache variables',
         options: {
@@ -14,26 +13,29 @@ export const m: Module = {
         examples: {
             '': 'show all results of the cache for all commands',
             '--c:c brackets get': 'show results from whenever the user has called "brackets get..." with or without further arguments',
-            '--filters [0].value': "show results from whenever the user has called ''cache get...'' with or without further arguments; furthermore, assuming tresult is an array, show the 1st element's ''value'' property. "
+            '--filters 0.value': "show results from whenever the user has called ''cache get...'' with or without further arguments; furthermore, assuming tresult is an array, show the 1st element's ''value'' property. "
         }
 
     },
-    fn: async (args: AppArguments) => {
+    yargs: {
+        filters: {
+            array: true
+        }
+    },
+    fn: async (args) => {
 
         const {
             'c:c': commands,
             'c:n': names,
-            filters: jqQuery
+            filters
         } = args
+
         const query: Query = {
             commands: (commands && commands[0] && commands[0] === '*') ? '*' : commands || undefined,
             names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,
-            filters: jqQuery
+            filters
         }
-
-        if (typeof args.id === 'number') {
-            query.id = args.id
-        }
+        query.id = args.id
         return where(query)
     }
 }
