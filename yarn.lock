@@ -1119,9 +1119,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nyargs-build@workspace:.":
+"nyargs@workspace:.":
   version: 0.0.0-use.local
-  resolution: "nyargs-build@workspace:."
+  resolution: "nyargs@workspace:."
   dependencies:
     "@types/isomorphic-fetch": ^0.0.35
     "@types/jquery": ^3.5.14
