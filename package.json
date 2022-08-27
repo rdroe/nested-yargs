@@ -1,6 +1,6 @@
 {
   "name": "nyargs",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "javascript notebooks",
   "repository": {
     "type": "git",
@@ -15,12 +15,13 @@
     ".": "./v0.8/dist/index.js",
     "./br": "./v0.8/dist/browser/exports.js"
   },
+  "main": "nyargs",
   "engines": {
     "yarn": ">=2.0.0",
     "ndoe": ">=16.0.0"
   },
   "files": [
-    "v0.8/dist"
+    "v0.8"
   ],
   "typesVersions": {
     "*": {

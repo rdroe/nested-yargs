@@ -15,7 +15,7 @@
         "nodemon": "^2.0.16",
         "xterm": "^4.18.0",
         "yargs": "^17.5.1",
-	"nyargs": "^0.8.3"
+	"nyargs": "^0.8.5"
     },
     "devDependencies": {
         "@types/isomorphic-fetch": "^0.0.35",
