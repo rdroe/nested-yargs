@@ -6,7 +6,8 @@ if [ "$1" != "skipbuild" ]; then
     rm -rf ../../nya-browser-app
     cp -r codes/browser ../../nya-browser-app
     cd ../../nya-browser-app
-    # yarn set version berry
+    yarn set version berry
+    yarn config set nodeLinker node-modules
     yarn
 else
     echo "skipping rm -rf and yarn install"
