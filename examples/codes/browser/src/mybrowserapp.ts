@@ -8,7 +8,7 @@ export const app = (yargs: Function) => repl({
     nest,
     program,
     test
-}, yargs(), 'myapp > ')
+}, yargs(), 'browser.only > ')
 
 document.head.innerHTML += `<style>
 .text-area-container {

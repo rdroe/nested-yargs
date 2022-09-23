@@ -4,7 +4,7 @@ import { dbPath } from '../shared/utils/dbPath'
 import { importFromJson, clearDatabase, exportToJson } from '../shared/idb-backup-and-restore'
 import { get } from '../shared'
 
-
+export const dbPathUtil = dbPath
 export const context: {
     [props: string]: null | Function | Promise<any>
 } = {
@@ -87,11 +87,10 @@ export async function importDb(path: string, f: string | IDBDatabase, dbBack?: I
     const {
         fullpath
     } = builtPath
-    console.log('importing path', fullpath, '(from', path, f, ')')
     const file = await fs.readFile(fullpath, 'utf8')
-    console.log('dbBack', idbDatabase)
-    await clearDatabase(dbBack)
-    await importFromJson(dbBack, file)
+    console.log('importing db', idbDatabase)
+    await clearDatabase(idbDatabase)
+    await importFromJson(idbDatabase, file)
     console.log('imported from ', fullpath)
     return
 }
@@ -102,8 +101,9 @@ export async function exportDb(p: any, f?: any, dbBack?: any): Promise<string> {
     const { subdirs, fullpath } = dbPath(p, f)
     await fs.mkdir(subdirs.join('/'), { recursive: true })
     const fname = fullpath
-    const dat = await exportToJson(dbBack);
-    await fs.writeFile(fname, JSON.stringify(dat, null, 2), 'utf8')
-    console.log(`wrote ${fname}; data: ${dat}`)
+
+    const str = await exportToJson(dbBack);
+    await fs.writeFile(fname, str, 'utf8')
+    console.log(`wrote ${fname}; data: ${str}`)
     return fname
 }

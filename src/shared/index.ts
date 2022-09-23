@@ -36,10 +36,10 @@ export const get: Awaitable = async <T extends DepName>(dn: T): Promise<Deps[T]>
     }
 
     if (isConfigOption(dn)) {
-        const configuredMsg = `configuration for ${dn}, overrode the default "set()" call`
+        // const configuredMsg = `configuration for ${dn}, overrode the default "set()" call`
         const asConfigured = getConfig(dn as keyof ConfigOptions)
         if (asConfigured) {
-            console.log(configuredMsg)
+            // console.log(configuredMsg)
             return asConfigured as Deps[T]
         }
     }
@@ -87,7 +87,7 @@ export const configure = <Settable extends keyof ConfigOptions>(
         if (isConfigOption(optionOrValue)) {
             settable = optionOrValue
         }
-        if (!value) throw new Error('A third config argument is required when platform is supplied as the first.')
+        if (value === undefined) throw new Error('A third config argument is required when platform is supplied as the first.')
         settableVal = value
         configSection = configuration[optionOrPlatform]
     } else {
@@ -98,7 +98,7 @@ export const configure = <Settable extends keyof ConfigOptions>(
     configSection[settable] = settableVal
 
 }
-
+export type Configure = typeof configure
 
 type Deps = {
     'setAll'?: SetAll

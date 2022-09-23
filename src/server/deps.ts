@@ -1,6 +1,6 @@
 import { promises } from 'node:fs'
 import { set, get, getConfig, configure, configured } from '../shared'
-import { db } from './db'
+import { db as getDb } from './db'
 import { renewReader, terminalUtils } from './cliUtils'
 import { printResult } from '../shared/utils/printResult'
 import { ConfigOptions, Configuration, Result } from '../shared/utils/types'
@@ -47,6 +47,8 @@ export const setAll = async () => {
         mkdir: promises.mkdir
     })
 
+
+    const db = await getDb()
     set('db', db)
 
     set('historyListener', {

@@ -14,12 +14,6 @@ export const FAIL = 'FAIL'
 
 
 
-
-
-/*
-console.log("This is %cMy stylish message", "color: yellow; font-style: italic; background-color: blue;padding: 2px");
-
-*/
 const arrEqual = (arr1: string[], arr2: string[]) => {
     return arr1.length === arr2.length && arr1.filter((arrOneElem) => {
         return arr2.includes(arrOneElem)

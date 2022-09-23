@@ -114,7 +114,7 @@ export interface ModuleHelp {
 export type JsonObjects = Array<string>
 
 type SubmoduleResult = ReturnType<Module['fn']>
-
+export type Modules = Record<string, Module>
 type AnyModule = {
     fn: ModuleFn<any, any>,
     help?: ModuleHelp,
@@ -182,11 +182,12 @@ export interface NodeKeypress {
 
 export interface ConfigOptions {
     printResult?: PrintResult
-    wrapperFn?: (cmd: string) => string
+    wrapperFn?: (cmd: string, modules?: Modules) => string
     hotkeys?: Hotkeys
     afterKeypress?: (ke: KeyboardEvent | NodeKeypress) => Promise<void>
     processResult?: (result: Result) => Promise<any>
     messageUser?: (...messages: any) => void
+    useFakeDb?: boolean
 }
 
 export interface Configuration {
@@ -195,6 +196,9 @@ export interface Configuration {
     server?: ConfigOptions
 }
 
-export const keyofConfigOptions: (keyof ConfigOptions)[] = ['printResult', 'hotkeys', 'wrapperFn', 'afterKeypress', 'processResult', 'messageUser']
+export const keyofConfigOptions: (keyof ConfigOptions)[] = ['printResult', 'hotkeys', 'wrapperFn', 'afterKeypress', 'processResult', 'messageUser', 'useFakeDb']
 
 export type SetAll = () => Promise<void>
+export type Repl = (modules: {
+    [moduleName: string]: Module<any, any> | ParallelModule<{}, any>
+}, yargs: any, prompt: string) => Promise<any>

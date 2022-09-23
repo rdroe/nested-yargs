@@ -35,10 +35,11 @@ const ret: {
     warnings: string[]
 } = { data: [], warnings: [] }
 
-const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class: any, tag: any, style: any }>['fn'] = async (args): Promise<typeof ret> => {
+const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class: any, tag: any, style: any, json: boolean }>['fn'] = async (args): Promise<typeof ret> => {
     // const objStyle: null | Json = args.style ? JSON.parse(args.style) : null
-
+    console.log('element fn', args)
     if (args.action === actions[CREATE]) {
+        console.log('creating an elem')
         let parent = document.body
         if (args.parent) {
             parent = document.querySelector(args.parent)
@@ -48,10 +49,8 @@ const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class
         if (args.style) {
             elem.setAttribute('style', args.style)
         }
+        console.log('append elem', elem, 'on', parent)
         parent.appendChild(elem)
-
-
-
 
     } else if (args.action === actions[REMOVE]) {
         let parent = document.body
@@ -65,7 +64,12 @@ const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class
         const elem = document.querySelector(args.class)
         if (elem) {
             if (elem.tagName === 'TEXTAREA') {
-                ret.data.push((elem as HTMLTextAreaElement).value)
+                const val = (elem as HTMLTextAreaElement).value
+                if (args.json) {
+                    ret.data.push(JSON.parse(val))
+                } else {
+                    ret.data.push(val)
+                }
             } else {
                 ret.warnings.push(`Cannot read from element or nothing to read; selector was ${args.class}`)
             }
@@ -83,17 +87,18 @@ const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class
     return ret
 }
 
-const module: Module = {
+const elementModule: Module = {
     help: {
         'description': 'create or remove an html element',
         examples: {
             '--action create --tag textarea --class input-1': 'create a textarea element with the given class name',
             '--action create --tag textarea --class input-1 --parent .some-parent --style "width: 180px; height: 50px;"': 'create a textarea element with the given class name, on the designated parent via querySelector arg, and with the specified styles',
-            '--action read --class .input-1': "read the textContent or value accessor of the element with the given selector"
+            '--action read --class .input-1': "read the textContent or value accessor of the element with the given selector",
+            '--action read --class .input-1 --json': "read the textContent or value accessor of the element with the given selector; parse it as json"
 
         }
     },
     fn: browser
 }
 
-export default module
+export default elementModule

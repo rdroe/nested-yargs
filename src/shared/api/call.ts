@@ -40,14 +40,16 @@ export const post: postCall = (rqBase: string, queryParams: SaveRequest, options
 }
 
 export const get: getCall = (rqBase: string, queryParams: QueryParams, options: RequestInit = {}) => {
+
     const concattedParams: string = Object.entries(queryParams).reduce(
         (accum: string, [key, val]: [string, string | number]) => {
 
             const separator = accum ? '&' : '?'
             return `${accum}${separator}${key}=${val}`
         }, '')
-    const fetchCall = fetch(`${rqBase}${concattedParams}`, options)
-    console.log('return from fetch', fetchCall)
+
+    const queryString = `${rqBase}${concattedParams}`
+    const fetchCall = fetch(queryString, options)
     return fetchCall
 }
 

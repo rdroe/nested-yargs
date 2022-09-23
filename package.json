@@ -1,6 +1,6 @@
 {
   "name": "nyargs",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "javascript notebooks",
   "repository": {
     "type": "git",
@@ -13,7 +13,9 @@
   "license": "ISC",
   "exports": {
     ".": "./v0.8/dist/index.js",
-    "./br": "./v0.8/dist/browser/exports.js"
+    "./br": "./v0.8/dist/browser/exports.js",
+    "./srv": "./v0.8/dist/server/exports.js",
+    "./runtime": "./v0.8/dist/runtime/exports.js"
   },
   "main": "nyargs",
   "engines": {
@@ -25,20 +27,28 @@
   ],
   "typesVersions": {
     "*": {
-      ".": [
+      "*": [
         "v0.8/dist"
       ],
       "br": [
         "v0.8/dist/browser/exports"
+      ],
+      "srv": [
+        "v0.8/dist/server/exports"
+      ],
+      "runtime": [
+        "v0.8/dist/runtime/exports"
       ]
     }
   },
   "devDependencies": {
-    "@types/isomorphic-fetch": "^0.0.35",
+    "@types/isomorphic-fetch": "^0.0.36",
     "nodemon": "^2.0.16",
-    "ts-node": "^9.0.0"
+    "ts-node": "^10.9.1"
   },
   "dependencies": {
+    "@testing-library/dom": "^8.18.1",
+    "@testing-library/user-event": "^14.4.3",
     "@types/jquery": "^3.5.14",
     "@types/keypress": "^2.0.30",
     "@types/node": "^18.7.5",
@@ -46,10 +56,11 @@
     "@types/source-map-support": "^0.5.4",
     "@types/yargs": "^17.0.10",
     "ansi-escapes": "^5.0.0",
+    "concurrently": "^7.4.0",
     "dexie": "^3.0.3",
     "dotenv": "^10.0.0",
     "dotprop": "^1.2.1",
-    "fake-indexeddb": "^3.1.7",
+    "fake-indexeddb": "^4.0.0",
     "isomorphic-fetch": "^3.0.0",
     "jquery": "^3.6.0",
     "keypress": "^0.2.1",

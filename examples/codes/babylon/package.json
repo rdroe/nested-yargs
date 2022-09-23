@@ -1,0 +1,30 @@
+{
+  "name": "data-game",
+  "version": "0.0.1",
+  "description": "babylon and cli-like code interaction",
+  "main": "index.ts",
+  "author": "rdroe",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "../nyargs"
+  ],
+  "scripts": {
+    "ts-build": "tsc -b",
+    "js-build": "node build.js",
+    "start-dev": "yarn http-server --mimetypes browser-project/mime.types",
+    "dev": "nodemon -w \"src/**/*\" -e ts,js --exec \"yarn ts-build && yarn js-build && yarn start-dev\""   
+  },
+  "packageManager": "yarn@3.2.3",
+  "dependencies": {
+    "@babylonjs/core": "^5.18.0",
+    "http-server": "^14.1.1",
+    "nodemon": "^2.0.18",
+    "nyargs": "workspace:*",
+    "typescript": "^4.7.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.48",
+    "esbuild-plugin-copy": "^1.3.0"
+  }
+}

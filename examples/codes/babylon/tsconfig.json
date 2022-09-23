@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+	"lib": ["es2019", "esnext", "dom"],
+	"module": "commonjs",
+        "esModuleInterop": true,
+	"moduleResolution": "Node",
+	"noImplicitAny": true,
+	"removeComments": true,
+	"skipLibCheck": true,
+	"preserveConstEnums": true,
+	"sourceMap": true,
+	"outDir": "public/js/",
+	"allowJs": true,
+        "target": "es2020",
+	"paths": {
+	    "nyargs": ["./node_modules/nyargs/dist-browser/src/appTypes"],
+	    "nyargs/*": ["./node_modules/nyargs/dist-browser/src/*"],
+	    "@babylon/core/*": ["./node_modules/@babylon/core/*.js"]
+	}
+    },
+    "watchOptions": {
+	"watchDirectory": "useFsEvents"
+    },
+    "include": ["src/app.ts"],
+    "exclude": [ "node_modules/", "**/*.spec.ts"]
+}

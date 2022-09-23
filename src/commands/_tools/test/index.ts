@@ -19,14 +19,15 @@ const termGreenMsg = (str: any, plainLogger: Function) => plainLogger(`\x1b[32m%
 const browserRedMsg = (str: any, plainLogger: Function) => plainLogger(`%c${str}`, "color: red;")
 const browserGreenMsg = (str: any, plainLogger: Function) => plainLogger(`%c${str}`, "color: green;")
 
-
-
-const getTestLogger = async (arg1: ModuleArgs<TestArgEntry>[0]) => {
+const getLogger = () => {
     const log = getConfig('messageUser')
-
     const red = isNode() ? termOut(termRedMsg, log) : termOut(browserRedMsg, log)
     const green = isNode() ? termOut(termGreenMsg, log) : termOut(browserGreenMsg, log)
+    return { red, green, log }
+}
 
+const getTestLogger = async (arg1: ModuleArgs<TestArgEntry>[0]) => {
+    const { red, green, log } = getLogger()
     return (anArg: { result: string[], commands: string[], expected: any, received: any }) => {
         log(`ran test ${arg1.positional[0]} ${anArg.commands.join(' ')}`)
         const testResData = {

@@ -2,7 +2,8 @@ import { get } from "../../shared/api/call"
 import { Files } from '../../shared/utils/types'
 
 const writePromise = async (fname: string, dat: string) => {
-    var dataStr = `data:text/json;charset=utf-8,${dat.replace('\n', '\r\n')}`
+    console.log('writing...', JSON.parse(dat))
+    var dataStr = `data:text/json;charset=utf-8,${dat.replace('\n', "\r\n")}`
     const dlAnchorElem = document.createElement('a')
     document.body.appendChild(dlAnchorElem)
     dlAnchorElem.setAttribute("href", dataStr);
@@ -45,4 +46,3 @@ const files: Files = {
 
 export default files;
 
-(window as any).nyargs = { files }

@@ -3,7 +3,7 @@ import getProperty from 'dotprop'
 // import 'fake-indexeddb/auto'
 import { get } from '../shared'
 import { Cache } from '../shared/utils/types'
-
+import stringArgv from 'string-argv'
 export const FILTER_ARG = 'filters'
 
 const postDotPropFns = Object.keys(Object.getOwnPropertyDescriptors(Array.prototype))
@@ -287,6 +287,26 @@ const cacheInstructionsToQuery = (inner: string | null, defaultQuery: string | n
     }
 }
 
+const numberlessDeref = /\*/
+const numberDeref = /[a-z]*[0-9]*\*/
+
+
+const extractDerefSections_ = (str: string): { cli: string, brackets: string | null, bracketed: string | null, prefix: number | null } => {
+
+    return {
+        cli: '', brackets: null, bracketed: null, prefix: null
+    }
+
+}
+
+const extractPointerSections_ = (str: string): { cli: string, brackets: string | null, bracketed: string | null, numPrefix: number | null, namePrefix: string | null } => {
+    return {
+        cli: '', brackets: null, bracketed: null, numPrefix: null, namePrefix: null
+    }
+
+}
+
+
 const extractBracketedSections_ = (str: string): { cli: string, brackets: string | null, bracketed: string | null } => {
 
     let splitTwo
@@ -303,7 +323,13 @@ const extractBracketedSections_ = (str: string): { cli: string, brackets: string
     }
 
     const [inner, rightOuter] = splitTwo
-    return { cli: `${leftOuter} ${rightOuter}`, brackets: inner ?? null, bracketed: inner ? `${BRACKETS[0]}${inner}${BRACKETS[1]}` : null }
+    return {
+        cli: `${leftOuter} ${rightOuter}`,
+        brackets: inner ?? null,
+        bracketed: inner
+            ? `${BRACKETS[0]}${inner}${BRACKETS[1]}`
+            : null
+    }
 
 }
 

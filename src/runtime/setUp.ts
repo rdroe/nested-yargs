@@ -1,4 +1,4 @@
-import { Module, ParallelModule, Result } from '../shared/utils/types'
+import { Module, ParallelModule, Result, Modules, BaseArguments } from '../shared/utils/types'
 import stringArgv from 'string-argv'
 import loop, { Executor } from './loop'
 import { showModule } from './help'
@@ -8,7 +8,9 @@ import { RESULT_KEY } from '../shared/utils/const'
 const DO_LOG = false
 
 const log = (...args: any[]) => {
-    if (DO_LOG) { console.log(...args) }
+    if (DO_LOG) {
+        console.log(...args)
+    }
 }
 
 type WrapperFn = (priors: any, isTop?: boolean) => Promise<{ [RESULT_KEY]: any, argv?: any }>
@@ -55,13 +57,15 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
         let parentmostIsAsync: boolean
         const namespaces: string[] = []
         const positionals: (string | number)[] = []
+        let helpShown: boolean = false
         // The main function is a reducer that replaces accumulated state with the pinnacle function call; e.g. 'match scalar' (see commands/) would traverse parent "match" module, then its submodule properties.
         // As the command hierarchies are traversed, the parent functions are called as well. Currently, a parent command is called before all its children but this will change in a future version.
         // Calls are async. Respective promises are tracked by key-value pair per module name.
+        let showHelp: any = () => showModule({ fn: async () => { }, submodules: modules })
 
-        const reduced: Accumulator = commands.reduce((accum: Accumulator, curr) => {
+        const reduced: Accumulator = commands.reduce((accum: Accumulator, curr, idx) => {
 
-            // if it's a command, fouund in modules...
+            // if it's a command, found in modules...
             if (accum.layer[curr] && !lastCommandFound) {
                 // take apart the module into its parts.
 
@@ -72,6 +76,7 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
                     yargs: yOpts = {},
                     parallel
                 } = accum.layer[curr]
+                showHelp = () => showModule({ fn: fn as Module['fn'], submodules }, `${accum.currentNamespace}`)
 
                 if (parentmostIsAsync === undefined) {
                     parentmostIsAsync = !!parallel
@@ -162,12 +167,17 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
                 }
             } // end if accum.layer[curr]
 
+
             // we arrive here if a non-command--but also a non-option--is found.
             // in yargs, a "positional argument".
 
             // the word is not on the modules defined
+
+
+
             positionals.push(curr)
             lastCommandFound = true
+
 
             return accum
         }, {
@@ -185,11 +195,7 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
         const entries = Object.entries(reduced.fn)
 
         if (opts1.help === true) {
-            const topHelp: Module = {
-                fn: async () => { },
-                submodules: modules
-            }
-            showModule(topHelp)
+            showHelp()
         }
 
 
@@ -252,8 +258,6 @@ async function orderCallsSync(entries: [string, WrapperFn][]): Promise<Result> {
     await Promise.all(proms)
     await rollingProm
 
-
-
     // structure this with isMultiResult and list so that, later in nyargs loop.ts and in the cache hook, data gets appraised by caching module and properly stowed later on. 
     return { isMultiResult: true, list: mappedResults, errorInfo: null }
 }
@@ -274,32 +278,44 @@ async function orderCallsAsync(entries: [string, WrapperFn][], opts1: any): Prom
 
 }
 
-const makeCaller = (yargs: any): Executor => {
+let resolveCaller: Function
 
-    return async (modules: { [moduleName: string]: Module }, input: string) => {
+export const caller: { get: Promise<(m: Modules, input: string) => { argv: BaseArguments, [RESULT_KEY]: object }> } = {
+    get: new Promise((res) => {
+        resolveCaller = res
+    })
+}
+
+export const makeCaller = (yargs: any): Executor => {
+
+    const caller = async (modules: { [moduleName: string]: Module }, input: string) => {
 
         const lookUpAndCall = await makeLookUpAndCall(yargs)
-
         const simArgv = stringArgv(input)
-        const argv = await (yargs.help(false).parse(simArgv))
+        const argv = await yargs.help(false).parse(simArgv)
         const commands = argv._
         const result = await lookUpAndCall(modules, simArgv, commands)
 
         return { argv, [RESULT_KEY]: result }
     }
+    resolveCaller(caller)
+    return caller
 }
-
 
 export const repl = async (modules: { [moduleName: string]: Module | ParallelModule }, yargs: any, prompt?: string): Promise<any> => {
 
     const setAll = await get('setAll')
-
     await setAll()
 
     try {
 
         const caller = makeCaller(yargs)
-        return await loop(modules, caller, prompt)
+        return await loop(
+            modules as Modules /* importantly, more complex than actual "Modules" we are as-ing to*/,
+            caller,
+            prompt)
+
+
     } catch (e) {
         // @ts-ignore
         const fullError = new Error('In loop.ts while running getExecuteCli:', { cause: e })
@@ -310,3 +326,6 @@ export const repl = async (modules: { [moduleName: string]: Module | ParallelMod
         return await repl(modules, yargs, prompt)
     }
 }
+
+
+

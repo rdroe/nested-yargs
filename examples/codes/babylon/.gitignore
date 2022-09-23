@@ -1,0 +1,16 @@
+public/js
+public/js/commands
+public/pl/**/*
+public/pl
+public/pl/modules
+*.js.map
+node_modules/
+dist/
+**/.DS_Store
+\#*\#
+**/\#
+.\#*
+*~
+.env
+yarn-error.log
+.yarn

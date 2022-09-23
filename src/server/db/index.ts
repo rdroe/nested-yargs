@@ -1,7 +1,8 @@
 import 'fake-indexeddb/auto'
-import DexieCore from 'dexie'
+import { Dexie as DexieCore } from 'dexie'
 import 'fake-indexeddb/auto'
 import { Cache } from '../../shared/utils/types'
+
 
 export class UiDb extends DexieCore {
     public cache: DexieCore.Table<Cache>
@@ -15,5 +16,9 @@ export class UiDb extends DexieCore {
     }
 }
 
-export const db = new UiDb
+export const db = async (_?: boolean) => new UiDb;
+
 export const Dexie = DexieCore
+
+
+

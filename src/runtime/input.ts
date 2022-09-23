@@ -1,15 +1,36 @@
 import { get, getConfig } from '../shared/index'
 import { queue } from '../shared/utils/queue'
-import { Readline } from '../shared/utils/types'
+import { Readline, Modules } from '../shared/utils/types'
 import isNode from '../shared/utils/isNode'
 import { makeGetLastN, lastFive } from '../shared/utils/makeGetLastN'
 
-const makeHandleQuestion = (res: Function) => {
+import { caller } from './setUp'
+import { RESULT_KEY } from 'shared/utils/const'
 
-    return function handleQuestion(rawPreInput: string) {
+export const fakeCli: {
+    modules: Modules | null
+    handle: (str: string) => Promise<{ argv: object, [RESULT_KEY]: object }>
+} = {
+    modules: null,
+    handle: async (str: string) => {
+
+        console.log('starting awaiting caller')
+        const fn = await caller.get
+        const answer = await fn(fakeCli.modules, str)
+
+        console.log('answer gotten', answer)
+        return await answer
+    }
+}
+
+const makeHandleQuestion = (res: Function, modules: Modules) => {
+
+    return function handleQuestion(rawPreInput: string): string {
+        console.log('input', rawPreInput, 'modules', modules)
         let inp: string
         const wrapperFn = getConfig('wrapperFn')
-        const rawInput = wrapperFn(rawPreInput)
+
+        const rawInput = wrapperFn(rawPreInput, modules)
         const splitted = rawInput.split('\n').filter(elem => !!elem)
 
         inp = splitted.shift()
@@ -28,6 +49,7 @@ const makeHandleQuestion = (res: Function) => {
         // histState.idx = histState.hist.length
         histIdx(histState.hist.length)
 
+        console.log('resolving an input')
         return res(inp)
     }
 }
@@ -56,7 +78,7 @@ const findKeypressMatch = async (hotkeys: { [keys: string]: Function }): Promise
 let curReadline: ReturnType<Readline['createInterface']>
 let didInitHistory = false
 
-type FnGetInput = (pr: string, initialInput?: string) => Promise<string>
+type FnGetInput = (modules: Modules, pr: string, initialInput?: string) => Promise<string>
 
 let _getInput: Promise<FnGetInput>
 
@@ -84,9 +106,7 @@ const addHistory = (line: string) => {
 
 const loadHist = async () => {
     const lhFn = await get('loadHistory')
-
     const data = await lhFn()
-
     histState = data
 
 }
@@ -140,7 +160,7 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
     })
 }
 
-export const getInput: FnGetInput = async (pr, initInput = '') => {
+export const getInput: FnGetInput = async (modules, pr, initInput = '') => {
     const renewReader = await get('renewReader')
     const utils = await get('terminalUtils')
     const { clearCurrent } = utils
@@ -164,7 +184,7 @@ export const getInput: FnGetInput = async (pr, initInput = '') => {
 
     const fn = await _getInput
     if (!isNode()) { clearCurrent(curReadline) }
-    return fn(pr, initInput)
+    return fn(modules, pr, initInput)
 }
 
 const makeGetInput = async () => {
@@ -175,14 +195,14 @@ const makeGetInput = async () => {
 
     const renewReader = await get('renewReader')
 
-    return async (pr: string, initialInput: string = ''): Promise<string> => {
+    return async (modules: Modules, pr: string, initialInput: string = ''): Promise<string> => {
 
         curReadline = await renewReader(pr, curReadline)
 
         const userInput = await new Promise<string>((res) => {
-
+            fakeCli.modules = modules
             // in browser triggers readlineFunctions > question
-            curReadline.question(pr, makeHandleQuestion(res))
+            curReadline.question(pr, makeHandleQuestion(res, modules))
             if (initialInput) {
                 curReadline.write(initialInput)
                 if (curReadline.line !== initialInput) {
