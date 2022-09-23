@@ -5,7 +5,7 @@ import isNode from '../shared/utils/isNode'
 import { makeGetLastN, lastFive } from '../shared/utils/makeGetLastN'
 
 import { caller } from './setUp'
-import { RESULT_KEY } from 'shared/utils/const'
+import { RESULT_KEY } from '../shared/utils/const'
 
 export const fakeCli: {
     modules: Modules | null

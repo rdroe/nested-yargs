@@ -4,3 +4,4 @@ import createAppFn from './shared/utils/createApp'
 export const isNode = isNode_
 export const platformIsNode = isNode()
 export const createApp = createAppFn
+export * as const from './shared/utils/const'

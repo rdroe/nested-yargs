@@ -9,7 +9,7 @@ export function exportToJson(idbDatabase: IDBDatabase): Promise<string> {
     return new Promise((resolve, reject) => {
         const exportObject: { [str: string]: any } = {}
         if (idbDatabase.objectStoreNames.length === 0) {
-            resolve(JSON.stringify(exportObject, null, 2))
+            return resolve(JSON.stringify(exportObject, null, 2))
         } else {
             const list = (idbDatabase.objectStoreNames as unknown) as string[]
             const transaction = idbDatabase.transaction(

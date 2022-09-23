@@ -9,7 +9,7 @@ const m: Module<{ p: any, b: any, f: any }> = {
             '-p subdir/foo -f backup.json': 'Export cache and save it in a file at "./subdir/foo/backup.json" or download to browser as subdir_foo_backup.json'
         }
     },
-    fn: async (args, chCalls) => {
+    fn: async (args) => {
         const now = Date.now()
         const db = await get('db')
         const newId = await db.cache.add({
@@ -18,7 +18,6 @@ const m: Module<{ p: any, b: any, f: any }> = {
             value: 1,
             createdAt: now
         })
-        console.log('chCalls', chCalls)
         await db.cache.delete(newId)
         const dbBack = db.backendDB()
         return exportDb(args.p, args.f, dbBack)
