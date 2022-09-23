@@ -69,7 +69,8 @@ yarn
     }).replace(() => {
         msg('finished yarn install')
         return `yarn ts-build`
-    }).wait(() => {
-        return `node dist/myapp.js`
+    }).wait(async () => {
+        await import(`${targetDir}/dist/myapp.js`);
+        return `exit 0`
     })
 
