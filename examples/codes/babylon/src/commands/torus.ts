@@ -127,9 +127,12 @@ Add a white torus at x,y,z position 1 2 1.
             type: 'number'
         }
     },
-    fn: async ({ positional, color, frames, thickness }) => {
+    fn: async (args) => {
+        const { positional, color, frames, thickness } = args
+
         const [x, y, z] = positional
         const [animationFrames = [], animationPositions = []] = frames ? parseFrames([`0=${x},${y},${z}`, ...frames]) : []
+
         return makeTorus(x, y, z, { color, animationFrames, animationPositions, thickness })
     },
 }

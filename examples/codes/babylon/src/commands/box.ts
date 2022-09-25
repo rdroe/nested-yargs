@@ -38,7 +38,7 @@ const makeBox = (
     );
     mesh.material = color
     let maxFrame = 0
-    console.log(x, y, z, options)
+
     if (animationPositions.length > 1) {
 
         const piAnimate = new Animation(`animation-${ident}`, "position", 30, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CYCLE);

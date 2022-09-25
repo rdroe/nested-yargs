@@ -1,11 +1,11 @@
 {
-  "name": "nyargs-as-extension",
+  "name": "nyargs-unsafe-extension",
   "description": "developer-only nyargs extension",
   "version": "1.0",
    "manifest_version": 3,
-    "permissions": ["storage", "activeTab", "scripting"],
-  "content_scripts": [ {
+    "permissions": ["storage", "cookies","<all_urls>","tabs"],
+    "content_scripts": [ {
     "matches": ["http://*/*", "https://*/*"], 
-    "js": ["main.js"]
+    "js": ["../main.js"]
   }]
 }

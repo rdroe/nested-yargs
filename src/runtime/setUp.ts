@@ -5,6 +5,10 @@ import { showModule } from './help'
 import { get } from '../shared/index'
 import { RESULT_KEY } from '../shared/utils/const'
 
+
+const isNumber = (arg: string): boolean => {
+    return arg.match(/^(\-{0,1}[0-9]+\.[0-9]+|^\-{0,1}[0-9]+)$/) !== null
+}
 const DO_LOG = false
 
 const log = (...args: any[]) => {
@@ -49,9 +53,16 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
                 //          default: ['*'] as string[]
             }
         }
+
         let lastCommandFound = false
-        const lastPositionalOrNeg = input.findIndex(arg => arg.charAt(0) === '-')
+
+        const lastPositionalOrNeg = input.findIndex(arg => {
+            return arg.charAt(0) === '-'
+                && !isNumber(arg)
+        })
+
         const lastPositional = lastPositionalOrNeg > -1 ? lastPositionalOrNeg : input.length
+
         let helpModule: Module | ParallelModule
         let helpPrefix: string
         let parentmostIsAsync: boolean
@@ -62,6 +73,7 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
         // As the command hierarchies are traversed, the parent functions are called as well. Currently, a parent command is called before all its children but this will change in a future version.
         // Calls are async. Respective promises are tracked by key-value pair per module name.
         let showHelp: any = () => showModule({ fn: async () => { }, submodules: modules })
+
 
         const reduced: Accumulator = commands.reduce((accum: Accumulator, curr, idx) => {
 

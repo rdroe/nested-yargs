@@ -17,7 +17,7 @@ const creator = () => createApp(
                 }
 
                 if (cmd.includes('"')) {
-                    console.error("error; a prolog query should not contain \" marks.")
+                    console.error("A submitted prolog query should not contain double-quotation (\") marks.")
                     return
                 }
                 return `pl "${cmd}"`

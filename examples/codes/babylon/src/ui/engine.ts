@@ -15,13 +15,13 @@ export const getters: {
 
 export const runRenderLoop = () => {
 
-    console.log('initializing')
+
     let initialized: boolean | undefined
     const element = `<canvas id="view"></canvas>`
-    console.log('setting up view')
+
     document.body.innerHTML += element
     const view = document.getElementById("view") as HTMLCanvasElement
-    console.log('set up view', document.querySelector('#view'))
+
     const engine = new Engine(view, true)
     const scene = new Scene(engine)
 
@@ -43,7 +43,7 @@ export const runRenderLoop = () => {
 
     scene.onPointerDown = function(evt: any, pickResult: any) {
         if (pickResult.hit) {
-            console.log('picked', pickResult.pickedMesh.name)
+            // console.log('picked', pickResult.pickedMesh.name)
         }
     };
 

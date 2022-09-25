@@ -211,8 +211,7 @@ const isSwiplVal = (arg: any): arg is SwiplVal => {
     const truth = isSwiplEmptyList(arg) || isSwiplScalar(arg) || isSwiplHT(arg) || isSwiplCompound(arg)
     if (truth) return true
     if (!truth) {
-
-        console.log('not a swipl val', arg)
+        throw new Error(`not a swipl val: ${arg as any}`)
     }
 
     return truth
