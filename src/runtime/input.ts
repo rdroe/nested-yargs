@@ -14,11 +14,11 @@ export const fakeCli: {
     modules: null,
     handle: async (str: string) => {
 
-        console.log('starting awaiting caller')
+
         const fn = await caller.get
         const answer = await fn(fakeCli.modules, str)
 
-        console.log('answer gotten', answer)
+
         return await answer
     }
 }
@@ -26,7 +26,7 @@ export const fakeCli: {
 const makeHandleQuestion = (res: Function, modules: Modules) => {
 
     return function handleQuestion(rawPreInput: string): string {
-        console.log('input', rawPreInput, 'modules', modules)
+
         let inp: string
         const wrapperFn = getConfig('wrapperFn')
 
@@ -49,7 +49,7 @@ const makeHandleQuestion = (res: Function, modules: Modules) => {
         // histState.idx = histState.hist.length
         histIdx(histState.hist.length)
 
-        console.log('resolving an input')
+
         return res(inp)
     }
 }

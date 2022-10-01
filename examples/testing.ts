@@ -6,6 +6,7 @@ let targetDir: string
 
 const defaultProjName = 'nya-testing-app'
 const msg = console.log
+
 cli(`echo "node 16+ is required"`)
     .cli(`node --version`)
     .replace((result: string) => {

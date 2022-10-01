@@ -1,26 +1,24 @@
-import { cache, match, element, nest, repl, program, test, setDictionary } from 'nyargs/br'
-import { init } from 'nyargs/br'
+import { createApp } from 'nyargs'
+import { program, } from 'nyargs/br'
 import box from './commands/box'
 import torus from './commands/torus'
 import { runRenderLoop } from './ui/engine'
 
-setDictionary({ 'matchTwos': ['match scalar -l 1 -r 1'] })
+export const app = async () => {
 
-export const app = async (yargs: Function) => {
-    init.default()
-    runRenderLoop()
-    return repl({
-        cache,
-        program,
-        match,
-        element,
-        nest,
-        test,
+    await createApp({
         box,
         torus,
         // aliases
         pr: program,
         pro: program,
         prog: program,
-    }, yargs(), '3d > ')
+    }, {
+        programs: {
+            matchTwos: [
+                'match scalar -l 22 2 202 -r 22 2022, 202'
+            ]
+        },
+    }, '3d > ')
+    runRenderLoop()
 }

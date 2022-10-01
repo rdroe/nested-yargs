@@ -10,15 +10,18 @@
 	"browser",
 	"cli"
     ],
+    "workspaces": [
+        "../nyargs"
+    ],    
     "dependencies": {
         "http-server": "^14.1.0",
         "nodemon": "^2.0.16",
         "xterm": "^4.18.0",
         "yargs": "^17.5.1",
-	"nyargs": "^0.8.5"
+	"nyargs": "workspace:*"
     },
     "devDependencies": {
-        "@types/isomorphic-fetch": "^0.0.35",
+        "@types/isomorphic-fetch": "^0.0.36",
         "@types/yargs": "^17.0.10",
         "esbuild": "^0.14.38",
         "typescript": "^4.6.4"

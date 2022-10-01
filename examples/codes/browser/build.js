@@ -54,6 +54,7 @@ let httpPlugin = {
 }
 
 require('esbuild').build({
+    external: ['node:fs', 'readline', 'path', 'assert', 'util', 'fs', 'url'],
     entryPoints: ['./public/js/glue.js'],
     bundle: true,
     outfile: './public/main.js',

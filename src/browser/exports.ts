@@ -35,7 +35,9 @@ export { dbPath } from '../shared/utils/dbPath'
 export { default as isNode } from '../shared/utils/isNode'
 export { importFromJson, clearDatabase, exportToJson } from '../shared/idb-backup-and-restore'
 import * as dbHelpers from '../runtime/cache'
+
 export const dbUtils = dbHelpers
 export * as init from './init'
 
 export * from '../shared/utils/types'
+

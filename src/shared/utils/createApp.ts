@@ -23,9 +23,10 @@ const importPlatform = async (): Promise<{
     init()
     // @ts-ignore
     const main = (await import('../../browser/exports'))
+    // use 16...beta (or thereabouts) because of this: https://github.com/yargs/yargs/issues/1981
+    // last checked with 17.6.0, still broken
     // @ts-ignore
     const yargs = (await import('https://unpkg.com/yargs@16.0.0-beta.1/browser.mjs')).default
-
     return { main, yargs }
 
 
@@ -49,6 +50,7 @@ type AppCreator2 = (main: Main, yargs: Yargs, modules: Modules, configurators?: 
 
 
 const createAppFromFn: AppCreator1 = async (main, yargs, fn) => {
+
     if (platformIsNode) {
         return fn(main, yargs)
     }
