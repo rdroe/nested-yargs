@@ -6,9 +6,6 @@
   "author": "rdroe",
   "license": "MIT",
   "private": true,
-  "workspaces": [
-    "../nyargs"
-  ],
   "scripts": {
     "ts-build": "tsc -b",
     "js-build": "node build.js",
@@ -20,7 +17,7 @@
     "@babylonjs/core": "^5.18.0",
     "http-server": "^14.1.1",
     "nodemon": "^2.0.18",
-    "nyargs": "workspace:*",
+    "nyargs": "^1.0.0",
     "typescript": "^4.7.4"
   },
   "devDependencies": {

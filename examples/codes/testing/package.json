@@ -4,9 +4,6 @@
     "main": "index.js",
     "license": "MIT",
     "description": "a browser app that allows yargs use in an xterm-js terminal",
-    "workspaces": [
-        "../nyargs"
-    ],
     "keywords": [
         "yargs",
         "node",
@@ -21,7 +18,7 @@
         "express": "^4.18.1",
         "http-server": "^14.1.0",
         "nodemon": "^2.0.16",
-        "nyargs": "workspace:*",
+        "nyargs": "^1.0.0",
         "swipl": "^1.0.6",
         "ts-node": "^10.9.1",
         "xterm": "^4.18.0",

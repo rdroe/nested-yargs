@@ -4,9 +4,6 @@
     "main": "index.js",
     "license": "MIT",
     "description": "javascript notebooks",
-    "workspaces": [
-        "../nyargs"
-    ],    
     "keywords": [
         "yargs",
         "browser",
@@ -17,7 +14,7 @@
         "http-server": "^14.1.0",
         "nodemon": "^2.0.16",
         "yargs": "^17.5.1",
-	"nyargs": "workspace:*"	
+	"nyargs": "^1.0.0"	
     },
     "devDependencies": {
         "@types/isomorphic-fetch": "^0.0.36",
