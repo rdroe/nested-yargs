@@ -19,7 +19,7 @@ const importPlatform = async (): Promise<{
         const yargs = (await import('yargs')) as typeof import('yargs')
         return { main, yargs }
     }
-    const init = (await import('browser/init')).default
+    const init = (await import('../../browser/init')).default
     init()
     // @ts-ignore
     const main = (await import('../../browser/exports'))
