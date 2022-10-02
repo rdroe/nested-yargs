@@ -1,6 +1,7 @@
 // only import this after indexed db has been imported.
 // it may be fake-indexeddb, so we can't spoilt it ahead of time.
-import { get } from '../shared'
+import { get, getConfig } from '../shared'
+export { getConfig }
 export { destructureSwipl } from '../shared/utils/swiplAdaptors'
 export * as dbUtils from './cache'
 export * as store from './store'
