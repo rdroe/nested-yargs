@@ -21,6 +21,8 @@ const creator = async () => {
                         return cmd
                     }
 
+                    if (cmd.includes("--help")) return cmd
+
                     if (cmd.includes('"')) {
                         console.error("error; a prolog query should not contain \" marks.")
                         return

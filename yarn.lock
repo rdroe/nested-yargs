@@ -201,10 +201,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^18.7.5":
-  version: 18.7.23
-  resolution: "@types/node@npm:18.7.23"
-  checksum: 2c8df0830d8345e5cd1ca17feb9cf43fa667aae749888e0a068c5c1b35eaedd2f9b24ed987a0758078395edf7a03681e5e0b7790a518ff7afe1ff6d8459f7b4a
+"@types/node@npm:*, @types/node@npm:^18.8.0":
+  version: 18.8.0
+  resolution: "@types/node@npm:18.8.0"
+  checksum: 3433cbc22e90fafb047f93b3ef05ba01a07f780a24ff1af393f435f807537b533fe9e8a816586825f4c5fd5336c3e80225571f44ec3b6479c463408c072773e7
   languageName: node
   linkType: hard
 
@@ -1382,7 +1382,7 @@ __metadata:
     "@testing-library/user-event": ^14.4.3
     "@types/isomorphic-fetch": ^0.0.36
     "@types/jquery": ^3.5.14
-    "@types/node": ^18.7.5
+    "@types/node": ^18.8.0
     "@types/shelljs": ^0.8.9
     "@types/source-map-support": ^0.5.4
     "@types/yargs": ^17.0.10
@@ -1707,12 +1707,12 @@ __metadata:
   linkType: hard
 
 "socks@npm:^2.6.2":
-  version: 2.7.0
-  resolution: "socks@npm:2.7.0"
+  version: 2.7.1
+  resolution: "socks@npm:2.7.1"
   dependencies:
     ip: ^2.0.0
     smart-buffer: ^4.2.0
-  checksum: 0b5d94e2b3c11e7937b40fc5dac1e80d8b92a330e68c51f1d271ce6980c70adca42a3f8cd47c4a5769956bada074823b53374f2dc5f2ea5c2121b222dec6eadf
+  checksum: 259d9e3e8e1c9809a7f5c32238c3d4d2a36b39b83851d0f573bfde5f21c4b1288417ce1af06af1452569cd1eb0841169afd4998f0e04ba04656f6b7f0e46d748
   languageName: node
   linkType: hard
 
@@ -1942,7 +1942,7 @@ __metadata:
 
 "typescript@patch:typescript@^4.7.4#~builtin<compat/typescript>":
   version: 4.8.4
-  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=f456af"
+  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=a1c5e5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver

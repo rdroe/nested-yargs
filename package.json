@@ -50,7 +50,7 @@
     "@testing-library/dom": "^8.18.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/jquery": "^3.5.14",
-    "@types/node": "^18.7.5",
+    "@types/node": "^18.8.0",
     "@types/shelljs": "^0.8.9",
     "@types/source-map-support": "^0.5.4",
     "@types/yargs": "^17.0.10",
@@ -71,5 +71,5 @@
     "xterm-addon-fit": "^0.5.0",
     "yargs": "^17.6.0"
   },
-  "packageManager": "yarn@3.2.2"
+  "packageManager": "yarn@3.2.3"
 }
