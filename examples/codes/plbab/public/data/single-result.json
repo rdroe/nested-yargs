@@ -1,0 +1,60 @@
+{
+  "cache": [
+    {
+      "commands": [
+        "match",
+        "scalar"
+      ],
+      "names": [],
+      "value": [
+        {
+          "index": 0,
+          "match": true,
+          "left": "this",
+          "right": "this"
+        },
+        {
+          "index": 1,
+          "match": true,
+          "left": "is",
+          "right": "is"
+        },
+        {
+          "index": 2,
+          "match": false,
+          "left": "made",
+          "right": "going"
+        },
+        {
+          "index": 3,
+          "match": false,
+          "left": "in",
+          "right": "to"
+        },
+        {
+          "index": 4,
+          "match": true,
+          "left": "the",
+          "right": "the"
+        },
+        {
+          "index": 5,
+          "match": false,
+          "left": "server",
+          "right": "browser"
+        }
+      ],
+      "createdAt": 1663554513732,
+      "id": 1
+    },
+    {
+      "commands": [
+        "match"
+      ],
+      "names": [],
+      "value": 6,
+      "createdAt": 1663554513734,
+      "id": 2
+    }
+  ]
+}
