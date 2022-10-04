@@ -1,6 +1,9 @@
-import { Module } from 'nyargs'
+import { Module, platformIsNode, tauAdaptors } from 'nyargs'
 import { destructureSwipl, call } from 'nyargs/runtime'
+import { query } from '../util/pl'
+
 const { post } = call
+
 const cliQuery = async (args: { p?: string, positional: (string | number)[] }) => {
 
     let prologQuery: string
@@ -24,8 +27,12 @@ const pl: Module = {
             "member(1, [1,2,3,4]).": 'presuming that "member" is whitelisted, send this query to the running swipl server and get back json result'
         }
     },
-    fn: (args) => {
-        return cliQuery(args)
+    fn: async (args) => {
+        if (platformIsNode) {
+            return cliQuery(args)
+        }
+        const answers = await query(args.positional[0])
+        return answers
     }
 }
 
