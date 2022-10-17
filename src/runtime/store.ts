@@ -316,11 +316,18 @@ const extractBracketedSections_ = (str: string): { cli: string, brackets: string
     if (splitOne.length === 1) {
         return { cli: str, brackets: null, bracketed: null }
     }
+
     const [leftOuter, rightOfBrackOne] = splitOne
-    splitTwo = rightOfBrackOne.split(BRACKETS[1])
-    if (splitTwo.length === 1) {
-        throw new Error('invalid cache instructions: ' + str)
-    }
+
+
+    const lastBrax = rightOfBrackOne.lastIndexOf(BRACKETS[1])
+    const startLast = lastBrax + BRACKETS[1].length
+
+
+    splitTwo = [
+        rightOfBrackOne.substr(0, lastBrax),
+        rightOfBrackOne.substr(startLast)
+    ]
 
     const [inner, rightOuter] = splitTwo
     return {
@@ -444,9 +451,12 @@ export const parseCacheInstructions = async (str: string, defaultFilter: string 
     const { cli, brackets, bracketed } = extractBracketedSections_(str)
 
     requireValidCacheInstructions(str)
-    if (cli.includes(BRACKETS[0]) || cli.includes(BRACKETS[1])) {
-        throw new Error('Only one set of cache instructions is allowed for now.')
-    }
+
+
+    // if (cli.includes(BRACKETS[0]) || cli.includes(BRACKETS[1])) {
+
+    //   throw new Error('Only one set of cache instructions is allowed for now.')
+    //}
 
     // const strArgv = stringArgv(cli)
     // let hasFoundOption = false

@@ -86,7 +86,7 @@ async function verifyAndExecuteCli(
 
     }
     // Run the raw input through jq calls and cache-replacing
-    const input = await parseCacheInstructions(rawInput, JQ_DEFAULT)
+    const input = (await parseCacheInstructions(rawInput, JQ_DEFAULT)).replace(/\{\{/g, '{{')
 
     // If it is different (if cache-replacing was used) verify to run.
 
