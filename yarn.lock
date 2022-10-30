@@ -234,22 +234,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/yargs-parser@npm:*":
-  version: 21.0.0
-  resolution: "@types/yargs-parser@npm:21.0.0"
-  checksum: b2f4c8d12ac18a567440379909127cf2cec393daffb73f246d0a25df36ea983b93b7e9e824251f959e9f928cbc7c1aab6728d0a0ff15d6145f66cec2be67d9a2
-  languageName: node
-  linkType: hard
-
-"@types/yargs@npm:^17.0.10":
-  version: 17.0.13
-  resolution: "@types/yargs@npm:17.0.13"
-  dependencies:
-    "@types/yargs-parser": "*"
-  checksum: 0ab269abc2da2223cf0a8c16d578850fbe327d40fb85724b5c3f9f6cf38d03656ef699518c05d4df3bc337339ec6d0aad7df01682a9dca4783ad1ccc7336cf12
-  languageName: node
-  linkType: hard
-
 "abbrev@npm:1":
   version: 1.1.1
   resolution: "abbrev@npm:1.1.1"
@@ -1385,7 +1369,6 @@ __metadata:
     "@types/node": ^18.8.0
     "@types/shelljs": ^0.8.9
     "@types/source-map-support": ^0.5.4
-    "@types/yargs": ^17.0.10
     ansi-escapes: ^5.0.0
     concurrently: ^7.4.0
     dexie: ^3.0.3
@@ -1403,7 +1386,6 @@ __metadata:
     typescript: ^4.7.4
     xterm: ^4.18.0
     xterm-addon-fit: ^0.5.0
-    yargs: ^17.6.0
   languageName: unknown
   linkType: soft
 
@@ -2131,7 +2113,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.3.1, yargs@npm:^17.6.0":
+"yargs@npm:^17.3.1":
   version: 17.6.0
   resolution: "yargs@npm:17.6.0"
   dependencies:
