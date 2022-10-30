@@ -17,10 +17,9 @@ const importPlatform = async (): Promise<{
         await import('fake-indexeddb/auto')
         // @ts-ignore
         const yargs = (await import('yargs')) as typeof import('yargs')
+
         return { main, yargs }
     }
-    const init = (await import('../../browser/init')).default
-    init()
     // @ts-ignore
     const main = (await import('../../browser/exports'))
     // use 16...beta (or thereabouts) because of this: https://github.com/yargs/yargs/issues/1981
@@ -79,6 +78,21 @@ const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, config
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
     programs?: Parameters<typeof setDictionary>[0]
 }, prompt?: string) => {
+
+    if (!platformIsNode) {
+
+        let init
+
+        if (configurators) {
+            init = configurators.config.init
+        }
+
+        if (!init) {
+            init = (await import('../../browser/init')).default
+        }
+
+        await init()
+    }
 
     const { main, yargs, } = await importPlatform()
     if (typeof fnOrModules === 'function') {

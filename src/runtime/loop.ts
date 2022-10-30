@@ -102,6 +102,7 @@ async function verifyAndExecuteCli(
         await printResult(ret.argv, ret[RESULT_KEY])
         // look at the arguments and results, cache if appropriate.
         await processResult(ret[RESULT_KEY])
+        console.log('argv in loop', ret.argv)
         await cache(ret.argv, ret[RESULT_KEY])
         // start fresh
         return verifyAndExecuteCli(modules, null, executor)

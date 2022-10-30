@@ -12,4 +12,3 @@ export { fakeCli } from './input'
 export const getDb = async () => get('db')
 export const getFs = async () => get('fs')
 
-

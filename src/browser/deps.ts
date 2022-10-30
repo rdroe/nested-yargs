@@ -4,7 +4,7 @@ import { historyListener, print, renewReader, terminalUtils, toggleTa, } from '.
 import { printResult } from '../shared/utils/printResult'
 import { Configuration, ConfigOptions, Result } from '../shared/utils/types'
 import { db as getDb, filesDb as getFilesDb } from './db'
-
+import init from './init'
 const defaultConfig: Configuration = {
     browser: {
         hotkeys: {
@@ -17,7 +17,8 @@ const defaultConfig: Configuration = {
         // " process all results before they are cached
         processResult: async (result: Result) => { return result },
         messageUser: console.log,
-        useFakeDb: false
+        useFakeDb: false,
+        init
     }
 }
 

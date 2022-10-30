@@ -188,6 +188,7 @@ export interface ConfigOptions {
     processResult?: (result: Result) => Promise<any>
     messageUser?: (...messages: any) => void
     useFakeDb?: boolean
+    init?: (...args: any[]) => any
 }
 
 export interface Configuration {
@@ -196,7 +197,7 @@ export interface Configuration {
     server?: ConfigOptions
 }
 
-export const keyofConfigOptions: (keyof ConfigOptions)[] = ['printResult', 'hotkeys', 'wrapperFn', 'afterKeypress', 'processResult', 'messageUser', 'useFakeDb']
+export const keyofConfigOptions: (keyof ConfigOptions)[] = ['printResult', 'hotkeys', 'wrapperFn', 'afterKeypress', 'processResult', 'messageUser', 'useFakeDb', 'init']
 
 export type SetAll = () => Promise<void>
 export type Repl = (modules: {

@@ -32,9 +32,10 @@ const cacheResult = async (argv: BaseArguments & {}, data: object) => {
     if ((argv._ || []).includes('cache')) {
         return
     }
-
+    console.log('in cache', argv)
     const entry: Entry =
     {
+
 
         commands: argv['c:c']?.length
             ? argv['c:c'].map(cm => `${cm}`)
@@ -55,7 +56,7 @@ const cacheResult = async (argv: BaseArguments & {}, data: object) => {
 export const cache = async <Storable extends { isMultiResult?: boolean, list?: { [key: string]: any } } = Result>(
     argv: BaseArguments,
     data: Storable) => {
-    if (argv.help === true) {
+    if (argv.help) {
         console.log('escaping cache (help)')
         return
     }

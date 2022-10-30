@@ -4,6 +4,7 @@ import loop, { Executor } from './loop'
 import { showModule } from './help'
 import { get } from '../shared/index'
 import { RESULT_KEY } from '../shared/utils/const'
+import { parse } from '../shared/utils/cliParser'
 
 
 const isNumber = (arg: string): boolean => {
@@ -33,6 +34,19 @@ type LookerUpperCaller = (modules: { [moduleName: string]: Module | ParallelModu
 // singleton (may not be needed, but a cached spot so the same one is always returned.
 let lookUpAndCall_: LookerUpperCaller
 
+const yargsStarter = {
+    'commands': {
+        array: true,
+        alias: 'c:c',
+        //            default: ['*'] as string[]
+    },
+    'names': {
+        array: true,
+        alias: 'c:n',
+        //          default: ['*'] as string[]
+    }
+}
+
 const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
     // if the singleton is already set, return it; otherwise set and return the singleton appropriately
     lookUpAndCall_ = lookUpAndCall_ || lookUpCallFn
@@ -40,18 +54,8 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
 
     async function lookUpCallFn(modules: { [moduleName: string]: Module }, input: string[], commands: (number | string)[]): Promise<Result> {
 
-        // Universal options
         let yargsOptions = {
-            'commands': {
-                array: true,
-                alias: 'c:c',
-                //            default: ['*'] as string[]
-            },
-            'names': {
-                array: true,
-                alias: 'c:n',
-                //          default: ['*'] as string[]
-            }
+            ...yargsStarter
         }
 
         let lastCommandFound = false
@@ -111,14 +115,16 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
                 // and stacking it carefully to be called in the proper order later.
                 // It takes a "priors" argument for prior generations 
                 const wrapperFn: WrapperFn = async (priors: any, isTop = false) => {
-
+                    console.log('options input A', yargsOptions)
+                    console.log('parse input A', input)
                     // for each call, we need to put yargs into the appropriate state.
                     const opts1 =
-                        await yargs.help(false)
-                            .options(yargsOptions)
-                            .parse(input)
+                        parse(submodules, yargsOptions, input)
+                    console.log('A out', opts1)
 
 
+
+                    console.log('homegrown:', opts1)
                     // That requires extracting, tracking, the positional (non-dash) arguments at this stage.
 
                     const cmdDepth = newNs.split(' ').length
@@ -198,12 +204,11 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
             fn: {},
             currentNamespace: ''
         } as Accumulator) // End reduce call
+        console.log('options input B', yargsOptions)
+        console.log('parse input B', input)
 
-        const opts1: any =
-            yargs.help(false)
-                .options(yargsOptions)
-                .parse(input)
 
+        const opts1: any = parse(modules, yargsOptions, input)
         const entries = Object.entries(reduced.fn)
 
         if (opts1.help === true) {
@@ -304,7 +309,12 @@ export const makeCaller = (yargs: any): Executor => {
 
         const lookUpAndCall = await makeLookUpAndCall(yargs)
         const simArgv = stringArgv(input)
-        const argv = await yargs.help(false).parse(simArgv)
+        console.log('options input C (make caller)', undefined, '(parses only)')
+        console.log('parse input C (make caller)', simArgv)
+        console.log('parse arg is ', input, 'after simArgv')
+
+        const argv = parse(modules, yargsStarter, simArgv)
+        console.log('c out', argv)
         const commands = argv._
         const result = await lookUpAndCall(modules, simArgv, commands)
 
