@@ -17,7 +17,7 @@
 	"express": "^4.18.1",
 	"ts-node": "^10.9.1",
         "concurrently": "^7.3.0",
-        "nyargs": "^1.0.0"
+        "nyargs": "^1.0.10"
     },
     "devDependencies": {
         "@types/isomorphic-fetch": "^0.0.36",
