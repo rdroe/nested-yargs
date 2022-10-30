@@ -11,11 +11,11 @@ const creator = () => createApp(
         nest,
         element,
         configure,
-    }, yargs: any) {
+    }) {
 
         // dynamicall import your own modules here, e.g.
         // const myModule = (await import('./myModule')).default
-        console.log('yargs in myapp', yargs)
+
         setDictionary({
             myprogram: [
                 'match scalar -l 1 2 3 -r 1 2 3',
@@ -37,7 +37,7 @@ const creator = () => createApp(
             pro: program,
             prog: program,
 
-        }, yargs, 'app > ')
+        }, 'app > ')
 
     })
 

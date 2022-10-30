@@ -3,11 +3,10 @@ import isNode from './isNode'
 import { ConfigOptions, Modules } from './types'
 export const platformIsNode = isNode()
 type Main = typeof import('../../server/exports') | typeof import('../../browser/exports')
-type Yargs = typeof import('yargs')
+
 
 const importPlatform = async (): Promise<{
-    main: Main,
-    yargs: Yargs
+    main: Main
 }> => {
     if (platformIsNode) {
 
@@ -15,23 +14,18 @@ const importPlatform = async (): Promise<{
         const main = await import('../../server/exports')
         // @ts-ignore
         await import('fake-indexeddb/auto')
-        // @ts-ignore
-        const yargs = (await import('yargs')) as typeof import('yargs')
 
-        return { main, yargs }
+        return { main }
     }
     // @ts-ignore
     const main = (await import('../../browser/exports'))
-    // use 16...beta (or thereabouts) because of this: https://github.com/yargs/yargs/issues/1981
-    // last checked with 17.6.0, still broken
     // @ts-ignore
-    const yargs = (await import('https://unpkg.com/yargs@16.0.0-beta.1/browser.mjs')).default
-    return { main, yargs }
+    return { main }
 
 
 }
 
-export type CreateAppArg = (main: Main, yargs: Yargs) => void
+export type CreateAppArg = (main: Main) => void
 
 type AppCreator = (fnOrModules: CreateAppArg | Modules, configurators?: {
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
@@ -39,24 +33,20 @@ type AppCreator = (fnOrModules: CreateAppArg | Modules, configurators?: {
 }, prompt?: string) => Promise<void>
 
 
-type AppCreator1 = (main: Main, yargs: Yargs, fn: CreateAppArg) => Promise<void>
+type AppCreator1 = (main: Main, fn: CreateAppArg) => Promise<void>
 
-type AppCreator2 = (main: Main, yargs: Yargs, modules: Modules, configurators?: {
+type AppCreator2 = (main: Main, modules: Modules, configurators?: {
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
     programs?: Parameters<typeof setDictionary>[0]
 }, prompt?: string) => Promise<void>
 
 
 
-const createAppFromFn: AppCreator1 = async (main, yargs, fn) => {
-
-    if (platformIsNode) {
-        return fn(main, yargs)
-    }
-    return fn(main, yargs())
+const createAppFromFn: AppCreator1 = async (main, fn) => {
+    return fn(main)
 }
 
-const createAppFromObj: AppCreator2 = async (main, yargs, modules, configurators, prompt) => {
+const createAppFromObj: AppCreator2 = async (main, modules, configurators, prompt) => {
 
     const { cache, program, test, repl, setDictionary, configure, nest, element, match } = main
 
@@ -64,14 +54,8 @@ const createAppFromObj: AppCreator2 = async (main, yargs, modules, configurators
     setDictionary(programs)
     Object.entries(config).forEach(
         ([configurable, configVal]) => configure(configurable as keyof typeof config, configVal))
-    let y: Yargs | ReturnType<Yargs>
-    if (platformIsNode) {
-        y = yargs
-    } else {
-        y = yargs()
-    }
 
-    repl({ ...modules, match, cache, program, test, nest, element }, y, prompt)
+    repl({ ...modules, match, cache, program, test, nest, element }, prompt)
 }
 
 const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, configurators?: {
@@ -94,11 +78,11 @@ const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, config
         await init()
     }
 
-    const { main, yargs, } = await importPlatform()
+    const { main } = await importPlatform()
     if (typeof fnOrModules === 'function') {
-        return createAppFromFn(main, yargs, fnOrModules)
+        return createAppFromFn(main, fnOrModules)
     }
-    return createAppFromObj(main, yargs, fnOrModules, configurators, prompt)
+    return createAppFromObj(main, fnOrModules, configurators, prompt)
 
 }
 

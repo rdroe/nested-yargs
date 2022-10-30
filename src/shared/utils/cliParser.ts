@@ -58,7 +58,7 @@ export type ParsedCli = {
 
 const getIsModuleName = (modules: Modules) => (str: string): boolean => {
     if (!modules) return false
-    console.log('mod names', Object.keys(modules))
+
     return !!Object.keys(modules).includes(str)
 }
 
@@ -67,7 +67,7 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
     const input: string[] = typeof rawIn === 'string' ? stringArgv(rawIn) : rawIn
     let currSubmodules = modules
     const ret: ParsedCli = input.reduce((accum: ParsedCli, curr) => {
-        console.log('curr submods', Object.keys(currSubmodules ?? {}))
+
         const isModuleName = getIsModuleName(currSubmodules)
 
         const { temp } = accum
@@ -95,7 +95,6 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
             if (newCursAlias === null) {
 
                 const aliasOwner = Object.entries(opts).find(([ownerNm, ownerOpt]) => {
-                    console.log('comparing', ownerNm, newCursOptName)
                     return ownerOpt.alias === newCursOptName
                 })
 
@@ -106,7 +105,7 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
 
             }
 
-            console.log('alias for', newCursOptName, ' is ', newCursAlias, 'opt data is ', newCursOpt)
+
             if (newCursOpt.type === 'bool' || newCursOpt.type === 'boolean') {
                 const ret = {
                     ...accum,
@@ -145,12 +144,12 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
             const newVal: string | number = isNaN(asNum) ? curr : asNum
 
             const currValuation = Object.entries(accum).find(([optName, currVal]) => {
-                console.log('cursor match?', temp.cursor, optName)
+
                 if (temp.cursor[0].includes(optName)) {
-                    console.log('yes', currVal)
+
                     return true
                 } else {
-                    console.log('no')
+
                     return false
                 }
             })
@@ -167,18 +166,21 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
                 return ret
             }
 
-            console.log('curr valuation', curr, currValuation)
+
             nms.forEach((optName: string) => {
                 // special behavior for those always initial
                 if (['c:c', 'commands', 'c:n', 'names'].includes(optName)) {
 
                 } else if (undefined !== ret[optName]) {
+
                     console.log('failed invariant; info', {
                         temp,
                         optName,
                         ret,
-                        nms
+                        nms,
+                        opts
                     })
+
                     throw new Error(`Attempted to supply multiple values to non-array option ${optName} or used an alias twice for different options`)
                 }
                 ret[optName] = newVal

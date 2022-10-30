@@ -32,7 +32,7 @@ const cacheResult = async (argv: BaseArguments & {}, data: object) => {
     if ((argv._ || []).includes('cache')) {
         return
     }
-    console.log('in cache', argv)
+
     const entry: Entry =
     {
 
