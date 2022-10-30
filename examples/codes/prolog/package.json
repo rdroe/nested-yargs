@@ -5,7 +5,6 @@
     "license": "MIT",
     "description": "a browser app that allows yargs use in an xterm-js terminal",
     "keywords": [
-        "yargs",
         "node",
         "browser",
         "cli"
@@ -14,12 +13,11 @@
         "http-server": "^14.1.0",
         "nodemon": "^2.0.16",
         "swipl": "^1.0.6",
-        "xterm": "^4.18.0",
-        "yargs": "^17.5.1",
 	"cors": "^2.8.5",
 	"express": "^4.18.1",
 	"ts-node": "^10.9.1",
-        "concurrently": "^7.3.0"
+        "concurrently": "^7.3.0",
+        "nyargs": "^1.0.0"
     },
     "devDependencies": {
         "@types/isomorphic-fetch": "^0.0.36",

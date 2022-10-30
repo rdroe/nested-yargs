@@ -56,7 +56,7 @@ cp -r codes/babylon ${targetDir}/`
     .replace(() => {
         msg('changing directory', targetDir)
         process.chdir(targetDir)
-        return `yarn set version berry`
+        return `yarn set version berry && yarn config set nodeLinker node-modules`
     }).replace((prior) => {
         msg('curr node directory:', process.cwd())
         return `echo "${prior} ; starting install...."
