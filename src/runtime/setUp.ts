@@ -4,12 +4,11 @@ import loop, { Executor } from './loop'
 import { showModule } from './help'
 import { get } from '../shared/index'
 import { RESULT_KEY } from '../shared/utils/const'
-import { parse } from '../shared/utils/cliParser'
+import { parse, Opts } from '../shared/utils/cliParser'
+import { isNumber } from '../shared/utils/validation'
 
+type UserYargs = Module<any>['yargs']
 
-const isNumber = (arg: string): boolean => {
-    return arg.match(/^(\-{0,1}[0-9]+\.[0-9]+|^\-{0,1}[0-9]+)$/) !== null
-}
 const DO_LOG = false
 
 const log = (...args: any[]) => {
@@ -34,7 +33,7 @@ type LookerUpperCaller = (modules: { [moduleName: string]: Module | ParallelModu
 // singleton (may not be needed, but a cached spot so the same one is always returned.
 let lookUpAndCall_: LookerUpperCaller
 
-const yargsStarter = {
+const yargsStarter: Opts = {
     'commands': {
         array: true,
         alias: 'c:c',
@@ -44,12 +43,16 @@ const yargsStarter = {
         array: true,
         alias: 'c:n',
         //          default: ['*'] as string[]
+    },
+    'help': {
+        type: 'bool'
     }
 }
 
 const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
     // if the singleton is already set, return it; otherwise set and return the singleton appropriately
     lookUpAndCall_ = lookUpAndCall_ || lookUpCallFn
+
     return lookUpAndCall_
 
     async function lookUpCallFn(modules: { [moduleName: string]: Module }, input: string[], commands: (number | string)[]): Promise<Result> {
@@ -72,6 +75,7 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
         let parentmostIsAsync: boolean
         const namespaces: string[] = []
         const positionals: (string | number)[] = []
+
         let helpShown: boolean = false
         // The main function is a reducer that replaces accumulated state with the pinnacle function call; e.g. 'match scalar' (see commands/) would traverse parent "match" module, then its submodule properties.
         // As the command hierarchies are traversed, the parent functions are called as well. Currently, a parent command is called before all its children but this will change in a future version.
@@ -79,11 +83,12 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
         let showHelp: any = () => showModule({ fn: async () => { }, submodules: modules })
 
 
-        const reduced: Accumulator = commands.reduce((accum: Accumulator, curr, idx) => {
+        const reduced: Accumulator = commands?.reduce((accum: Accumulator, curr, idx) => {
 
             // if it's a command, found in modules...
             if (accum.layer[curr] && !lastCommandFound) {
                 // take apart the module into its parts.
+
 
                 const {
                     submodules,
@@ -92,7 +97,8 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
                     yargs: yOpts = {},
                     parallel
                 } = accum.layer[curr]
-                showHelp = () => showModule({ fn: fn as Module['fn'], submodules }, `${accum.currentNamespace}`)
+
+                showHelp = () => showModule({ help, fn: fn as Module['fn'], submodules }, `${accum.currentNamespace} ${curr}`)
 
                 if (parentmostIsAsync === undefined) {
                     parentmostIsAsync = !!parallel
@@ -120,7 +126,6 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
                     // for each call, we need to put yargs into the appropriate state.
                     const opts1 =
                         parse(submodules, yargsOptions, input)
-
 
 
 
@@ -205,13 +210,10 @@ const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
             currentNamespace: ''
         } as Accumulator) // End reduce call
 
-
-
-
         const opts1: any = parse(modules, yargsOptions, input)
-        const entries = Object.entries(reduced.fn)
+        const entries = Object.entries(reduced?.fn || {})
 
-        if (opts1.help === true) {
+        if (input[0] === '--help' || opts1.help === true) {
             showHelp()
         }
 
@@ -303,6 +305,19 @@ export const caller: { get: Promise<(m: Modules, input: string) => { argv: BaseA
     })
 }
 
+const flattenModules = (ms: Module[], accum: UserYargs = {}) => {
+
+    ms.forEach((m) => {
+
+        Object.assign(accum, m.yargs)
+        if (m.submodules) {
+            flattenModules(Object.values(m.submodules), accum)
+        }
+    })
+
+    return accum
+}
+
 export const makeCaller = (yargs: any): Executor => {
 
     const caller = async (modules: { [moduleName: string]: Module }, input: string) => {
@@ -310,7 +325,9 @@ export const makeCaller = (yargs: any): Executor => {
         const lookUpAndCall = await makeLookUpAndCall(yargs)
         const simArgv = stringArgv(input)
 
-        const argv = parse(modules, yargsStarter, simArgv)
+        const allUserYargs: UserYargs = flattenModules(Object.values(modules))
+
+        const argv = parse(modules, { ...yargsStarter, ...allUserYargs }, simArgv)
 
         const commands = argv._
         const result = await lookUpAndCall(modules, simArgv, commands)

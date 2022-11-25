@@ -1,5 +1,7 @@
 import stringArgv from "string-argv"
-import { Modules, Module, SyncModule, ParallelModule } from "./types"
+import { Modules } from "./types"
+import { z } from 'zod'
+import { single } from './validation'
 
 type Opt = {
     type?: 'string' | 'number' | 'boolean' | 'bool'
@@ -7,28 +9,14 @@ type Opt = {
     alias?: string
 }
 
-type Opts = {
+export type Opts = {
     [optName: string]: Opt
 } & typeof yargsOptions
 
-
-const strAsNum = (str: string) => {
-    if (str.length === 0) return NaN
-    if (str.includes(".")) {
-        // @ts-ignore
-        if (parseFloat(str) == str) {
-            return parseFloat(str)
-        }
-        // @ts-ignore
-    } else if (parseInt(str, 10) == str) {
-        return parseInt(str, 10)
-    }
-    return NaN
-}
-
-
 // Universal options
-const yargsOptions = {
+const yargsOptions: {
+    [optName: string]: Opt
+} = {
     'commands': {
         array: true,
         alias: 'c:c',
@@ -38,6 +26,9 @@ const yargsOptions = {
         array: true,
         alias: 'c:n',
         //          default: ['*'] as string[]
+    },
+    'help': {
+        type: 'bool'
     }
 }
 
@@ -63,7 +54,9 @@ const getIsModuleName = (modules: Modules) => (str: string): boolean => {
 }
 
 export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[]): ParsedCli => {
+
     const opts: Opts = { ...rawOpts, ...yargsOptions }
+
     const input: string[] = typeof rawIn === 'string' ? stringArgv(rawIn) : rawIn
     let currSubmodules = modules
     const ret: ParsedCli = input.reduce((accum: ParsedCli, curr) => {
@@ -140,9 +133,8 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
             const ret = {
                 ...accum
             }
-            const asNum = strAsNum(curr)
-            const newVal: string | number = isNaN(asNum) ? curr : asNum
-
+            const parsed = single.parse(curr)
+            const newVal: z.infer<typeof single> = parsed
             const currValuation = Object.entries(accum).find(([optName, currVal]) => {
 
                 if (temp.cursor[0].includes(optName)) {

@@ -1,5 +1,5 @@
 import { ParallelModule } from '../../shared/utils/types'
-
+import parse from './parse'
 import one from './one'
 
 const cm: ParallelModule<{}, { topMessage: string, childMessages: any }> = {
@@ -18,13 +18,14 @@ const cm: ParallelModule<{}, { topMessage: string, childMessages: any }> = {
         }))
 
         return {
-            topMessage: 'nestd ASYNC call from parentmost',
+            topMessage: 'nested ASYNC call from parentmost',
             childMessages: results
         }
 
     },
     submodules: {
-        one
+        one,
+        parse
     }
 }
 

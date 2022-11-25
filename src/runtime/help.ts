@@ -10,7 +10,7 @@ if (isNode()) {
     appLoc = `[app name not found]`
 }
 
-const shown: Module[] = []
+let shown: Module[] = []
 const show = (propName: 'options' | 'examples', obj: any, prefix: string = ' ') => {
     const propData = obj[propName] || {}
     const entries = Object.entries(propData)
@@ -62,6 +62,8 @@ const showProperties = ({ help = { description: ' ' } }: Module | ParallelModule
 }
 
 export const showModule = (module1: Module, prefix = ' ') => {
+    if (prefix === ' ') { shown = [] }
+    console.log('passed to showModule', module1, 'prefix:', prefix, shown.includes(module1))
     if (typeof module1 !== 'object') return
     if (!shown.includes(module1)) {
         shown.push(module1)

@@ -12,9 +12,13 @@ import test_ from '../commands/_tools/test'
 export const test = test_
 
 export const element = elementCmd
-import cacheCmd from '../commands/cache'
 
+import cacheCmd from '../commands/cache'
 export const cache = cacheCmd
+
+import lastCmd from '../commands/last'
+export const last = lastCmd
+
 import nestCmd from '../commands/nest'
 export const nest = nestCmd
 import { repl as repl_ } from '../runtime/setUp'

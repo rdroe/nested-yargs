@@ -5,8 +5,11 @@ const cm: Module = {
     help: {
         description: 'nest three',
         options: {
-
+            '[none]': 'command has no options'
         },
+        examples: {
+            '': 'run all the ancestral commands as well as three itself.'
+        }
     },
     fn: async function three(_: any, ...args: any[]) {
         console.log('three chn', args, 'three argv', _)

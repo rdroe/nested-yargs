@@ -48,14 +48,14 @@ const createAppFromFn: AppCreator1 = async (main, fn) => {
 
 const createAppFromObj: AppCreator2 = async (main, modules, configurators, prompt) => {
 
-    const { cache, program, test, repl, setDictionary, configure, nest, element, match } = main
+    const { cache, program, test, repl, setDictionary, configure, nest, element, match, last } = main
 
     const { config = {}, programs = {} } = configurators
     setDictionary(programs)
     Object.entries(config).forEach(
         ([configurable, configVal]) => configure(configurable as keyof typeof config, configVal))
 
-    repl({ ...modules, match, cache, program, test, nest, element }, prompt)
+    repl({ ...modules, match, cache, program, test, nest, element, last }, prompt)
 }
 
 const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, configurators?: {

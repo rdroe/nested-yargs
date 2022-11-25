@@ -19,6 +19,9 @@ export const cache = cacheCmd
 import test_ from '../commands/_tools/test'
 export const test = test_
 
+import lastCmd from '../commands/last'
+export const last = lastCmd
+
 import { repl as repl_ } from '../runtime/setUp'
 export const repl = repl_
 

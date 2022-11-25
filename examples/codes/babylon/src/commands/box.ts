@@ -87,7 +87,6 @@ const parseFrames = (frames: string[]) => {
     }, [[], []])
 }
 
-
 const box: Module<{ positional: number[], color: [number, number, number], frames: string[] }> = {
     help: {
         description: 'create a colored, optionally animated box onscreen',
