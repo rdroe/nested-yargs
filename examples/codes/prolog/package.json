@@ -17,11 +17,10 @@
 	"express": "^4.18.1",
 	"ts-node": "^10.9.1",
         "concurrently": "^7.3.0",
-        "nyargs": "^1.0.0"
+        "nyargs": "^1.0.10"
     },
     "devDependencies": {
         "@types/isomorphic-fetch": "^0.0.36",
-        "@types/yargs": "^17.0.10",
 	"@types/cors": "^2.8.12",
 	"@types/express": "^4.17.13",
         "esbuild": "^0.14.38",
