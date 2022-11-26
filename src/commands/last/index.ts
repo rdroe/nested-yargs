@@ -20,12 +20,13 @@ const nmExamples = {
 const sharedHelp = {
     description: "Return the last value returned by some specified nyargs use",
     options: {
-        '--c / --count': "Instead of the last return last - nth"
+        '--c / --count': "Instead of the last return last [count] number of results"
     }
 }
 
-const name = makeModule('name', async ({ positional, count, c }: { positional: string[], count?: number, c?: number }) => {
-    const n: number = numberType(count) ? count : numberType(c) ? c : 0
+const name = makeModule('name', async ({ positional, count, c, nth, n }: { positional: string[], count?: number, c?: number, nth?: number, n?: number }) => {
+
+    const cnt: number = numberType(count) ? count : numberType(c) ? c : 0
     const all = await store.where({
         commands: [],
         names: positional,
@@ -34,15 +35,21 @@ const name = makeModule('name', async ({ positional, count, c }: { positional: s
 
     if (!all || !all.length) return null
 
-    if (n + 1 >= all.length) return all[0]
+    if ((cnt + 1) >= all.length) return all
 
-    return all[all.length - (n + 1)]
+    if (cnt > 0) return all.slice(all.length - cnt)
+
+    const nth_ = numberType(nth) ? nth : numberType(n) ? n : 0
+
+    return all[all.length - (n + nth_)]
+
+
 }, { ...sharedHelp, ...nmExamples })
 
 const numberType = (arg: any) => typeof arg === 'number'
-const command = makeModule('command', async ({ positional, count, c }: { positional: string[], count?: number, c?: number }) => {
+const command = makeModule('command', async ({ positional, count, c, nth, n }: { positional: string[], count?: number, c?: number, nth?: number, n?: number }) => {
 
-    const n: number = numberType(count) ? count : numberType(c) ? c : 0
+    const cnt: number = numberType(count) ? count : numberType(c) ? c : 0
     const all = await store.where({
         commands: positional,
         names: [],
@@ -51,9 +58,13 @@ const command = makeModule('command', async ({ positional, count, c }: { positio
 
     if (!all || !all.length) return null
 
-    if (n + 1 >= all.length) return all[0]
+    if ((cnt + 1) >= all.length) return all
 
-    return all[all.length - (n + 1)]
+    if (cnt > 0) return all.slice(all.length - cnt)
+
+    const nth_ = numberType(nth) ? nth : numberType(n) ? n : 0
+
+    return all[all.length - (n + nth_)]
 
 
 }, { ...sharedHelp, ...cmdExamples })

@@ -1,8 +1,7 @@
 import { ReadlineInterface, HistoryListener, RenewReader, Result, BaseArguments } from '../../shared/utils/types';
 
-import { makeGetLastN, lastFive, afterWrite } from '../../shared/utils/makeGetLastN';
+import { makeGetLastN, lastFive } from '../../shared/utils/makeGetLastN';
 import { getText } from '../../shared/utils/printResult';
-
 
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
@@ -13,11 +12,11 @@ const getLastN = makeGetLastN()
 const callables = new Map<HTMLTextAreaElement, Function>()
 const submitters = new Map<HTMLTextAreaElement, Function>()
 const printAreas = new Map<HTMLTextAreaElement, HTMLElement>()
-const whitelistedTypes = ['keydown']
+const whitelistedTypes = ['keyup', 'keydown']
 
 const allMaps: Map<string, Map<HTMLTextAreaElement, any>> = new Map
 
-const mapCallable = (textArea: HTMLTextAreaElement, fn: Function) => {
+const mapCallable = (textArea: HTMLTextAreaElement, fn: (...args: any[]) => boolean) => {
     callables.set(textArea, fn)
 }
 const getCallable = (textArea: HTMLTextAreaElement): Function => {
@@ -79,10 +78,10 @@ const displayPrompt = (textArea: HTMLTextAreaElement) => {
     label.innerHTML = `<span>${prompt}</span>`
 }
 
-const textAreaUtils = (textArea: HTMLTextAreaElement = latestTextArea()) => {
+const textAreaUtils = () => {
     return {
         get line(): string {
-            return textArea.value
+            return latestTextArea().value
         },
         matchUp: (obj: any) => {
             return obj.key === 'ArrowUp'
@@ -90,19 +89,18 @@ const textAreaUtils = (textArea: HTMLTextAreaElement = latestTextArea()) => {
         matchDown: (obj: any) => {
             return obj.key === 'ArrowDown'
         },
-        eventName: 'keydown',
+        eventName: 'keyup',
         clearCurrent: () => {
-            textArea.value = ''
+            latestTextArea().value = ''
         },
     }
 }
 
 const readlineFunctions = (ta: HTMLTextAreaElement): ReadlineInterface => {
-    const utils = textAreaUtils(ta)
+    const utils = textAreaUtils()
     return {
         write: (arg: string) => {
             ta.value = `${ta.value}${arg}`
-            console.log('wrote', ta.value)
         },
         close: () => { },
         get line() { return utils.line },
@@ -110,13 +108,17 @@ const readlineFunctions = (ta: HTMLTextAreaElement): ReadlineInterface => {
 
             mapPrompt(ta, pr)
             displayPrompt(ta)
+            document.removeEventListener('keyup', handleKeypress, true)
             document.removeEventListener('keydown', handleKeypress, true)
             return new Promise((resolve) => {
-                mapSubmitter(ta, async (arg: string) => {
+
+                mapSubmitter(ta, (arg: string) => {
+                    document.removeEventListener('keyup', handleKeypress, true)
                     document.removeEventListener('keydown', handleKeypress, true)
-                    const res = await fn(arg)
+                    const res = fn(arg)
                     return resolve(res)
                 })
+                document.addEventListener('keyup', handleKeypress, true)
                 document.addEventListener('keydown', handleKeypress, true)
             })
         }
@@ -252,17 +254,18 @@ const makeTextArea = (): HTMLTextAreaElement => {
 export const historyListener: HistoryListener = {
     on: (evName: string, fn: (_: any, kbe: KeyboardEvent) => boolean) => {
         if (whitelistedTypes.includes(evName) === false) {
-            throw new Error('historyListener is only made for "keydown" kind of node readline spoofing.')
+            throw new Error('historyListener is only made for "keyup" kind of node readline spoofing.')
         }
         const latestTerminal = latestTextArea()
         mapCallable(latestTerminal, fn)
+        return true
     }
 }
 
 export const terminalUtils = {
     matchUp: (obj: KeyboardEvent) => textAreaUtils().matchUp(obj),
     matchDown: (obj: KeyboardEvent) => textAreaUtils().matchDown(obj),
-    eventName: 'keydown',
+    eventName: 'keyup',
     clearCurrent: () => { textAreaUtils().clearCurrent() }
 }
 
@@ -278,8 +281,9 @@ export const renewReader: RenewReader = async (pr: string): Promise<ReadlineInte
 }
 
 
-async function handleKeypress(ke: KeyboardEvent) {
-    await handleTextKeypress(ke)
+function handleKeypress(ke: KeyboardEvent) {
+    handleTextKeypress(ke)
+
     handleAnyKeypress(ke)(true, async () => {
 
         const lastFour = getLastN(true, 4)
@@ -332,7 +336,7 @@ export function toggleTa(ta: HTMLTextAreaElement): boolean {
     return newTog
 }
 
-async function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
+function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
     if (document.activeElement !== ke.target) {
         return
     }
@@ -350,13 +354,11 @@ async function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
 
     const last2 = getLastTwo(ta)
 
-    if (last2 === '-Control-Enter') {
+    if (['-Control-Enter', '-Enter-Control'].includes(last2)) {
         const resolver = getSubmitter(ta)
         ke.stopPropagation()
         return resolver(ta.value)
     }
-    afterWrite(ke, () => {
-        return ta.value
-    })
+
 }
 

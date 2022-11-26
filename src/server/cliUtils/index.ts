@@ -1,4 +1,5 @@
 import readline from 'readline'
+
 import { ReadlineInterface } from '../../shared/utils/types';
 
 export const terminalUtils = {
@@ -19,5 +20,6 @@ export const renewReader = async (pr: string, curElement: { close?: Function }) 
         output: process.stdout,
         prompt: pr
     })
+
     return rl
 }

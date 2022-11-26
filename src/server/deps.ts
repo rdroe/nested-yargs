@@ -54,6 +54,7 @@ export const setAll = async () => {
     set('historyListener', {
         on: (_: any, fn: (...args: any[]) => void) => {
             process.stdin.on('keypress', fn)
+            return true
         }
     })
 

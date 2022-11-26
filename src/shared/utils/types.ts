@@ -98,7 +98,7 @@ export type Readline = {
 }
 
 export interface HistoryListener {
-    on: Function
+    on: (evName: string, fn: (...args: any[]) => boolean) => boolean
 }
 
 export interface RenewReader {

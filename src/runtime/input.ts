@@ -1,8 +1,8 @@
 import { get, getConfig } from '../shared/index'
 import { queue } from '../shared/utils/queue'
-import { Readline, Modules } from '../shared/utils/types'
+import { Readline, Modules, HistoryListener } from '../shared/utils/types'
 import isNode from '../shared/utils/isNode'
-import { makeGetLastN, lastFive } from '../shared/utils/makeGetLastN'
+import { makeGetLastN, lastFive, userListeners, userListenerFunctions } from '../shared/utils/makeGetLastN'
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
 
@@ -65,17 +65,17 @@ function recordKeypress(keyboardEvent: KeyboardEvent): void {
 }
 
 
-const findKeypressMatch = async (hotkeys: { [keys: string]: Function }): Promise<[string, Function]> => {
+const findKeypressMatch = (hotkeys: { [keys: string]: Function }): [string, Function] => {
     const last2 = getLastN(true, 2)
     const last3 = getLastN(true, 3)
-
     const ret = Object.entries(hotkeys).find(([key, fn]) => [last2, last3].filter(elem => !!elem).includes(key))
+
     return ret
 }
 
 // lastFive.map(ev => ev.preventDefault())
 
-let curReadline: ReturnType<Readline['createInterface']>
+export let curReadline: ReturnType<Readline['createInterface']>
 let didInitHistory = false
 
 type FnGetInput = (modules: Modules, pr: string, initialInput?: string) => Promise<string>
@@ -115,18 +115,26 @@ const histIdx = (idx: number) => {
     histState.idx = idx
 }
 
-const initHistory = async (clearCurrent: Function, write: Function, historyListener: { on: Function }, hs: { hist: string[], idx: number, line?: string }, utils: { matchUp: Function, matchDown: Function, eventName: string }) => {
+
+const initHistory = async (clearCurrent: Function, write: Function, historyListener: HistoryListener, hs: { hist: string[], idx: number, line?: string }, utils: { matchUp: Function, matchDown: Function, eventName: string }) => {
 
     const { matchUp, matchDown, eventName } = utils
     const hotkeys = getConfig('hotkeys')
     const afterKeypress = getConfig('afterKeypress')
-    historyListener.on(eventName, async (_: any, obj: KeyboardEvent) => {
-        if (obj.type && obj.type !== eventName) {
-            return
+
+    historyListener.on(eventName, (_: any, obj: KeyboardEvent) => {
+
+        if (obj.type && obj.type === 'keydown') {
+            recordKeypress(obj)
         }
 
-        recordKeypress(obj)
-        const matches = await findKeypressMatch(hotkeys)
+        if (obj.type && obj.type !== eventName) {
+            return false
+        }
+
+
+
+        const matches = findKeypressMatch(hotkeys)
         // if the up arrow is pressed, clear the current terminal contents.
         if (matchUp(obj)) {
             // if we are at the extent of history
@@ -143,7 +151,7 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
             histIdx(Math.max(0, hs.idx - 1))
 
             // and write to cursor the new one
-            if (hs.hist[hs.idx] === undefined) return
+            if (hs.hist[hs.idx] === undefined) return true
             write(hs.hist[hs.idx])
         } else if (matchDown(obj)) {
             // if down arrow, add one (but hold at length - 1)
@@ -156,8 +164,20 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
             matches[1](curReadline.line)
         }
 
-        afterKeypress(obj)
+        //        setTimeout(() => {
+        Object.values(userListeners).forEach(async ({ fn, b, a }: userListenerFunctions) => {
+            const before = await b(obj, curReadline)
+            if (before === false) {
+                return false
+            }
+            const result = fn(obj, curReadline)
+            await a(obj, curReadline)
+            return result
+        })
 
+        afterKeypress(obj)
+        return true
+        //      }, 100)
     })
 }
 
@@ -172,6 +192,7 @@ export const getInput: FnGetInput = async (modules, pr, initInput = '') => {
 
     if (!curReadline) {
         curReadline = await renewReader(pr, curReadline) // dep: renewReader
+
     }
 
     if (!didInitHistory) {
