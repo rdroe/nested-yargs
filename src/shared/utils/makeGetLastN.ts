@@ -61,3 +61,39 @@ export const makeGetLastN = () => {
         return lastTwo
     }
 }
+
+
+type userListenerFunctions = {
+    fn: listener
+    b: beforeListener
+    a: afterListener
+}
+
+export const userListeners: {
+    [fnName: string]: userListenerFunctions
+} = {}
+
+export type beforeListener = (key: KeyboardEvent, latest: string) => Promise<boolean>
+export type afterListener = (key: KeyboardEvent, latest: string) => Promise<void>
+
+export type listener = (getText: () => string) => Promise<boolean>
+
+export const addListener = (name: string, fn: listener, b: beforeListener = () => Promise.resolve(true), a: afterListener = () => Promise.resolve()) => {
+    if (userListeners[name]) throw new Error(`Function name ${name} is already set as a listener. Please delete it from userListeners, or choose a different name.`)
+    userListeners[name] = {
+        fn,
+        b, a
+    }
+}
+
+export const afterWrite = (obj: KeyboardEvent, getCurr: () => string) => {
+    Object.values(userListeners).forEach(async ({ fn, b, a }: userListenerFunctions) => {
+        const before = await b(obj, getCurr())
+        if (before === false) {
+            return false
+        }
+        const result = fn(getCurr)
+        await a(obj, getCurr())
+        return result
+    })
+}

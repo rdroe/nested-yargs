@@ -1,7 +1,8 @@
 import { ReadlineInterface, HistoryListener, RenewReader, Result, BaseArguments } from '../../shared/utils/types';
 
-import { makeGetLastN, lastFive } from '../../shared/utils/makeGetLastN';
+import { makeGetLastN, lastFive, afterWrite } from '../../shared/utils/makeGetLastN';
 import { getText } from '../../shared/utils/printResult';
+
 
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
@@ -99,7 +100,10 @@ const textAreaUtils = (textArea: HTMLTextAreaElement = latestTextArea()) => {
 const readlineFunctions = (ta: HTMLTextAreaElement): ReadlineInterface => {
     const utils = textAreaUtils(ta)
     return {
-        write: (arg: string) => ta.value = `${ta.value}${arg}`,
+        write: (arg: string) => {
+            ta.value = `${ta.value}${arg}`
+            console.log('wrote', ta.value)
+        },
         close: () => { },
         get line() { return utils.line },
         question: (pr: string, fn: Function) => {
@@ -351,5 +355,8 @@ async function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
         ke.stopPropagation()
         return resolver(ta.value)
     }
+    afterWrite(ke, () => {
+        return ta.value
+    })
 }
 
