@@ -1,0 +1,9 @@
+export allow_remote_control=yes
+
+
+kitty @ launch --keep-focus --type=tab --tab-title nyargs-build
+kitty @ launch --keep-focus --type=tab --tab-title nyargs-edit
+
+kitty @ send-text --exclude-active --match-tab title:nyargs-build yarn mon \\n
+
+kitty @ send-text --exclude-active --match-tab title:nyargs-edit emacs src/index.ts \\n
