@@ -3,9 +3,10 @@ import { queue } from '../shared/utils/queue'
 import { Readline, Modules } from '../shared/utils/types'
 import isNode from '../shared/utils/isNode'
 import { makeGetLastN, lastFive } from '../shared/utils/makeGetLastN'
-
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
+
+export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 
 export const fakeCli: {
     modules: Modules | null
@@ -57,7 +58,6 @@ const makeHandleQuestion = (res: Function, modules: Modules) => {
 const getLastN = makeGetLastN()
 
 function recordKeypress(keyboardEvent: KeyboardEvent): void {
-
     lastFive.push(keyboardEvent)
     if (lastFive.length === 6) {
         lastFive.shift()
@@ -120,10 +120,11 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
     const { matchUp, matchDown, eventName } = utils
     const hotkeys = getConfig('hotkeys')
     const afterKeypress = getConfig('afterKeypress')
-    historyListener.on(eventName, async (_: any, obj: any) => {
+    historyListener.on(eventName, async (_: any, obj: KeyboardEvent) => {
         if (obj.type && obj.type !== eventName) {
             return
         }
+
         recordKeypress(obj)
         const matches = await findKeypressMatch(hotkeys)
         // if the up arrow is pressed, clear the current terminal contents.

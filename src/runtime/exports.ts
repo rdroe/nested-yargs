@@ -8,7 +8,8 @@ export * as store from './store'
 export * as queue from '../shared/utils/queue'
 export * as call from '../shared/api/call'
 export * as idbUtils from '../shared/idb-backup-and-restore'
-export { fakeCli } from './input'
+export { fakeCli, addListener, userListeners } from './input'
+
 export const getDb = async () => get('db')
 export const getFs = async () => get('fs')
 

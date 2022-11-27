@@ -1,4 +1,4 @@
-import { isNumber } from 'shared/utils/validation'
+import { isNumber } from '../utils/validation'
 import { Module, ModuleFn, ModuleHelp } from '../utils/types'
 
 type ModuleHelper = <T = {}, R = null>(name: string, fn: ModuleFn<T, R>, helpArg: string | ModuleHelp, submodules?: [string, Module][]) => {
