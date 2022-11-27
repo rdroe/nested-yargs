@@ -1,5 +1,4 @@
-import { cli } from 'shared/utils/cli'
-import { parseCli } from 'shared/utils/validation'
+import { parseCli } from '../../shared/utils/validation'
 import { Module } from '../../shared/utils/types'
 
 
@@ -12,7 +11,6 @@ const cm: Module<{ positional: string[] }> = {
     },
     fn: async function({ positional }) {
         const arr = ['hello', '1', '200', '200.22', '{}', '[{"oh": "boy"}]', '[{]', 'null']
-        console.log('parseing these', arr)
         return parseCli.parse(arr)
     }
 }

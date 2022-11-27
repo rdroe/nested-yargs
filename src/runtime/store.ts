@@ -91,6 +91,7 @@ const parseDotprop = (str: string): DotpropString => {
 
 const parseCustomCall = (str: string) => {
     const fnNames = Object.keys(filterFunctions)
+
     const regExpStr = `(${fnNames.join('|')})\\(([a-zA-Z0-9\.\-\_\/]+)(?:,\s*([a-zA-Z0-9\.\-\_\/]+)|)(?:,\s*([a-zA-Z0-9\.\-\_\/]+)|)(?:,\s*([a-zA-Z0-9\.\-\_\/]+)|)\\)`
 
     const regexp = new RegExp(regExpStr);

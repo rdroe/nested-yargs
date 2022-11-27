@@ -20,12 +20,10 @@ const yargsOptions: {
     'commands': {
         array: true,
         alias: 'c:c',
-        //            default: ['*'] as string[]
     },
     'names': {
         array: true,
         alias: 'c:n',
-        //          default: ['*'] as string[]
     },
     'help': {
         type: 'bool'
@@ -165,13 +163,14 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
 
                 } else if (undefined !== ret[optName]) {
 
-                    console.log('failed invariant; info', {
+                    console.log('failed invariant; info', JSON.stringify({
                         temp,
                         optName,
                         ret,
                         nms,
                         opts
-                    })
+                    }, null, 2))
+
 
                     throw new Error(`Attempted to supply multiple values to non-array option ${optName} or used an alias twice for different options`)
                 }
