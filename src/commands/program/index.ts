@@ -21,7 +21,6 @@ const isProgram = (arg: any): arg is string => {
 
 const isMultiplePrograms = (arg: Program | Program[]) => {
     if (!Array.isArray(arg)) return false;
-
     return (arg as []).find(arr => !isProgram(arr as any[])) === undefined
 
 }
@@ -39,10 +38,8 @@ export const queue = (stringOrProg: string | Program) => {
         lookedUpProg = stringOrProg
     }
 
-    cliProgram.array = lookedUpProg
-
+    cliProgram.array = lookedUpProg.concat(cliProgram.array)
 }
-
 
 export const setDictionary = (
     newKeys: DictionaryInput
@@ -78,12 +75,20 @@ const m: Module = {
     fn: async (args) => {
         const dict = getDictionary()
         if (args.positional.length === 1) {
+
+
             if (args.positional[0] === 'List') {
                 const log = getConfig('messageUser')
                 log(JSON.stringify(dict, null, 2))
                 return null
+            } else if (args.positional[0] === 'Q') {
+
+                const log = getConfig('messageUser')
+                log(JSON.stringify(cliProgram, null, 2))
+                return null
             }
         }
+
         const array = (args.positional as number[]).map(progIdx => dict[progIdx]).flat()
         queue(array)
         return array
