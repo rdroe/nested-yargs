@@ -5,7 +5,7 @@ import { ReadlineInterface } from '../../shared/utils/types';
 export const terminalUtils = {
     matchUp: (obj: any) => obj.name === 'up',
     matchDown: (obj: any) => obj.name === 'down',
-    eventName: 'keypress',
+    eventName: 'keyup',
     clearCurrent: (rl: { write: Function }) => {
         rl.write(null, { ctrl: true, name: 'u' });
     }

@@ -415,7 +415,7 @@ const interpretQueryAsLodash = async (filter: string[], res1: Cache[]): Promise<
 }
 
 const interpretQuery = async (query: CacheQuery): Promise<JsonQueryInterpretation> => {
-
+    console.log('interpreting query', query)
     const {
         commands = [], names = [], [FILTER_ARG]: filter = null
     } = query

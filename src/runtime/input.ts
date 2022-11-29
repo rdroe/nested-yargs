@@ -164,20 +164,22 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
             matches[1](curReadline.line)
         }
 
-        //        setTimeout(() => {
-        Object.values(userListeners).forEach(async ({ fn, b, a }: userListenerFunctions) => {
-            const before = await b(obj, curReadline)
-            if (before === false) {
-                return false
-            }
-            const result = fn(obj, curReadline)
-            await a(obj, curReadline)
-            return result
-        })
+        setTimeout(() => {
+            Object.values(userListeners).forEach(async ({ fn, b, a }: userListenerFunctions) => {
 
-        afterKeypress(obj)
-        return true
-        //      }, 100)
+                const before = await b(obj, curReadline)
+                if (before === false) {
+                    return false
+                }
+                const result = fn(obj, curReadline)
+                await a(obj, curReadline)
+                return result
+            })
+
+            afterKeypress(obj)
+            return true
+
+        }, 20)
     })
 }
 
