@@ -30,12 +30,17 @@ export const m: Module<{ id: number }> = {
             filters
         } = args
 
+        if (Array.isArray(commands) && commands.length === 0) {
+
+        }
+
         const query: Query = {
             commands: (commands && commands[0] && commands[0] === '*') ? '*' : commands || undefined,
             names: (names && names[0] && names[0] === '*') ? '*' : names || undefined,
             filters
         }
         query.id = args.id
+
         return where(query)
     }
 }

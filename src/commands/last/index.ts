@@ -1,6 +1,7 @@
 import { Module } from '../../shared/utils/types'
 import { makeModule, } from '../../shared/helpers'
 import { store } from '../../runtime/exports'
+import { Query } from 'runtime/store'
 
 const cmdExamples = {
     examples: {
@@ -50,11 +51,14 @@ const numberType = (arg: any) => typeof arg === 'number'
 const command = makeModule('command', async ({ positional, count, c, nth, n }: { positional: string[], count?: number, c?: number, nth?: number, n?: number }) => {
 
     const cnt: number = numberType(count) ? count : numberType(c) ? c : 0
-    const all = await store.where({
+
+    const query: Query = {
         commands: positional,
         names: [],
         filters: []
-    })
+    }
+
+    const all = await store.where(query)
 
     if (!all || !all.length) return null
 

@@ -299,7 +299,10 @@ async function orderCallsAsync(entries: [string, WrapperFn][], opts1: any): Prom
 
 let resolveCaller: Function
 
-export const caller: { get: Promise<(m: Modules, input: string) => { argv: BaseArguments, [RESULT_KEY]: object }> } = {
+export const caller: {
+    get: Promise<(m: Modules, input: string) => { argv: BaseArguments, [RESULT_KEY]: object }>
+} = {
+
     get: new Promise((res) => {
         resolveCaller = res
     })
