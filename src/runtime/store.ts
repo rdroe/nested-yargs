@@ -3,9 +3,9 @@ import getProperty from 'dotprop'
 // import 'fake-indexeddb/auto'
 import { get } from '../shared'
 import { Cache } from '../shared/utils/types'
-import stringArgv from 'string-argv'
-export const FILTER_ARG = 'filters'
 
+export const FILTER_ARG = 'filters'
+export type FILTER_ARG = typeof FILTER_ARG
 const postDotPropFns = Object.keys(Object.getOwnPropertyDescriptors(Array.prototype))
 
 // Different from calling Array.prototype functions, this is where we store 

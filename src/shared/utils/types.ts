@@ -76,7 +76,7 @@ export interface SingleResult {
     [RESULT_KEY]: any
 }
 
-interface MultiResult {
+export interface MultiResult {
     isMultiResult: true
     errorInfo: null | string
     list: {
