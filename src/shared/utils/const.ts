@@ -1,1 +1,1 @@
-export const RESULT_KEY: 'NYA' | null = 'NYA'
+export const RESULT_KEY: 'NYA' = 'NYA'

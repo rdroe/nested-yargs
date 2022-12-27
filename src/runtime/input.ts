@@ -5,12 +5,14 @@ import isNode from '../shared/utils/isNode'
 import { makeGetLastN, lastFive, userListeners, userListenerFunctions } from '../shared/utils/makeGetLastN'
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
+import stringArgv from 'string-argv'
 
 export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 
 export const fakeCli: {
     modules: Modules | null
-    handle: (str: string) => Promise<{ argv: object, [RESULT_KEY]: object }>
+    handle: (str: string) => Promise<{ argv: object, [RESULT_KEY]: object }>,
+    getCommandCounter: (modules?: Modules | null) => (str: string) => number
 } = {
     modules: null,
     handle: async (str: string) => {
@@ -20,7 +22,21 @@ export const fakeCli: {
         const answer = await fn(fakeCli.modules, str)
 
 
-        return await answer
+        return answer
+    },
+    getCommandCounter: (moduleObj: Modules | null = fakeCli.modules) => (str: string) => {
+        if (!moduleObj) return 0
+        const asArgs = stringArgv(str)
+        let cnt = 0
+        let curs: string | number | undefined = asArgs.shift()
+        let currSubmodules = moduleObj
+        while (curs && currSubmodules[curs]) {
+            cnt += 1
+            currSubmodules = currSubmodules[curs]?.submodules ?? {}
+            curs = asArgs.shift()
+
+        }
+        return cnt
     }
 }
 
