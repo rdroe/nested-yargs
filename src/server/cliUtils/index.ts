@@ -11,7 +11,8 @@ export const terminalUtils = {
     }
 }
 
-export const renewReader = async (pr: string, curElement: { close?: Function }) => {
+// it's a typing problem that arg 2, id (a browser necessity), is required here as well
+export const renewReader = async (pr: string, _: number, curElement: { close: Function }) => {
     curElement?.close()
     // todo: verify that readline module is totally garbage collected
     // on resetting the reference.

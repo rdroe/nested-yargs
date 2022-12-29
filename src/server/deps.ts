@@ -9,6 +9,7 @@ require('source-map-support').install();
 
 let attemptedHistory = false
 
+
 const defaultConfig: Configuration = {
     // see default browser config (src/browser/deps.ts
     // for a few remarks on what each does
@@ -52,7 +53,7 @@ export const setAll = async () => {
     set('db', db)
 
     set('historyListener', {
-        on: (_: any, fn: (...args: any[]) => void) => {
+        on: (_: any, __: number, fn: (...args: any[]) => void) => {
             process.stdin.on('keypress', fn)
             return true
         }

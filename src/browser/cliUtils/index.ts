@@ -5,10 +5,10 @@ import { getText } from '../../shared/utils/printResult';
 
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
-const latestTextArea = () => textAreas.length ? textAreas[textAreas.length - 1] : null
+const latestTextArea = (id: number = 0) => textAreas[id] ? textAreas[id] : null
 const prompts = new Map<HTMLTextAreaElement, string>()
 
-const getLastN = makeGetLastN()
+
 const callables = new Map<HTMLTextAreaElement, Function>()
 const submitters = new Map<HTMLTextAreaElement, Function>()
 const printAreas = new Map<HTMLTextAreaElement, HTMLElement>()
@@ -78,10 +78,13 @@ const displayPrompt = (textArea: HTMLTextAreaElement) => {
     label.innerHTML = `<span>${prompt}</span>`
 }
 
-const textAreaUtils = () => {
+const textAreaUtils = (id: number = 0) => {
     return {
         get line(): string {
-            return latestTextArea().value
+            return latestTextArea(id).value
+        },
+        set line(val: string) {
+            latestTextArea(id).value = val
         },
         matchUp: (obj: any) => {
             return obj.key === 'ArrowUp'
@@ -91,19 +94,27 @@ const textAreaUtils = () => {
         },
         eventName: 'keyup',
         clearCurrent: () => {
-            latestTextArea().value = ''
+            latestTextArea(id).value = ''
         },
     }
 }
+const extractTaId = (ta: HTMLTextAreaElement) => {
+    const id = (ta as { id: string }).id
+    console.log('extracting id from', id.split('-'))
+    return parseInt(id.split('-')[1])
+}
+const readlineFunctions = (ta: HTMLTextAreaElement, id: number): ReadlineInterface => {
 
-const readlineFunctions = (ta: HTMLTextAreaElement): ReadlineInterface => {
-    const utils = textAreaUtils()
+    const utils = textAreaUtils(id)
     return {
         write: (arg: string) => {
             ta.value = `${ta.value}${arg}`
         },
         close: () => { },
         get line() { return utils.line },
+        set line(val: string) {
+            ta.value = val
+        },
         question: (pr: string, fn: Function) => {
 
             mapPrompt(ta, pr)
@@ -175,8 +186,12 @@ ${text}
     return Promise.resolve(true)
 }
 
-const getLastTwo = (ta: HTMLTextAreaElement) => getLastN(ta, 2)
 
+const getLastTwo = (ta: HTMLTextAreaElement) => {
+    const id = extractTaId(ta)
+    return makeGetLastN(id)(2)
+
+}
 interface BaseAttribs {
     style?: string
     'class'?: string
@@ -210,7 +225,8 @@ const addElem = <
 
 // make configurable
 function isNyargsArea(elem: any): elem is HTMLTextAreaElement {
-    return isTextArea(elem) && elem.classList.contains('ny-text-area')
+    return isTextArea(elem) && elem.id.startsWith('textarea-')
+    // return isTextArea(elem) && elem.classList.contains('ny-text-area')
 }
 
 function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
@@ -219,24 +235,23 @@ function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
 }
 
 // make configurable
-const makeTextArea = (): HTMLTextAreaElement => {
-    const taLen = textAreas.length
+const makeTextArea = (id: number): HTMLTextAreaElement => {
     const parent = addElem('div', {
         style: 'overflow: visible;',
-        class: `text-area-container text-area-container-${taLen}`,
-        id: `text-area-container-${taLen}`
+        class: `text-area-container text-area-container-${id}`,
+        id: `text-area-container-${id}`
     })
 
     addElem('div', {
-        'class': `prompt-text promp-text-${taLen}`,
+        'class': `prompt-text promp-text-${id}`,
         'style': 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;'
     }, {
         parent
     })
 
     const ta = addElem('textarea', {
-        id: `textarea-${taLen}`,
-        class: `prompt-text promp-text-${taLen} ny-text-area`,
+        id: `textarea-${id}`,
+        class: `prompt-text promp-text-${id} ny-text-area`,
         style: 'height: 100%; width: 100%;',
         autofocus: true
     }, {
@@ -252,11 +267,12 @@ const makeTextArea = (): HTMLTextAreaElement => {
 }
 
 export const historyListener: HistoryListener = {
-    on: (evName: string, fn: (_: any, kbe: KeyboardEvent) => boolean) => {
+    on: (evName: string, id: number, fn: (_: any, kbe: KeyboardEvent) => boolean) => {
+
         if (whitelistedTypes.includes(evName) === false) {
             throw new Error('historyListener is only made for "keyup" kind of node readline spoofing.')
         }
-        const latestTerminal = latestTextArea()
+        const latestTerminal = latestTextArea(id)
         mapCallable(latestTerminal, fn)
         return true
     }
@@ -266,35 +282,50 @@ export const terminalUtils = {
     matchUp: (obj: KeyboardEvent) => textAreaUtils().matchUp(obj),
     matchDown: (obj: KeyboardEvent) => textAreaUtils().matchDown(obj),
     eventName: 'keyup',
-    clearCurrent: () => { textAreaUtils().clearCurrent() }
+    clearCurrent: (curReadline: ReadlineInterface) => {
+        curReadline.line = ''
+    }
 }
 
-export const renewReader: RenewReader = async (pr: string): Promise<ReadlineInterface> => {
-    let latestTerminal = latestTextArea()
-    if (latestTerminal === null) {
-        textAreas.push(makeTextArea())
-        latestTerminal = latestTextArea()
+export const renewReader: RenewReader = async (pr: string, id: number): Promise<ReadlineInterface> => {
+    let rawTa = document.querySelector(`#textarea-${id}`)
+    if (!rawTa) {
+        rawTa = makeTextArea(id)
     }
+    if (!rawTa) throw new Error(`Could not create a terminal for ${id}`)
+    let latestTerminal = latestTextArea(id)
+
+    if (latestTerminal === null) {
+        textAreas.push(rawTa as HTMLTextAreaElement)
+        latestTerminal = latestTextArea(id)
+    }
+
+    if (latestTerminal === null) throw new Error(`Could not find a terminal ${id}`)
+
+    mapPrompt(latestTerminal, pr)
     if (latestTerminal === null) throw new Error('Could not find or create a textarea-based terminal')
 
-    return readlineFunctions(latestTerminal)
+    return readlineFunctions(latestTerminal, id)
 }
 
 
 function handleKeypress(ke: KeyboardEvent) {
+    const id = extractTaId(ke.target as HTMLTextAreaElement)
+    console.log('id exrtacted', id)
     handleTextKeypress(ke)
 
     handleAnyKeypress(ke)(true, async () => {
 
-        const lastFour = getLastN(true, 4)
+        const lastFour = makeGetLastN(id)(4)
 
         if (lastFour.startsWith('-Control-Shift-;-')) {
-            lastFive.map(ev => ev.preventDefault())
+            lastFive().map(ev => ev.preventDefault())
             const keypress = lastFour.split('-Control-Shift-;-')[1]
             const sel = `.ny-text-area#textarea-${keypress}`
             const ta = document.querySelector(sel)
-
-            if (ta && isNyargsArea(ta)) {
+            const isNyargs = isNyargsArea(ta)
+            console.log('is nyargs?', isNyargs)
+            if (ta && isNyargs) {
                 const isOn = toggleTa(ta)
                 if (isOn) {
                     ta.focus()
@@ -338,11 +369,15 @@ export function toggleTa(ta: HTMLTextAreaElement): boolean {
 
 function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
     if (document.activeElement !== ke.target) {
+        //        return
+        console.error('at some point, you were returning out on this match')
+    }
+    const isNy = isNyargsArea(ke.target)
+    console.log('is ny?', isNy)
+    if (!isNy) {
         return
     }
-    if (!isNyargsArea(ke.target)) {
-        return
-    }
+
     const histFunc = getCallable(ke.target as HTMLTextAreaElement)
 
     // call specific handler for kepyresses for this (focused) element

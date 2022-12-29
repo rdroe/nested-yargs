@@ -11,17 +11,18 @@ class NyargsDb extends DexieCore {
 
 class UserTables extends NyargsDb {
     public userTables: DexieCore.Table<{
-        table: string,
-        a: string,
-        b?: string,
-        c?: string,
-        data: { [key: string]: any },
+        id?: number
+        table: string
+        a: string
+        b?: string
+        c?: string
+        data: { [key: string]: any }
         createdAt: number
     }>
     public constructor(options: DexieOptions = {}) {
         super("UserTables", options)
         this.version(1).stores({
-            userTables: 'table, id++, [table+id], a, [table+a], b, c, data, createdAt'
+            userTables: 'id++,table, a, [table+a], b, c, data, createdAt'
         });
         this.userTables = this.table('userTables')
     }

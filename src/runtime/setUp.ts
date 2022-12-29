@@ -49,7 +49,7 @@ const yargsStarter: Opts = {
     }
 }
 
-const makeLookUpAndCall = async (yargs: any): Promise<LookerUpperCaller> => {
+const makeLookUpAndCall = async (): Promise<LookerUpperCaller> => {
     // if the singleton is already set, return it; otherwise set and return the singleton appropriately
     lookUpAndCall_ = lookUpAndCall_ || lookUpCallFn
 
@@ -321,11 +321,11 @@ const flattenModules = (ms: Module[], accum: UserYargs = {}) => {
     return accum
 }
 
-export const makeCaller = (yargs: any): Executor => {
+export const makeCaller = (): Executor => {
 
     const caller = async (modules: { [moduleName: string]: Module }, input: string) => {
 
-        const lookUpAndCall = await makeLookUpAndCall(yargs)
+        const lookUpAndCall = await makeLookUpAndCall()
         const simArgv = stringArgv(input)
 
         const allUserYargs: UserYargs = flattenModules(Object.values(modules))
@@ -341,19 +341,19 @@ export const makeCaller = (yargs: any): Executor => {
     return caller
 }
 
-export const repl = async (modules: { [moduleName: string]: Module | ParallelModule }, yargs: any, prompt?: string): Promise<any> => {
+export const repl = async (modules: { [moduleName: string]: Module | ParallelModule }, prompt: string = 'nyargs > ', id: number = 0): Promise<any> => {
 
     const setAll = await get('setAll')
     await setAll()
 
     try {
 
-        const caller = makeCaller(yargs)
+        const caller = makeCaller()
         return await loop(
             modules as Modules /* importantly, more complex than actual "Modules" we are as-ing to*/,
             caller,
+            id,
             prompt)
-
 
     } catch (e) {
         // @ts-ignore
@@ -362,7 +362,7 @@ export const repl = async (modules: { [moduleName: string]: Module | ParallelMod
         console.error(fullError.stack)
         console.error((fullError as any).cause)
         lookUpAndCall_ = undefined
-        return await repl(modules, yargs, prompt)
+        return await repl(modules, prompt, id)
     }
 }
 

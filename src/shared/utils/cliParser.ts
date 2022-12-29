@@ -1,7 +1,7 @@
 import stringArgv from "string-argv"
 import { Modules } from "./types"
 import { z } from 'zod'
-import { single } from './validation'
+import { single, isNumber } from './validation'
 
 type Opt = {
     type?: 'string' | 'number' | 'boolean' | 'bool'
@@ -76,7 +76,7 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
 
                 }
             } else throw new Error(`A command /subcommand name cannot be repeated as an option name `)
-        } else if (curr.startsWith('-')) {
+        } else if (curr.startsWith('-') && !isNumber(curr)) {
             const newCursOptName = curr.replace(/\-/g, '')
             let newCursOpt: Opt = opts[newCursOptName] || {
                 array: false,

@@ -98,11 +98,11 @@ export type Readline = {
 }
 
 export interface HistoryListener {
-    on: (evName: string, fn: (...args: any[]) => boolean) => boolean
+    on: (evName: string, id: number, fn: (...args: any[]) => boolean) => boolean
 }
 
 export interface RenewReader {
-    (arg1: string, arg2: ReadlineInterface, htmlContainer?: any): Promise<ReadlineInterface>
+    (arg1: string, arg2?: number, arg3?: ReadlineInterface): Promise<ReadlineInterface>
 }
 
 export interface ModuleHelp {

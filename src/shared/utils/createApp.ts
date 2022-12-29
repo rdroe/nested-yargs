@@ -25,28 +25,35 @@ const importPlatform = async (): Promise<{
 
 }
 
-export type CreateAppArg = (main: Main) => void
+export type CreateAppArg = (main: Main, id: number) => void
 
 type AppCreator = (fnOrModules: CreateAppArg | Modules, configurators?: {
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
     programs?: Parameters<typeof setDictionary>[0]
-}, prompt?: string) => Promise<void>
+}, prompt?: string, taId?: number) => Promise<void>
 
 
-type AppCreator1 = (main: Main, fn: CreateAppArg) => Promise<void>
+type AppCreator1 = (main: Main, fn: CreateAppArg, id?: number) => Promise<void>
 
 type AppCreator2 = (main: Main, modules: Modules, configurators?: {
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
     programs?: Parameters<typeof setDictionary>[0]
-}, prompt?: string) => Promise<void>
+}, prompt?: string,
+    taId?: number) => Promise<void>
 
 
 
-const createAppFromFn: AppCreator1 = async (main, fn) => {
-    return fn(main)
+const createAppFromFn: AppCreator1 = async (main, fn, id: number = 0) => {
+    return fn(main, id)
 }
 
-const createAppFromObj: AppCreator2 = async (main, modules, configurators, prompt) => {
+const createAppFromObj: AppCreator2 = async (
+    main,
+    modules,
+    configurators,
+    prompt,
+    id = 0
+) => {
 
     const { cache, program, test, repl, setDictionary, configure, nest, element, match, last } = main
 
@@ -55,13 +62,14 @@ const createAppFromObj: AppCreator2 = async (main, modules, configurators, promp
     Object.entries(config).forEach(
         ([configurable, configVal]) => configure(configurable as keyof typeof config, configVal))
 
-    repl({ ...modules, match, cache, program, test, nest, element, last }, prompt)
+    repl({ ...modules, match, cache, program, test, nest, element, last }, prompt, id)
 }
 
 const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, configurators?: {
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
     programs?: Parameters<typeof setDictionary>[0]
-}, prompt?: string) => {
+}, prompt?: string,
+    taId: number = 0) => {
 
     if (!platformIsNode) {
 
@@ -79,11 +87,18 @@ const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, config
     }
 
     const { main } = await importPlatform()
-    if (typeof fnOrModules === 'function') {
-        return createAppFromFn(main, fnOrModules)
-    }
-    return createAppFromObj(main, fnOrModules, configurators, prompt)
 
+    if (typeof fnOrModules === 'function') {
+        return createAppFromFn(main, fnOrModules, taId)
+    }
+
+    return createAppFromObj(
+        main,
+        fnOrModules,
+        configurators,
+        prompt,
+        taId
+    )
 }
 
 export default createApp

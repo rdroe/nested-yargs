@@ -1,12 +1,21 @@
 import { ReadlineInterface } from "./types"
 
-export const lastFive: KeyboardEvent[] = []
-export const makeGetLastN = () => {
+const lastFiveById: { [id: number]: KeyboardEvent[] } = {
+    0: []
+}
 
-    return (elem: HTMLElement | true, n: number) => {
+export const lastFive = (id: number = 0): KeyboardEvent[] => {
+    return lastFiveById[id]
+}
+
+export const makeGetLastN = (id: number = 0) => {
+    if (!lastFiveById[id]) {
+        lastFiveById[id] = []
+    }
+    return (n: number) => {
         // needs to be redone as more of a state machine
 
-        const lastTwo = lastFive.slice(lastFive.length - n).reduce((accum: string, ke: KeyboardEvent, idx: number) => {
+        const lastTwo = lastFive(id).slice(lastFive(id).length - n).reduce((accum: string, ke: KeyboardEvent, idx: number) => {
             // browser-only above line
             if (ke.type !== 'keyup' && ke.type !== 'keydown') {
                 if ((ke as any).sequence === undefined) {
@@ -15,14 +24,8 @@ export const makeGetLastN = () => {
                 }
             }
 
-
-            if (elem !== true) {
-                if (elem !== ke.target) return accum
-            }
-
             // browser only has key, not server
             if (typeof ke.key === 'string' || typeof ke.key === 'number') {
-
                 return `${accum}-${ke.key}`
             }
             // ------------------------------------------------------------------(may be broken)
@@ -75,10 +78,9 @@ export const userListeners: {
     [fnName: string]: userListenerFunctions
 } = {}
 
-export type beforeListener = (key: KeyboardEvent, curReadline: ReadlineInterface) => Promise<boolean>
-export type afterListener = (key: KeyboardEvent, curReadline: ReadlineInterface) => Promise<void>
-
-export type listener = (key: KeyboardEvent, curReadline: ReadlineInterface) => Promise<boolean>
+export type beforeListener = (key: KeyboardEvent, curReadline: ReadlineInterface, evRecipient: string) => Promise<boolean>
+export type afterListener = (key: KeyboardEvent, curReadline: ReadlineInterface, evRecipient: string) => Promise<void>
+export type listener = (key: KeyboardEvent, curReadline: ReadlineInterface, evRecipient: string) => Promise<boolean>
 
 export const addListener = (name: string, fn: listener, b: beforeListener = () => Promise.resolve(true), a: afterListener = () => Promise.resolve()) => {
     if (userListeners[name]) throw new Error(`Function name ${name} is already set as a listener. Please delete it from userListeners, or choose a different name.`)

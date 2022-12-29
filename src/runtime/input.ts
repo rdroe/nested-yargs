@@ -6,7 +6,7 @@ import { makeGetLastN, lastFive, userListeners, userListenerFunctions } from '..
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
 import stringArgv from 'string-argv'
-
+const virtualRecipient = 'textarea-0'
 export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 
 export const fakeCli: {
@@ -16,12 +16,8 @@ export const fakeCli: {
 } = {
     modules: null,
     handle: async (str: string) => {
-
-
         const fn = await caller.get
         const answer = await fn(fakeCli.modules, str)
-
-
         return answer
     },
     getCommandCounter: (moduleObj: Modules | null = fakeCli.modules) => (str: string) => {
@@ -40,13 +36,12 @@ export const fakeCli: {
     }
 }
 
-const makeHandleQuestion = (res: Function, modules: Modules) => {
+const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => {
 
     return function handleQuestion(rawPreInput: string): string {
 
         let inp: string
         const wrapperFn = getConfig('wrapperFn')
-
         const rawInput = wrapperFn(rawPreInput, modules)
         const splitted = rawInput.split('\n').filter(elem => !!elem)
 
@@ -61,7 +56,7 @@ const makeHandleQuestion = (res: Function, modules: Modules) => {
 
         }
 
-        curReadline.close() // note: no-op in browser
+        curReadline(0).close() // note: no-op in browser
 
         // histState.idx = histState.hist.length
         histIdx(histState.hist.length)
@@ -71,32 +66,47 @@ const makeHandleQuestion = (res: Function, modules: Modules) => {
     }
 }
 
-const getLastN = makeGetLastN()
 
-function recordKeypress(keyboardEvent: KeyboardEvent): void {
-    lastFive.push(keyboardEvent)
-    if (lastFive.length === 6) {
-        lastFive.shift()
+
+function recordKeypress(keyboardEvent: KeyboardEvent, taId = 0): void {
+    lastFive(taId).push(keyboardEvent)
+    if (lastFive(taId).length === 6) {
+        lastFive(taId).shift()
     }
 }
 
 
 const findKeypressMatch = (hotkeys: { [keys: string]: Function }): [string, Function] => {
-    const last2 = getLastN(true, 2)
-    const last3 = getLastN(true, 3)
+
+
+    const last2 = makeGetLastN(0)(2)
+    const last3 = makeGetLastN(0)(3)
     const ret = Object.entries(hotkeys).find(([key, fn]) => [last2, last3].filter(elem => !!elem).includes(key))
 
     return ret
 }
 
 // lastFive.map(ev => ev.preventDefault())
+const curReadlines: { [id: number]: ReturnType<Readline['createInterface']> } = {}
 
-export let curReadline: ReturnType<Readline['createInterface']>
-let didInitHistory = false
+export let curReadline = (num: number) => {
+    return curReadlines[num]
+}
 
-type FnGetInput = (modules: Modules, pr: string, initialInput?: string) => Promise<string>
+const inittedHists: number[] = []
 
-let _getInput: Promise<FnGetInput>
+let didInitHistory = (num: number) => {
+    return inittedHists.includes(num)
+}
+
+type FnGetInput = (modules: Modules, pr: string, id: number, initialInput?: string) => Promise<string>
+
+const inputProms: { [id: number]: Promise<FnGetInput> } = {}
+let _getInput = (num: number): Promise<FnGetInput> => {
+    return inputProms[num]
+
+}
+
 
 let histState: {
     hist: string[],
@@ -132,24 +142,48 @@ const histIdx = (idx: number) => {
 }
 
 
-const initHistory = async (clearCurrent: Function, write: Function, historyListener: HistoryListener, hs: { hist: string[], idx: number, line?: string }, utils: { matchUp: Function, matchDown: Function, eventName: string }) => {
+const initHistory = async (
+    clearCurrent: Function,
+    write: Function,
+    historyListener: HistoryListener,
+    hs: { hist: string[], idx: number, line?: string },
+    utils: {
+        matchUp: Function,
+        matchDown: Function,
+        eventName: string
+    },
+    id: number) => {
 
     const { matchUp, matchDown, eventName } = utils
     const hotkeys = getConfig('hotkeys')
     const afterKeypress = getConfig('afterKeypress')
 
-    historyListener.on(eventName, (_: any, obj: KeyboardEvent) => {
+    console.log('calling hist "on" for', id)
 
+    historyListener.on(eventName, id, (_: any, obj: KeyboardEvent) => {
+        console.log('event!!!', obj)
+        let evRecipient: string
+
+        if (obj.currentTarget) {
+            if ((obj.target as any)?.id !== undefined) {
+                evRecipient = (obj.target as any).id
+            }
+        }
+
+        if (evRecipient === undefined) {
+            evRecipient = virtualRecipient
+        }
+
+        const deducedId = parseInt(evRecipient.split('-')[1])
+        if (isNaN(id) || id < 0) throw new Error(`Error; bad recipient id for key event: ${evRecipient}`)
+        if (id !== deducedId) { console.log('non match', deducedId, id); return }
         if (obj.type && obj.type === 'keydown') {
-            recordKeypress(obj)
+            recordKeypress(obj, id)
         }
 
         if (obj.type && obj.type !== eventName) {
             return false
         }
-
-
-
         const matches = findKeypressMatch(hotkeys)
         // if the up arrow is pressed, clear the current terminal contents.
         if (matchUp(obj)) {
@@ -161,7 +195,7 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
             }
 
             // clear current and...
-            clearCurrent(curReadline)
+            clearCurrent(curReadline(id))
             // back up the ticker 
             //histState.idx = Math.max(0, histState.idx - 1)
             histIdx(Math.max(0, hs.idx - 1))
@@ -174,21 +208,22 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
             // histState.idx = Math.min(histState.hist.length - 1, histState.idx + 1)
             histIdx(Math.min(hs.hist.length, hs.idx + 1))
             // clear, then write
-            clearCurrent(curReadline)
+            clearCurrent(curReadline(id))
             write(hs.hist[hs.idx] ?? '')
         } else if (matches && matches[1]) {
-            matches[1](curReadline.line)
+            matches[1](curReadline(id).line)
         }
 
         setTimeout(() => {
+
             Object.values(userListeners).forEach(async ({ fn, b, a }: userListenerFunctions) => {
 
-                const before = await b(obj, curReadline)
+                const before = await b(obj, curReadline(id), evRecipient)
                 if (before === false) {
                     return false
                 }
-                const result = fn(obj, curReadline)
-                await a(obj, curReadline)
+                const result = fn(obj, curReadline(id), evRecipient)
+                await a(obj, curReadline(id), evRecipient)
                 return result
             })
 
@@ -199,54 +234,57 @@ const initHistory = async (clearCurrent: Function, write: Function, historyListe
     })
 }
 
-export const getInput: FnGetInput = async (modules, pr, initInput = '') => {
+export const getInput: FnGetInput = async (modules, pr, id: number, initInput: string = '') => {
+
+
     const renewReader = await get('renewReader')
     const utils = await get('terminalUtils')
     const { clearCurrent } = utils
 
-    if (!_getInput) {
-        _getInput = makeGetInput()
+    if (!_getInput(id)) {
+        inputProms[id] = makeGetInput(id)
     }
 
-    if (!curReadline) {
-        curReadline = await renewReader(pr, curReadline) // dep: renewReader
 
+    if (!curReadline(id)) {
+        curReadlines[id] = await renewReader(pr, id) // dep: renewReader
     }
-
-    if (!didInitHistory) {
-        didInitHistory = true
+    console.log('may init hist for', id)
+    if (!didInitHistory(id)) {
+        console.log('initting for', id)
+        inittedHists.push(id)
         const historyListener = await get('historyListener')
-        await _getInput
+        await _getInput(id)
         initHistory(() => {
-            clearCurrent(curReadline)
-        }, (...args: any[]) => curReadline.write(...args), historyListener, histState, utils)
+            clearCurrent(curReadline(id))
+        }, (...args: any[]) => curReadline(id).write(...args), historyListener, histState, utils, id)
     }
-
-    const fn = await _getInput
-    if (!isNode()) { clearCurrent(curReadline) }
-    return fn(modules, pr, initInput)
+    console.log('would have initted for ', id)
+    const fn = await _getInput(id)
+    if (!isNode()) { clearCurrent(curReadline(id)) }
+    return fn(modules, pr, id, initInput)
 }
 
-const makeGetInput = async () => {
+const makeGetInput = async (id: number = 0) => {
 
-    if (_getInput) return _getInput
+    if (_getInput(id)) return _getInput(id)
 
     await loadHist()
 
     const renewReader = await get('renewReader')
+    console.log('line 258')
+    return async (modules: Modules, pr: string, id: number, initialInput: string = ''): Promise<string> => {
 
-    return async (modules: Modules, pr: string, initialInput: string = ''): Promise<string> => {
-
-        curReadline = await renewReader(pr, curReadline)
-
+        curReadlines[id] = await renewReader(pr, id)
+        console.log('line 260')
         const userInput = await new Promise<string>((res) => {
             fakeCli.modules = modules
             // in browser triggers readlineFunctions > question
-            curReadline.question(pr, makeHandleQuestion(res, modules))
+            curReadline(id).question(pr, makeHandleQuestion(res, modules, id))
             if (initialInput) {
-                curReadline.write(initialInput)
-                if (curReadline.line !== initialInput) {
-                    curReadline.line = initialInput
+                curReadline(id).write(initialInput)
+                if (curReadline(id).line !== initialInput) {
+                    curReadline(id).line = initialInput
                 }
             }
         })

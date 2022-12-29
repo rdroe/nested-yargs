@@ -1,7 +1,14 @@
 import { cache } from './cache'
 import { parseCacheInstructions } from './store'
 import { getInput } from './input'
-import { BaseArguments, Module, ParallelModule, Result, SingleResult, Modules } from '../shared/utils/types'
+import {
+    BaseArguments,
+    Module,
+    ParallelModule,
+    Result,
+    SingleResult,
+    Modules
+} from '../shared/utils/types'
 import { get } from '../shared/index'
 import { program } from '../shared/utils/queue'
 import { getConfig } from '../shared/index'
@@ -47,6 +54,7 @@ const getExecuteCli = async (modules: { [moduleName: string]: Module | ParallelM
 async function verifyAndExecuteCli(
     modules: Modules,
     forwardedInput: string | null,
+    id: number,
     executor: (arg0: string) => Promise<{ [RESULT_KEY]: SingleResult[typeof RESULT_KEY], argv: BaseArguments }>,
     tempPrompt: string = userPrompt
 ): Promise<{ argv: object, [RESULT_KEY]: object }> {
@@ -70,10 +78,9 @@ async function verifyAndExecuteCli(
 
 
     if (typeof rawInput === 'undefined') {
-
         rawInput = forwardedInput
-            ? await getInput(modules, tempPrompt, forwardedInput)
-            : await getInput(modules, tempPrompt)
+            ? await getInput(modules, tempPrompt, id, forwardedInput)
+            : await getInput(modules, tempPrompt, id)
     }
 
     if (containsInterrupt(rawInput)) {
@@ -82,7 +89,7 @@ async function verifyAndExecuteCli(
 
     if (!rawInput || !rawInput.split) {
 
-        return verifyAndExecuteCli(modules, null, executor)
+        return verifyAndExecuteCli(modules, null, id, executor)
 
     }
     // Run the raw input through jq calls and cache-replacing
@@ -91,7 +98,7 @@ async function verifyAndExecuteCli(
     // If it is different (if cache-replacing was used) verify to run.
 
     if (!didUseProgram && input !== rawInput) {
-        return verifyAndExecuteCli(modules, input, executor, 'AUGMENTED > ') // loop, also giving chance to enter new input 
+        return verifyAndExecuteCli(modules, input, id, executor, 'AUGMENTED > ') // loop, also giving chance to enter new input 
     } else {
         if (didUseProgram && input !== rawInput) {
             console.log('program line expanded: ', input)
@@ -105,7 +112,7 @@ async function verifyAndExecuteCli(
 
         await cache(ret.argv, ret[RESULT_KEY])
         // start fresh
-        return verifyAndExecuteCli(modules, null, executor)
+        return verifyAndExecuteCli(modules, null, id, executor)
     }
 }
 
@@ -115,13 +122,14 @@ export type Executor = (modules: { [moduleName: string]: Module }, input: string
 const repl = async (
     modules: Modules,
     yargsCaller: Executor,
+    id: number,
     prompt?: string
 ) => {
     userPrompt = prompt ? prompt : userPrompt
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior.
 
     const executeCli = await getExecuteCli(modules, yargsCaller)
-    await verifyAndExecuteCli(modules, null, executeCli)
+    await verifyAndExecuteCli(modules, null, id, executeCli)
 
 }
 

@@ -1,6 +1,5 @@
-import 'fake-indexeddb/auto'
+import * as fidb from 'fake-indexeddb'
 import { Dexie as DexieCore, DexieOptions } from 'dexie'
-import 'fake-indexeddb/auto'
 import { Cache } from '../../shared/utils/types'
 import { platformIsNode } from 'shared/utils/createApp'
 
@@ -12,6 +11,7 @@ class NyargsDb extends DexieCore {
 
 class UserTables extends NyargsDb {
     public userTables: DexieCore.Table<{
+        id?: number,
         table: string,
         a: string,
         b?: string,
@@ -19,10 +19,11 @@ class UserTables extends NyargsDb {
         data: { [key: string]: any },
         createdAt: number
     }>
-    public constructor(options: DexieOptions = {}) {
-        super("UserTables", options)
+    public constructor() {
+        console.log('indexedb', fidb.IDBKeyRange)
+        super("UserTables", { indexedDB: fidb.indexedDB, IDBKeyRange: fidb.IDBKeyRange })
         this.version(1).stores({
-            userTables: 'table, id++, [table+id], a, [table+a], b, c, data, createdAt'
+            userTables: 'id++,table, a, [table+a], b, c, data, createdAt'
         });
         this.userTables = this.table('userTables')
     }
@@ -32,7 +33,7 @@ export class UiDb extends DexieCore {
     public cache: DexieCore.Table<Cache>
 
     public constructor() {
-        super("UiDb")
+        super("UiDb", { indexedDB: fidb.indexedDB, IDBKeyRange: fidb.IDBKeyRange })
         this.version(1).stores({
             cache: 'id++, *names, *commands, value, [commands+names], createdAt'
         });
@@ -46,7 +47,7 @@ export const Dexie = DexieCore
 
 const userTables_ = async (useFake: boolean) => {
     if (useFake === true) {
-        return new UserTables({ indexedDB: indexedDB, IDBKeyRange: IDBKeyRange })
+        return new UserTables()
     }
 
     return new UserTables;
@@ -56,7 +57,7 @@ type UtReturned = ReturnType<typeof userTables_>
 
 const utSingleton: {
     ut: UtReturned
-} = { ut: userTables_(platformIsNode) }
+} = { ut: userTables_(true) }
 
 
 type Uts = InstanceType<typeof UserTables>
