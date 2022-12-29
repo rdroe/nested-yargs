@@ -100,7 +100,7 @@ const textAreaUtils = (id: number = 0) => {
 }
 const extractTaId = (ta: HTMLTextAreaElement) => {
     const id = (ta as { id: string }).id
-    console.log('extracting id from', id.split('-'))
+
     return parseInt(id.split('-')[1])
 }
 const readlineFunctions = (ta: HTMLTextAreaElement, id: number): ReadlineInterface => {
@@ -311,7 +311,7 @@ export const renewReader: RenewReader = async (pr: string, id: number): Promise<
 
 function handleKeypress(ke: KeyboardEvent) {
     const id = extractTaId(ke.target as HTMLTextAreaElement)
-    console.log('id exrtacted', id)
+
     handleTextKeypress(ke)
 
     handleAnyKeypress(ke)(true, async () => {
@@ -324,7 +324,7 @@ function handleKeypress(ke: KeyboardEvent) {
             const sel = `.ny-text-area#textarea-${keypress}`
             const ta = document.querySelector(sel)
             const isNyargs = isNyargsArea(ta)
-            console.log('is nyargs?', isNyargs)
+
             if (ta && isNyargs) {
                 const isOn = toggleTa(ta)
                 if (isOn) {
@@ -373,7 +373,7 @@ function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
         console.error('at some point, you were returning out on this match')
     }
     const isNy = isNyargsArea(ke.target)
-    console.log('is ny?', isNy)
+
     if (!isNy) {
         return
     }

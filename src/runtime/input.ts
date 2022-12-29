@@ -52,6 +52,7 @@ const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => 
 
         if (inp && inp.trim && inp.trim() && rawInput && rawInput !== 'undefined') {
             // histState.hist.push(rawInput)
+
             addHistory(rawInput)
 
         }
@@ -59,8 +60,8 @@ const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => 
         curReadline(0).close() // note: no-op in browser
 
         // histState.idx = histState.hist.length
-        histIdx(histState.hist.length)
 
+        histIdx(histState.hist.length)
 
         return res(inp)
     }
@@ -69,6 +70,7 @@ const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => 
 
 
 function recordKeypress(keyboardEvent: KeyboardEvent, taId = 0): void {
+
     lastFive(taId).push(keyboardEvent)
     if (lastFive(taId).length === 6) {
         lastFive(taId).shift()
@@ -108,7 +110,7 @@ let _getInput = (num: number): Promise<FnGetInput> => {
 }
 
 
-let histState: {
+const histState: {
     hist: string[],
     idx: number,
     line?: string
@@ -129,16 +131,18 @@ const addHistory = (line: string) => {
     })
 
 }
-
+let didLoad = false
 const loadHist = async () => {
+    if (didLoad) return
     const lhFn = await get('loadHistory')
     const data = await lhFn()
-    histState = data
-
+    Object.assign(histState, data)
+    didLoad = true
 }
 
 const histIdx = (idx: number) => {
     histState.idx = idx
+
 }
 
 
@@ -158,13 +162,11 @@ const initHistory = async (
     const hotkeys = getConfig('hotkeys')
     const afterKeypress = getConfig('afterKeypress')
 
-    console.log('calling hist "on" for', id)
+
 
     historyListener.on(eventName, id, (_: any, obj: KeyboardEvent) => {
-        console.log('event!!!', obj)
         let evRecipient: string
-
-        if (obj.currentTarget) {
+        if (obj.target) {
             if ((obj.target as any)?.id !== undefined) {
                 evRecipient = (obj.target as any).id
             }
@@ -176,17 +178,23 @@ const initHistory = async (
 
         const deducedId = parseInt(evRecipient.split('-')[1])
         if (isNaN(id) || id < 0) throw new Error(`Error; bad recipient id for key event: ${evRecipient}`)
-        if (id !== deducedId) { console.log('non match', deducedId, id); return }
+        if (id !== deducedId) {
+            return
+        }
+
         if (obj.type && obj.type === 'keydown') {
             recordKeypress(obj, id)
         }
 
         if (obj.type && obj.type !== eventName) {
+
             return false
         }
         const matches = findKeypressMatch(hotkeys)
+
         // if the up arrow is pressed, clear the current terminal contents.
         if (matchUp(obj)) {
+
             // if we are at the extent of history
             if (hs.line || hs.idx === hs.hist.length) {
                 // push in the current contents.
@@ -198,11 +206,15 @@ const initHistory = async (
             clearCurrent(curReadline(id))
             // back up the ticker 
             //histState.idx = Math.max(0, histState.idx - 1)
+
+
             histIdx(Math.max(0, hs.idx - 1))
 
             // and write to cursor the new one
             if (hs.hist[hs.idx] === undefined) return true
+
             write(hs.hist[hs.idx])
+
         } else if (matchDown(obj)) {
             // if down arrow, add one (but hold at length - 1)
             // histState.idx = Math.min(histState.hist.length - 1, histState.idx + 1)
@@ -249,9 +261,9 @@ export const getInput: FnGetInput = async (modules, pr, id: number, initInput: s
     if (!curReadline(id)) {
         curReadlines[id] = await renewReader(pr, id) // dep: renewReader
     }
-    console.log('may init hist for', id)
+
     if (!didInitHistory(id)) {
-        console.log('initting for', id)
+
         inittedHists.push(id)
         const historyListener = await get('historyListener')
         await _getInput(id)
@@ -259,7 +271,7 @@ export const getInput: FnGetInput = async (modules, pr, id: number, initInput: s
             clearCurrent(curReadline(id))
         }, (...args: any[]) => curReadline(id).write(...args), historyListener, histState, utils, id)
     }
-    console.log('would have initted for ', id)
+
     const fn = await _getInput(id)
     if (!isNode()) { clearCurrent(curReadline(id)) }
     return fn(modules, pr, id, initInput)
@@ -272,11 +284,11 @@ const makeGetInput = async (id: number = 0) => {
     await loadHist()
 
     const renewReader = await get('renewReader')
-    console.log('line 258')
+
     return async (modules: Modules, pr: string, id: number, initialInput: string = ''): Promise<string> => {
 
         curReadlines[id] = await renewReader(pr, id)
-        console.log('line 260')
+
         const userInput = await new Promise<string>((res) => {
             fakeCli.modules = modules
             // in browser triggers readlineFunctions > question
