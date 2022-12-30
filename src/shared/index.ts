@@ -1,5 +1,7 @@
 import { Files, PartialFs, Db, TerminalUtils, PrintResult, HistoryListener, RenewReader, Readline, SaveHistory, LoadHistory, Configuration, ConfigOptions, SetAll, keyofConfigOptions } from "./utils/types"
+
 import isNode from './utils/isNode'
+
 type DepName = keyof Deps
 
 type Awaitable = <DN extends keyof Deps>(dn: DN) => Promise<Deps[typeof dn]>
@@ -19,6 +21,7 @@ export const configured: {
     resolver: null,
     ready: null
 }
+
 /**
    first, user config should happen. that should happen in the app they write: configure(propName, value)
    then a primary call such as setUp.ts > repl, calls setAll.
@@ -26,6 +29,7 @@ export const configured: {
    then it does the server / browser sets that are not necessarily user configurable.
    that should happen first. 
 */
+
 configured.ready = new Promise((resolve) => {
     configured.resolver = () => { resolve() }
 })
@@ -96,8 +100,8 @@ export const configure = <Settable extends keyof ConfigOptions>(
         settableVal = optionOrValue as ConfigOptions[Settable]
     }
     configSection[settable] = settableVal
-
 }
+
 export type Configure = typeof configure
 
 type Deps = {

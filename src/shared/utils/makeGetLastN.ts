@@ -5,6 +5,9 @@ const lastFiveById: { [id: number]: KeyboardEvent[] } = {
 }
 
 export const lastFive = (id: number = 0): KeyboardEvent[] => {
+    if (!lastFiveById[id]) {
+        lastFiveById[id] = []
+    }
     return lastFiveById[id]
 }
 

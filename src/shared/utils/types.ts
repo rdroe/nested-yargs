@@ -1,6 +1,9 @@
 //import { Dexie as DexieCore } from 'dexie'
 
-import { RESULT_KEY } from "./const"
+import { RESULT_KEY as RESULT_KEY_VAL } from "./const"
+export const RESULT_KEY = RESULT_KEY_VAL
+
+import { userListenerFunctions } from "./makeGetLastN"
 
 export type SaveHistory = (histState: { hist: string[], idx: number }) => Promise<void>
 
@@ -96,6 +99,8 @@ export type Readline = {
     utils?: { matchUp: Function, matchDown: Function, eventName: string },
     getInput?: (arg1: string, arg2?: string) => Promise<string>
 }
+
+export type KeyListener = userListenerFunctions | userListenerFunctions['fn']
 
 export interface HistoryListener {
     on: (evName: string, id: number, fn: (...args: any[]) => boolean) => boolean
@@ -203,3 +208,5 @@ export type SetAll = () => Promise<void>
 export type Repl = (modules: {
     [moduleName: string]: Module<any, any> | ParallelModule<{}, any>
 }, yargs: any, prompt: string) => Promise<any>
+
+
