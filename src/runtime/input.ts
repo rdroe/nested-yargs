@@ -1,18 +1,19 @@
 import { get, getConfig } from '../shared/index'
 import { queue } from '../shared/utils/queue'
-import { Readline, Modules, HistoryListener } from '../shared/utils/types'
+import { Readline, Modules, Module, HistoryListener } from '../shared/utils/types'
 import isNode from '../shared/utils/isNode'
 import { makeGetLastN, lastFive, userListeners, userListenerFunctions } from '../shared/utils/makeGetLastN'
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
 import stringArgv from 'string-argv'
 const virtualRecipient = 'textarea-0'
-export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 
+export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 export const fakeCli: {
     modules: Modules | null
     handle: (str: string) => Promise<{ argv: object, [RESULT_KEY]: object }>,
-    getCommandCounter: (modules?: Modules | null) => (str: string) => number
+    getCommandCounter: (modules?: Modules | null) => (str: string) => number,
+    getMatchingModules: (modules?: Modules | null) => (str: string) => Module[],
 } = {
     modules: null,
     handle: async (str: string) => {
@@ -30,16 +31,30 @@ export const fakeCli: {
             cnt += 1
             currSubmodules = currSubmodules[curs]?.submodules ?? {}
             curs = asArgs.shift()
-
         }
         return cnt
+    },
+    getMatchingModules: (moduleObj: Modules | null = fakeCli.modules) => (str: string): Module[] => {
+        if (!moduleObj) return []
+        const asArgs = stringArgv(str)
+        let modulesAndSubmodules: Module[] = []
+        let curs: string | number | undefined = asArgs.shift()
+        let currSubmodules = moduleObj
+        while (curs && currSubmodules[curs]) {
+            const foundModule = currSubmodules[curs] ?? null
+            if (foundModule) {
+                modulesAndSubmodules.push(foundModule)
+            }
+            currSubmodules = foundModule && foundModule.submodules ? foundModule.submodules : {}
+            curs = asArgs.shift()
+        }
+        return modulesAndSubmodules
     }
 }
 
 const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => {
 
     return function handleQuestion(rawPreInput: string): string {
-
         let inp: string
         const wrapperFn = getConfig('wrapperFn')
         const rawInput = wrapperFn(rawPreInput, modules)
@@ -70,7 +85,6 @@ const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => 
 
 
 function recordKeypress(keyboardEvent: KeyboardEvent, taId = 0): void {
-
     lastFive(taId).push(keyboardEvent)
     if (lastFive(taId).length === 6) {
         lastFive(taId).shift()
@@ -162,8 +176,6 @@ const initHistory = async (
     const hotkeys = getConfig('hotkeys')
     const afterKeypress = getConfig('afterKeypress')
 
-
-
     historyListener.on(eventName, id, (_: any, obj: KeyboardEvent) => {
         let evRecipient: string
         if (obj.target) {
@@ -248,7 +260,6 @@ const initHistory = async (
 
 export const getInput: FnGetInput = async (modules, pr, id: number, initInput: string = '') => {
 
-
     const renewReader = await get('renewReader')
     const utils = await get('terminalUtils')
     const { clearCurrent } = utils
@@ -263,7 +274,6 @@ export const getInput: FnGetInput = async (modules, pr, id: number, initInput: s
     }
 
     if (!didInitHistory(id)) {
-
         inittedHists.push(id)
         const historyListener = await get('historyListener')
         await _getInput(id)

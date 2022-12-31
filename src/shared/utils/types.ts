@@ -101,7 +101,7 @@ export type Readline = {
 }
 
 export type KeyListener = userListenerFunctions | userListenerFunctions['fn']
-
+export type UserListenerFns = userListenerFunctions
 export interface HistoryListener {
     on: (evName: string, id: number, fn: (...args: any[]) => boolean) => boolean
 }
