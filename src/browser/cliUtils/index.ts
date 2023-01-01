@@ -73,35 +73,34 @@ export const cssMonikers = {
     isOffscreen: 'is-offscreen',
 }
 
+const classesByName = (id: number) => ({
+    promptText: [`.prompt-text`],
+    printArea: [`.print-area`, `.print-area-${id}`],
+    printAreaText: [`print-area-text`, `print-area-text-${id}`],
+    textareaContainer: [`text-area-container`, `text-area-container-${id}`],
+    textarea: [`nya-textarea`, `nya-textarea-${id}`]
+})
 
-export const styleSelectors = (id: number) => {
+const idsByName = (id: number) => ({
+    textarea: `${cssMonikers.nyargsCli}-${id}`,
+    textAreaContainer: `text-area-container-${id}`
+})
 
-    return {
-        classes: {
-            promptText: [`.prompt-text`],
-            printArea: [`.print-area`, `.print-area-${id}`],
-            printAreaText: [`print-area-text`, `print-area-text-${id}`],
-            textareaContainer: [`text-area-container`, `text-area-container-${id}`],
-            textarea: [`nya-textarea`, `nya-textarea-${id}`]
-        },
-        ids: {
-            textarea: `${cssMonikers.nyargsCli}-${id}`,
-            textAreaContainer: `text-area-container-${id}`
-        }
-    }
+export const getClassString = (id: number, str: keyof ReturnType<typeof classesByName>) => {
+    return classesByName(id)[str].join(' ')
+
 }
 
-
-//delete, probably
-export const getPrintAreaText = (id: number) => {
-    const sel = styleSelectors(id).classes.printAreaText.join(' ')
+export const getCssId = (id: number, str: keyof ReturnType<typeof idsByName>) => {
+    return idsByName(id)[str]
 }
 
-
-export const styles = {
-    textAreaContainer: 'overflow: visible;',
+const idSel = (str: string) => `#${str}`
+const classesSel = (str: string) => `.${str.replace(/\s/g, '.')}`
+export const styles: { [Property in keyof ReturnType<typeof classesByName>]?: string } = {
+    textareaContainer: 'overflow: visible;',
     promptText: 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;',
-    textArea: 'height: 100%; width: 100%;'
+    textarea: 'height: 100%; width: 100%;'
 }
 
 //end styles
@@ -287,11 +286,15 @@ const makeTextArea = (id: number): HTMLTextAreaElement => {
     }, {
         parent
     })
+    const idName = getCssId(id, 'textarea')
+    const idSelector = idSel(idName)
+    const classStr = getClassString(id, 'textarea')
+    const classSel = classesSel(classStr)
 
     const ta = addElem('textarea', {
-        id: styleSelectors(id).ids.textarea,
-        class: styleSelectors(id).classes.textarea.join(' '),
-        style: 'height: 100%; width: 100%;',
+        id: idName,
+        class: classStr,
+        style: styles.textarea,
         autofocus: true
     }, {
         parent
@@ -328,7 +331,9 @@ export const terminalUtils = {
 }
 
 export const renewReader: RenewReader = async (pr: string, id: number): Promise<ReadlineInterface> => {
-    let rawTa = document.querySelector(`#${styleSelectors(id).ids.textarea}`)
+    const readerTaId = idSel(getCssId(id, 'textarea'))
+
+    let rawTa = document.querySelector(readerTaId)
     if (!rawTa) {
         rawTa = makeTextArea(id)
     }
@@ -364,8 +369,9 @@ function handleKeypress(ke: KeyboardEvent) {
                 throw new Error(`For -Control-Shift-;-[some key] hotkey, [some key] must be a number`)
             }
             const num = parseInt(keypress)
-            const sel = `.nya-textarea#${styleSelectors(num).ids.textarea}`
-            const ta = document.querySelector(sel)
+            const cStr = getClassString(num, 'textarea')
+            const cSel = classesSel(cStr)
+            const ta = document.querySelector(cSel)
             const isNyargs = isNyargsArea(ta)
 
             if (ta && isNyargs) {
