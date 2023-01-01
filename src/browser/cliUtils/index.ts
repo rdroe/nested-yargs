@@ -116,9 +116,9 @@ const displayPrompt = (textArea: HTMLTextAreaElement) => {
     // get the container to update with freshest text
     const taId = extractTaId(textArea)
     const labelSel = classesSel(getClassString(taId, 'promptText'))
-    console.log('ta id, labelsel', taId, labelSel, 'selected', document.querySelector(labelSel))
-    //const label = document.querySelector(labelSel)
-    const label = textArea.parentElement?.querySelector('.prompt-text')
+
+    const label = document.querySelector(labelSel)
+
 
     if (!label) throw new Error(`Can't find prompText for the specificed <${cssMonikers.nyargsCli}>`)
     label.innerHTML = `<span>${prompt}</span>`
@@ -186,12 +186,12 @@ const getOrInitPrintArea = (ta: HTMLTextAreaElement) => {
         const num = textAreas.indexOf(ta)
         if (num === -1) throw new Error('Error; could not find cached text area to match that one')
         const added = addElem('div', {
-            class: `print-area print-area-${num}`,
-            style: 'margin: 0; padding: 0;'
+            class: getClassString(num, 'printArea'),
+            style: styles.printArea
         })
 
         const text = addElem('pre', {
-            class: `print-area-text print-area-text-${num}`,
+            class: getClassString(num, 'printAreaText'),
         }, {
             parent: added
         })
