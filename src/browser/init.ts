@@ -10,8 +10,8 @@ export default () => {
     --main-text-color: aliceblue;
 }
 
-html {
-    box-sizing: content-box;
+* {
+    box-sizing: border-box;
 }
 
 body {

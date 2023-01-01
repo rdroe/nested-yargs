@@ -1,6 +1,6 @@
 import { cache } from './cache'
 import { parseCacheInstructions } from './store'
-import { getInput } from './input'
+import { firstReaders, getInput, _getInput } from './input'
 import {
     BaseArguments,
     Module,
@@ -119,17 +119,22 @@ async function verifyAndExecuteCli(
 export type Executor = (modules: { [moduleName: string]: Module }, input: string) => Promise<{ argv: object, [RESULT_KEY]: Result }>
 
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
-const repl = async (
+const repl = (
     modules: Modules,
     yargsCaller: Executor,
     id: number,
     prompt?: string
-) => {
+): Promise<any> => {
     userPrompt = prompt ? prompt : userPrompt
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior.
 
-    const executeCli = await getExecuteCli(modules, yargsCaller)
-    await verifyAndExecuteCli(modules, null, id, executeCli)
+    const executeCli = getExecuteCli(modules, yargsCaller)
+    executeCli.then((execCliRes) => {
+        verifyAndExecuteCli(modules, null, id, execCliRes)
+    })
+    console.log('loop repl executeCli complete for ', id)
+    return firstReaders[id]
+
 
 }
 

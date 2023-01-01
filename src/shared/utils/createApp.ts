@@ -25,7 +25,7 @@ const importPlatform = async (): Promise<{
 
 }
 
-export type CreateAppArg = (main: Main, id: number) => void
+export type CreateAppArg = (main: Main, id: number) => Promise<void>
 
 type AppCreator = (fnOrModules: CreateAppArg | Modules, configurators?: {
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
@@ -43,7 +43,7 @@ type AppCreator2 = (main: Main, modules: Modules, configurators?: {
 
 
 
-const createAppFromFn: AppCreator1 = async (main, fn, id: number = 0) => {
+const createAppFromFn: AppCreator1 = async (main, fn: (m: Main, id: number) => Promise<void>, id: number = 0): Promise<void> => {
     return fn(main, id)
 }
 
@@ -53,7 +53,7 @@ const createAppFromObj: AppCreator2 = async (
     configurators,
     prompt,
     id = 0
-) => {
+): Promise<any> => {
 
     const { cache, program, test, repl, setDictionary, configure, nest, element, match, last } = main
 
@@ -62,14 +62,16 @@ const createAppFromObj: AppCreator2 = async (
     Object.entries(config).forEach(
         ([configurable, configVal]) => configure(configurable as keyof typeof config, configVal))
 
-    repl({ ...modules, match, cache, program, test, nest, element, last }, prompt, id)
+    const replComplete = await repl({ ...modules, match, cache, program, test, nest, element, last }, prompt, id)
+    console.log('cafobj', id, replComplete)
+    return replComplete
 }
 
 const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, configurators?: {
     config?: { [Settable in keyof ConfigOptions]: ConfigOptions[Settable] },
     programs?: Parameters<typeof setDictionary>[0]
 }, prompt?: string,
-    taId: number = 0) => {
+    taId: number = 0): Promise<any> => {
 
     if (!platformIsNode) {
 
@@ -82,8 +84,9 @@ const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, config
         if (!init) {
             init = (await import('../../browser/init')).default
         }
-
+        console.log('nyargs calling init')
         await init()
+        console.log('nyargs called init')
     }
 
     const { main } = await importPlatform()

@@ -74,8 +74,8 @@ export const cssMonikers = {
 }
 
 const classesByName = (id: number) => ({
-    promptText: [`.prompt-text`],
-    printArea: [`.print-area`, `.print-area-${id}`],
+    promptText: [`prompt-text`, `prompt-text-${id}`],
+    printArea: [`print-area`, `print-area-${id}`],
     printAreaText: [`print-area-text`, `print-area-text-${id}`],
     textareaContainer: [`text-area-container`, `text-area-container-${id}`],
     textarea: [`nya-textarea`, `nya-textarea-${id}`]
@@ -111,8 +111,15 @@ const taParent = (elem: HTMLElement) => {
 }
 
 const displayPrompt = (textArea: HTMLTextAreaElement) => {
+    // get updated prompt string
     const prompt = getPrompt(textArea)
+    // get the container to update with freshest text
+    const taId = extractTaId(textArea)
+    const labelSel = classesSel(getClassString(taId, 'promptText'))
+    console.log('ta id, labelsel', taId, labelSel, 'selected', document.querySelector(labelSel))
+    //const label = document.querySelector(labelSel)
     const label = textArea.parentElement?.querySelector('.prompt-text')
+
     if (!label) throw new Error(`Can't find prompText for the specificed <${cssMonikers.nyargsCli}>`)
     label.innerHTML = `<span>${prompt}</span>`
 }
@@ -281,7 +288,7 @@ const makeTextArea = (id: number): HTMLTextAreaElement => {
     })
 
     addElem('div', {
-        'class': `prompt-text promp-text-${id}`,
+        'class': `prompt-text prompt-text-${id}`,
         'style': 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;'
     }, {
         parent
@@ -335,6 +342,7 @@ export const renewReader: RenewReader = async (pr: string, id: number): Promise<
 
     let rawTa = document.querySelector(readerTaId)
     if (!rawTa) {
+        console.log('making textarea id', id)
         rawTa = makeTextArea(id)
     }
     if (!rawTa) throw new Error(`Could not create a terminal for ${id}`)

@@ -7,7 +7,6 @@ import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
 import stringArgv from 'string-argv'
 const virtualRecipient = 'nya-textarea-0'
-
 export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 export const fakeCli: {
     modules: Modules | null
@@ -120,9 +119,8 @@ let didInitHistory = (num: number) => {
 type FnGetInput = (modules: Modules, pr: string, id: number, initialInput?: string) => Promise<string>
 
 const inputProms: { [id: number]: Promise<FnGetInput> } = {}
-let _getInput = (num: number): Promise<FnGetInput> => {
+export const _getInput = (num: number): Promise<FnGetInput> => {
     return inputProms[num]
-
 }
 
 
@@ -262,6 +260,11 @@ const initHistory = async (
     })
 }
 
+
+
+export const firstReaderResolvers: { [key: number]: Function } = {}
+export const firstReaders: { [key: number]: Promise<void> } = {}
+
 export const getInput: FnGetInput = async (modules, pr, id: number, initInput: string = '') => {
 
     const renewReader = await get('renewReader')
@@ -275,6 +278,8 @@ export const getInput: FnGetInput = async (modules, pr, id: number, initInput: s
 
     if (!curReadline(id)) {
         curReadlines[id] = await renewReader(pr, id) // dep: renewReader
+        console.log('renewReader call complete for', id)
+        firstReaderResolvers[id]()
     }
 
     if (!didInitHistory(id)) {

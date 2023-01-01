@@ -6,6 +6,7 @@ import { get } from '../shared/index'
 import { RESULT_KEY } from '../shared/utils/const'
 import { parse, Opts } from '../shared/utils/cliParser'
 import { isNumber } from '../shared/utils/validation'
+import { firstReaderResolvers, firstReaders } from './input'
 
 type UserYargs = Module<any>['yargs']
 
@@ -343,13 +344,15 @@ export const makeCaller = (): Executor => {
 
 export const repl = async (modules: { [moduleName: string]: Module | ParallelModule }, prompt: string = 'nyargs > ', id: number = 0): Promise<any> => {
 
+    firstReaders[id] = new Promise((res) => {
+        firstReaderResolvers[id] = res
+    })
     const setAll = await get('setAll')
     await setAll()
 
     try {
-
         const caller = makeCaller()
-        return await loop(
+        return loop(
             modules as Modules /* importantly, more complex than actual "Modules" we are as-ing to*/,
             caller,
             id,
@@ -362,9 +365,8 @@ export const repl = async (modules: { [moduleName: string]: Module | ParallelMod
         console.error(fullError.stack)
         console.error((fullError as any).cause)
         lookUpAndCall_ = undefined
-        return await repl(modules, prompt, id)
+        return repl(modules, prompt, id)
     }
 }
-
 
 
