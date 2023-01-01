@@ -8,7 +8,7 @@ import init from './init'
 const defaultConfig: Configuration = {
     browser: {
         hotkeys: {
-            '-Control-Shift-K': () => toggleTa(document.querySelector('.ny-text-area'))
+            '-Control-Shift-K': () => toggleTa(document.querySelector('.nya-textarea'))
         },
         // configure this to alter every input string
         wrapperFn: (cmd: string) => { return cmd },

@@ -1,7 +1,8 @@
 import { ReadlineInterface, HistoryListener, RenewReader, Result, BaseArguments } from '../../shared/utils/types';
 
-import { makeGetLastN, lastFive } from '../../shared/utils/makeGetLastN';
+import { makeGetLastN, lastFive, extractTaId } from '../../shared/utils/makeGetLastN';
 import { getText } from '../../shared/utils/printResult';
+import { isNumber } from 'shared/utils/validation';
 
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
@@ -66,6 +67,45 @@ const maps = {
 
 maps.init<boolean>('toggled')
 
+// styles
+export const cssMonikers = {
+    nyargsCli: 'nya-textarea',
+    isOffscreen: 'is-offscreen',
+}
+
+
+export const styleSelectors = (id: number) => {
+
+    return {
+        classes: {
+            promptText: [`.prompt-text`],
+            printArea: [`.print-area`, `.print-area-${id}`],
+            printAreaText: [`print-area-text`, `print-area-text-${id}`],
+            textareaContainer: [`text-area-container`, `text-area-container-${id}`],
+            textarea: [`nya-textarea`, `nya-textarea-${id}`]
+        },
+        ids: {
+            textarea: `${cssMonikers.nyargsCli}-${id}`,
+            textAreaContainer: `text-area-container-${id}`
+        }
+    }
+}
+
+
+//delete, probably
+export const getPrintAreaText = (id: number) => {
+    const sel = styleSelectors(id).classes.printAreaText.join(' ')
+}
+
+
+export const styles = {
+    textAreaContainer: 'overflow: visible;',
+    promptText: 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;',
+    textArea: 'height: 100%; width: 100%;'
+}
+
+//end styles
+
 // make configurable 
 const taParent = (elem: HTMLElement) => {
     return elem.parentElement
@@ -74,7 +114,7 @@ const taParent = (elem: HTMLElement) => {
 const displayPrompt = (textArea: HTMLTextAreaElement) => {
     const prompt = getPrompt(textArea)
     const label = textArea.parentElement?.querySelector('.prompt-text')
-    if (!label) throw new Error(`Can't find .prompt-text for the specificed <textarea>`)
+    if (!label) throw new Error(`Can't find prompText for the specificed <${cssMonikers.nyargsCli}>`)
     label.innerHTML = `<span>${prompt}</span>`
 }
 
@@ -98,11 +138,7 @@ const textAreaUtils = (id: number = 0) => {
         },
     }
 }
-const extractTaId = (ta: HTMLTextAreaElement) => {
-    const id = (ta as { id: string }).id
 
-    return parseInt(id.split('-')[1])
-}
 const readlineFunctions = (ta: HTMLTextAreaElement, id: number): ReadlineInterface => {
 
     const utils = textAreaUtils(id)
@@ -129,6 +165,7 @@ const readlineFunctions = (ta: HTMLTextAreaElement, id: number): ReadlineInterfa
                     const res = fn(arg)
                     return resolve(res)
                 })
+
                 document.addEventListener('keyup', handleKeypress, true)
                 document.addEventListener('keydown', handleKeypress, true)
             })
@@ -225,8 +262,9 @@ const addElem = <
 
 // make configurable
 function isNyargsArea(elem: any): elem is HTMLTextAreaElement {
-    return isTextArea(elem) && elem.id.startsWith('textarea-')
-    // return isTextArea(elem) && elem.classList.contains('ny-text-area')
+    const isNyaTa = elem.id.startsWith(`${cssMonikers.nyargsCli}-`)
+    return isTextArea(elem) && isNyaTa
+    // return isTextArea(elem) && elem.classList.contains('nya-textarea')
 }
 
 function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
@@ -236,6 +274,7 @@ function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
 
 // make configurable
 const makeTextArea = (id: number): HTMLTextAreaElement => {
+
     const parent = addElem('div', {
         style: 'overflow: visible;',
         class: `text-area-container text-area-container-${id}`,
@@ -250,8 +289,8 @@ const makeTextArea = (id: number): HTMLTextAreaElement => {
     })
 
     const ta = addElem('textarea', {
-        id: `textarea-${id}`,
-        class: `prompt-text promp-text-${id} ny-text-area`,
+        id: styleSelectors(id).ids.textarea,
+        class: styleSelectors(id).classes.textarea.join(' '),
         style: 'height: 100%; width: 100%;',
         autofocus: true
     }, {
@@ -273,6 +312,7 @@ export const historyListener: HistoryListener = {
             throw new Error('historyListener is only made for "keyup" kind of node readline spoofing.')
         }
         const latestTerminal = latestTextArea(id)
+
         mapCallable(latestTerminal, fn)
         return true
     }
@@ -288,7 +328,7 @@ export const terminalUtils = {
 }
 
 export const renewReader: RenewReader = async (pr: string, id: number): Promise<ReadlineInterface> => {
-    let rawTa = document.querySelector(`#textarea-${id}`)
+    let rawTa = document.querySelector(`#${styleSelectors(id).ids.textarea}`)
     if (!rawTa) {
         rawTa = makeTextArea(id)
     }
@@ -311,7 +351,6 @@ export const renewReader: RenewReader = async (pr: string, id: number): Promise<
 
 function handleKeypress(ke: KeyboardEvent) {
     const id = extractTaId(ke.target as HTMLTextAreaElement)
-
     handleTextKeypress(ke)
 
     handleAnyKeypress(ke)(true, async () => {
@@ -319,9 +358,13 @@ function handleKeypress(ke: KeyboardEvent) {
         const lastFour = makeGetLastN(id)(4)
 
         if (lastFour.startsWith('-Control-Shift-;-')) {
-            lastFive().map(ev => ev.preventDefault())
+            lastFive(id).map(ev => ev.preventDefault())
             const keypress = lastFour.split('-Control-Shift-;-')[1]
-            const sel = `.ny-text-area#textarea-${keypress}`
+            if (!isNumber(keypress)) {
+                throw new Error(`For -Control-Shift-;-[some key] hotkey, [some key] must be a number`)
+            }
+            const num = parseInt(keypress)
+            const sel = `.nya-textarea#${styleSelectors(num).ids.textarea}`
             const ta = document.querySelector(sel)
             const isNyargs = isNyargsArea(ta)
 
@@ -333,7 +376,7 @@ function handleKeypress(ke: KeyboardEvent) {
                     ta.blur()
                 }
             } else {
-                throw new Error('naming clash; only text areas should have "ny-text-area" class')
+                throw new Error('naming clash; only text areas should have "nya-textarea" class')
             }
 
         }
@@ -390,6 +433,7 @@ function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
     const last2 = getLastTwo(ta)
 
     if (['-Control-Enter', '-Enter-Control'].includes(last2)) {
+
         const resolver = getSubmitter(ta)
         ke.stopPropagation()
         return resolver(ta.value)

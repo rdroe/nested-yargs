@@ -1,4 +1,18 @@
 import { ReadlineInterface } from "./types"
+import { isNumber } from "./validation"
+
+
+export const extractTaIdFromId = (id: string) => {
+    const splitted = id.split('-')
+    const last = splitted.pop()
+    if (!isNumber(last)) throw new Error(`A number is required as lat "-"-separated section of a textarea id; this id does not match that scheme: ${id}`)
+    return parseInt(last, 10)
+}
+
+export const extractTaId = (ta: HTMLTextAreaElement) => {
+    const id = (ta as { id: string }).id
+    return extractTaIdFromId(id)
+}
 
 const lastFiveById: { [id: number]: KeyboardEvent[] } = {
     0: []
@@ -12,7 +26,7 @@ export const lastFive = (id: number = 0): KeyboardEvent[] => {
 }
 
 export const makeGetLastN = (id: number = 0) => {
-    if (!lastFiveById[id]) {
+    if (lastFiveById[id] === undefined) {
         lastFiveById[id] = []
     }
     return (n: number) => {
@@ -22,7 +36,6 @@ export const makeGetLastN = (id: number = 0) => {
             // browser-only above line
             if (ke.type !== 'keyup' && ke.type !== 'keydown') {
                 if ((ke as any).sequence === undefined) {
-                    console.log('rejecting key; type', ke, 'type is ', ke.type)
                     return accum
                 }
             }

@@ -2,11 +2,11 @@ import { get, getConfig } from '../shared/index'
 import { queue } from '../shared/utils/queue'
 import { Readline, Modules, Module, HistoryListener } from '../shared/utils/types'
 import isNode from '../shared/utils/isNode'
-import { makeGetLastN, lastFive, userListeners, userListenerFunctions } from '../shared/utils/makeGetLastN'
+import { makeGetLastN, lastFive, userListeners, userListenerFunctions, extractTaId, extractTaIdFromId } from '../shared/utils/makeGetLastN'
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
 import stringArgv from 'string-argv'
-const virtualRecipient = 'textarea-0'
+const virtualRecipient = 'nya-textarea-0'
 
 export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 export const fakeCli: {
@@ -85,7 +85,9 @@ const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => 
 
 
 function recordKeypress(keyboardEvent: KeyboardEvent, taId = 0): void {
+
     lastFive(taId).push(keyboardEvent)
+
     if (lastFive(taId).length === 6) {
         lastFive(taId).shift()
     }
@@ -177,6 +179,7 @@ const initHistory = async (
     const afterKeypress = getConfig('afterKeypress')
 
     historyListener.on(eventName, id, (_: any, obj: KeyboardEvent) => {
+
         let evRecipient: string
         if (obj.target) {
             if ((obj.target as any)?.id !== undefined) {
@@ -188,7 +191,8 @@ const initHistory = async (
             evRecipient = virtualRecipient
         }
 
-        const deducedId = parseInt(evRecipient.split('-')[1])
+        const deducedId = extractTaIdFromId(evRecipient)
+
         if (isNaN(id) || id < 0) throw new Error(`Error; bad recipient id for key event: ${evRecipient}`)
         if (id !== deducedId) {
             return
@@ -277,6 +281,7 @@ export const getInput: FnGetInput = async (modules, pr, id: number, initInput: s
         inittedHists.push(id)
         const historyListener = await get('historyListener')
         await _getInput(id)
+
         initHistory(() => {
             clearCurrent(curReadline(id))
         }, (...args: any[]) => curReadline(id).write(...args), historyListener, histState, utils, id)
