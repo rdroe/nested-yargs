@@ -1,4 +1,5 @@
 import { ReadlineInterface, HistoryListener, RenewReader, Result, BaseArguments } from '../../shared/utils/types';
+
 import { makeGetLastN, lastFive, extractTaId, isTextArea, isNyargsArea, NON_NYA_RECIPIENT, recordKeypress } from '../../shared/utils/makeGetLastN';
 import { getText } from '../../shared/utils/printResult';
 import { isNumber } from 'shared/utils/validation';
@@ -100,6 +101,7 @@ const displayPrompt = (textArea: HTMLTextAreaElement) => {
 
     const label = document.querySelector(labelSel)
 
+
     if (!label) throw new Error(`Can't find prompText for the specificed <${cssMonikers.nyargsCli}>`)
     label.innerHTML = `<span>${prompt}</span>`
 }
@@ -131,7 +133,7 @@ const recordKeypressCopy: typeof recordKeypress = (obj: RecordKeypressParams[0],
         return
     }
     if (id === NON_NYA_RECIPIENT) {
-
+        console.log('recording by proxy', obj, id)
         recordKeypress(obj, id)
     } else {
         throw new Error(`Would have double recorded an event for ${obj.target?.toString()}`)
@@ -162,6 +164,7 @@ const readlineFunctions = (ta: HTMLTextAreaElement, id: number): ReadlineInterfa
             displayPrompt(ta)
             document.removeEventListener('keyup', handleKeypress, true)
             document.removeEventListener('keydown', handleKeypress, true)
+            //            document.removeEventListener('keydown', recordKeypressProxy, true)
             return new Promise((resolve) => {
 
                 mapSubmitter(ta, (arg: string) => {
@@ -173,6 +176,7 @@ const readlineFunctions = (ta: HTMLTextAreaElement, id: number): ReadlineInterfa
 
                 document.addEventListener('keyup', handleKeypress, true)
                 document.addEventListener('keydown', handleKeypress, true)
+                //                document.addEventListener('keydown', recordKeypressProxy, true)
             })
         }
     }
@@ -415,16 +419,14 @@ export function toggleTa(ta: HTMLTextAreaElement): boolean {
 
 function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
     if (document.activeElement !== ke.target) {
+        //        return
         console.error('at some point, you were returning out on this match')
     }
     const isNy = isNyargsArea(ke.target)
 
     if (!isNy) {
-        // this keypress recording is handled universally, over in runtime/input--except for this one case. 
-        // in the browser only, you might be inputting into a non-nyargs textarea. the document should capture these as some hotkeys (perhaps most) are not focused only on one cli text area
-        // recordKeypress note
-        // longer term, this should also be simulated in Node; allow node to configure global versus focused hotkey recording.
-        recordKeypress(ke, extractTaId(ke.target as HTMLElement))
+
+        recordKeypressProxy(ke)
         return
     }
 
