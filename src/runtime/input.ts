@@ -2,7 +2,7 @@ import { get, getConfig } from '../shared/index'
 import { queue } from '../shared/utils/queue'
 import { Readline, Modules, Module, HistoryListener } from '../shared/utils/types'
 import isNode from '../shared/utils/isNode'
-import { makeGetLastN, lastFive, userListeners, userListenerFunctions, extractTaId, extractTaIdFromId } from '../shared/utils/makeGetLastN'
+import { makeGetLastN, lastFive, userListeners, userListenerFunctions, extractTaId, NON_NYA_RECIPIENT, lastFiveReadonly, makeGetLastNTest, recordKeypress, } from '../shared/utils/makeGetLastN'
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
 import stringArgv from 'string-argv'
@@ -83,21 +83,10 @@ const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => 
 
 
 
-function recordKeypress(keyboardEvent: KeyboardEvent, taId = 0): void {
-
-    lastFive(taId).push(keyboardEvent)
-
-    if (lastFive(taId).length === 6) {
-        lastFive(taId).shift()
-    }
-}
-
 
 const findKeypressMatch = (hotkeys: { [keys: string]: Function }): [string, Function] => {
-
-
-    const last2 = makeGetLastN(0)(2)
-    const last3 = makeGetLastN(0)(3)
+    const last2 = makeGetLastN(NON_NYA_RECIPIENT)(2)
+    const last3 = makeGetLastN(NON_NYA_RECIPIENT)(3)
     const ret = Object.entries(hotkeys).find(([key, fn]) => [last2, last3].filter(elem => !!elem).includes(key))
 
     return ret
@@ -189,21 +178,23 @@ const initHistory = async (
             evRecipient = virtualRecipient
         }
 
-        const deducedId = extractTaIdFromId(evRecipient)
+        const deducedId = extractTaId(evRecipient)
+        console.log('deduced id', deducedId)
 
-        if (isNaN(id) || id < 0) throw new Error(`Error; bad recipient id for key event: ${evRecipient}`)
-        if (id !== deducedId) {
+        if (typeof deducedId === 'number' && id !== deducedId) {
+
             return
         }
 
         if (obj.type && obj.type === 'keydown') {
+            console.log('recording directly to', id)
             recordKeypress(obj, id)
         }
 
         if (obj.type && obj.type !== eventName) {
-
             return false
         }
+
         const matches = findKeypressMatch(hotkeys)
 
         // if the up arrow is pressed, clear the current terminal contents.

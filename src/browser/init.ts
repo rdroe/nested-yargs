@@ -1,7 +1,23 @@
 
+export const cssMonikers = {
+    nyargsCli: 'nya-textarea',
+    isOffscreen: 'nya-is-offscreen',
+}
+
+export const classesByName = (id: number) => ({
+    promptText: [`nya-prompt-text`, `nya-prompt-text-${id}`],
+    printArea: [`nya-print-area`, `nya-print-area-${id}`],
+    printAreaText: [`nya-print-area-text`, `nya-print-area-text-${id}`],
+    textareaContainer: [`nya-container`, `nya-container-${id}`],
+    textarea: [`${cssMonikers.nyargsCli}`, `${cssMonikers.nyargsCli}-${id}`]
+})
+
+export const idsByName = (id: number) => ({
+    textarea: `${cssMonikers.nyargsCli}-${id}`,
+    textareaContainer: `nya-container-${id}`
+})
 
 export default () => {
-
     document.head.innerHTML += `
 <!-- Injected by nyargs -->
 <style>
@@ -17,7 +33,8 @@ export default () => {
 body {
     background-color: var(--main-bg-color);
 }
-.text-area-container {
+.nya-container {
+    overflow: visible;
     position: fixed;
     right: 0;
     width: 35%;
@@ -25,7 +42,7 @@ body {
     color: var(--main-text-color);
 }
 
-.print-area {
+.nya-print-area {
     position: fixed;
     top: 0;
     height: 100%;
@@ -33,21 +50,21 @@ body {
     color: var(--main-text-color);
 }
 
-.print-area-text {
+.nya-print-area-text {
     position: absolute;
     margin-bottom: 10vh;
 }
 
-.print-area:not(.is-offscreen) {
+.nya-print-area:not(.nya-is-offscreen) {
     width: 20vw;
     right: 0;
 }
 
-.print-area.is-offscreen {
+.nya-print-area.nya-is-offscreen {
     right: -100%;
 }
 
-.print-area > pre {
+.nya-print-area > pre {
     width: 100%;
     border-bottom-width: 9vh;
     border-bottom-color: transparent;
@@ -55,19 +72,29 @@ body {
     border-bottom-style: solid;    
 }
 
-.text-area-container.is-offscreen {
+.nya-container.nya-is-offscreen {
     bottom: -100%;
 }
 
-.text-area-container:not(.is-offscreen) {
+.nya-container:not(.nya-is-offscreen) {
     bottom: 0;
 }
 
-.text-area-container > textarea {
+.nya-textarea {
+    height: 100%; 
+    width: 100%;
     background-color: rgba(0, 0, 0, 50%);
     color: var(--main-text-color);
 }
 
+.nya-prompt-text {
+    position: absolute; 
+    right: 100%; 
+    width: 100%; 
+    top: 0; 
+    display: flex; 
+    justify-content: end;
+}
 </style>`
 
 }

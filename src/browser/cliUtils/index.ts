@@ -1,15 +1,13 @@
 import { ReadlineInterface, HistoryListener, RenewReader, Result, BaseArguments } from '../../shared/utils/types';
-
-import { makeGetLastN, lastFive, extractTaId } from '../../shared/utils/makeGetLastN';
+import { makeGetLastN, lastFive, extractTaId, isTextArea, isNyargsArea, NON_NYA_RECIPIENT, recordKeypress } from '../../shared/utils/makeGetLastN';
 import { getText } from '../../shared/utils/printResult';
 import { isNumber } from 'shared/utils/validation';
+import { cssMonikers, classesByName, idsByName } from 'browser/init';
 
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
 const latestTextArea = (id: number = 0) => textAreas[id] ? textAreas[id] : null
 const prompts = new Map<HTMLTextAreaElement, string>()
-
-
 const callables = new Map<HTMLTextAreaElement, Function>()
 const submitters = new Map<HTMLTextAreaElement, Function>()
 const printAreas = new Map<HTMLTextAreaElement, HTMLElement>()
@@ -67,24 +65,9 @@ const maps = {
 
 maps.init<boolean>('toggled')
 
-// styles
-export const cssMonikers = {
-    nyargsCli: 'nya-textarea',
-    isOffscreen: 'is-offscreen',
-}
 
-const classesByName = (id: number) => ({
-    promptText: [`prompt-text`, `prompt-text-${id}`],
-    printArea: [`print-area`, `print-area-${id}`],
-    printAreaText: [`print-area-text`, `print-area-text-${id}`],
-    textareaContainer: [`text-area-container`, `text-area-container-${id}`],
-    textarea: [`nya-textarea`, `nya-textarea-${id}`]
-})
 
-const idsByName = (id: number) => ({
-    textarea: `${cssMonikers.nyargsCli}-${id}`,
-    textAreaContainer: `text-area-container-${id}`
-})
+
 
 export const getClassString = (id: number, str: keyof ReturnType<typeof classesByName>) => {
     return classesByName(id)[str].join(' ')
@@ -97,11 +80,8 @@ export const getCssId = (id: number, str: keyof ReturnType<typeof idsByName>) =>
 
 const idSel = (str: string) => `#${str}`
 const classesSel = (str: string) => `.${str.replace(/\s/g, '.')}`
-export const styles: { [Property in keyof ReturnType<typeof classesByName>]?: string } = {
-    textareaContainer: 'overflow: visible;',
-    promptText: 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;',
-    textarea: 'height: 100%; width: 100%;'
-}
+
+
 
 //end styles
 
@@ -115,10 +95,10 @@ const displayPrompt = (textArea: HTMLTextAreaElement) => {
     const prompt = getPrompt(textArea)
     // get the container to update with freshest text
     const taId = extractTaId(textArea)
+    if (typeof taId !== 'number') throw new Error('Number is required')
     const labelSel = classesSel(getClassString(taId, 'promptText'))
 
     const label = document.querySelector(labelSel)
-
 
     if (!label) throw new Error(`Can't find prompText for the specificed <${cssMonikers.nyargsCli}>`)
     label.innerHTML = `<span>${prompt}</span>`
@@ -145,6 +125,25 @@ const textAreaUtils = (id: number = 0) => {
     }
 }
 
+type RecordKeypressParams = Parameters<typeof recordKeypress>
+const recordKeypressCopy: typeof recordKeypress = (obj: RecordKeypressParams[0], id: RecordKeypressParams[1]) => {
+    if (obj.type !== 'keydown') {
+        return
+    }
+    if (id === NON_NYA_RECIPIENT) {
+
+        recordKeypress(obj, id)
+    } else {
+        throw new Error(`Would have double recorded an event for ${obj.target?.toString()}`)
+    }
+}
+
+const recordKeypressProxy: (ev: KeyboardEvent) => ReturnType<typeof recordKeypress> = (ev: KeyboardEvent) => {
+    if (ev.target && !isNyargsArea(ev.target)) {
+        const id = extractTaId(ev.target as HTMLElement)
+        recordKeypressCopy(ev, id)
+    }
+}
 const readlineFunctions = (ta: HTMLTextAreaElement, id: number): ReadlineInterface => {
 
     const utils = textAreaUtils(id)
@@ -187,7 +186,7 @@ const getOrInitPrintArea = (ta: HTMLTextAreaElement) => {
         if (num === -1) throw new Error('Error; could not find cached text area to match that one')
         const added = addElem('div', {
             class: getClassString(num, 'printArea'),
-            style: styles.printArea
+
         })
 
         const text = addElem('pre', {
@@ -231,8 +230,8 @@ ${text}
 
 
 const getLastTwo = (ta: HTMLTextAreaElement) => {
-    const id = extractTaId(ta)
-    return makeGetLastN(id)(2)
+    //    const id = extractTaId(ta)
+    return makeGetLastN(NON_NYA_RECIPIENT)(2)
 
 }
 interface BaseAttribs {
@@ -266,42 +265,30 @@ const addElem = <
     return elem
 }
 
-// make configurable
-function isNyargsArea(elem: any): elem is HTMLTextAreaElement {
-    const isNyaTa = elem.id.startsWith(`${cssMonikers.nyargsCli}-`)
-    return isTextArea(elem) && isNyaTa
-    // return isTextArea(elem) && elem.classList.contains('nya-textarea')
-}
 
-function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
-    if (elem?.tagName === 'TEXTAREA') return true
-    return false
-}
+
+
 
 // make configurable
 const makeTextArea = (id: number): HTMLTextAreaElement => {
 
     const parent = addElem('div', {
-        style: 'overflow: visible;',
-        class: `text-area-container text-area-container-${id}`,
-        id: `text-area-container-${id}`
+        class: getClassString(id, 'textareaContainer'),
+        id: getCssId(id, 'textareaContainer')
     })
 
     addElem('div', {
-        'class': `prompt-text prompt-text-${id}`,
-        'style': 'position: absolute; right: 100%; width: 100%; top: 0; display: flex; justify-content: end;'
+        'class': getClassString(id, 'promptText'),
+
     }, {
         parent
     })
-    const idName = getCssId(id, 'textarea')
-    const idSelector = idSel(idName)
-    const classStr = getClassString(id, 'textarea')
-    const classSel = classesSel(classStr)
 
+    const idName = getCssId(id, 'textarea')
+    const classStr = getClassString(id, 'textarea')
     const ta = addElem('textarea', {
         id: idName,
         class: classStr,
-        style: styles.textarea,
         autofocus: true
     }, {
         parent
@@ -312,7 +299,6 @@ const makeTextArea = (id: number): HTMLTextAreaElement => {
     }
     maps.sett('toggled', ta, true)
     return ta
-
 }
 
 export const historyListener: HistoryListener = {
@@ -363,25 +349,26 @@ export const renewReader: RenewReader = async (pr: string, id: number): Promise<
 
 
 function handleKeypress(ke: KeyboardEvent) {
-    const id = extractTaId(ke.target as HTMLTextAreaElement)
+
+    //    const id = extractTaId(ke.target as HTMLTextAreaElement)
     handleTextKeypress(ke)
 
     handleAnyKeypress(ke)(true, async () => {
+        ke.stopPropagation()
+        const lastFour = makeGetLastN(NON_NYA_RECIPIENT)(4)
 
-        const lastFour = makeGetLastN(id)(4)
+        if (lastFour.startsWith('-Control-Shift-:-') && ke.type === 'keydown') {
+            lastFive(NON_NYA_RECIPIENT).map(ev => { ev.preventDefault(); ev.stopPropagation() })
 
-        if (lastFour.startsWith('-Control-Shift-;-')) {
-            lastFive(id).map(ev => ev.preventDefault())
-            const keypress = lastFour.split('-Control-Shift-;-')[1]
+            const keypress = lastFour.split('-Control-Shift-:-')[1]
             if (!isNumber(keypress)) {
-                throw new Error(`For -Control-Shift-;-[some key] hotkey, [some key] must be a number`)
+                throw new Error(`For -Control-Shift-:-[some key] hotkey, [some key] must be a number; received: ${lastFour}`)
             }
             const num = parseInt(keypress)
             const cStr = getClassString(num, 'textarea')
             const cSel = classesSel(cStr)
             const ta = document.querySelector(cSel)
             const isNyargs = isNyargsArea(ta)
-
             if (ta && isNyargs) {
                 const isOn = toggleTa(ta)
                 if (isOn) {
@@ -408,17 +395,19 @@ function handleAnyKeypress(ke: KeyboardEvent) {
 
 // make configurable
 export function toggleTa(ta: HTMLTextAreaElement): boolean {
+    const taId = extractTaId(ta)
+    console.log('toggling! ta is ', taId)
     const toggled = maps.get('toggled', ta)
     const pa = taParent(ta)
     const printArea = getPrintArea(ta)
     const newTog = !toggled
 
     if (newTog) {
-        pa.classList.remove('is-offscreen')
-        if (printArea?.parentElement) printArea.parentElement.classList.remove('is-offscreen')
+        pa.classList.remove(cssMonikers.isOffscreen)
+        if (printArea?.parentElement) printArea.parentElement.classList.remove(cssMonikers.isOffscreen)
     } else {
-        pa.classList.add('is-offscreen')
-        if (printArea?.parentElement) printArea.parentElement.classList.add('is-offscreen')
+        pa.classList.add(cssMonikers.isOffscreen)
+        if (printArea?.parentElement) printArea.parentElement.classList.add(cssMonikers.isOffscreen)
     }
     maps.sett('toggled', ta, newTog)
     return newTog
@@ -426,12 +415,16 @@ export function toggleTa(ta: HTMLTextAreaElement): boolean {
 
 function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
     if (document.activeElement !== ke.target) {
-        //        return
         console.error('at some point, you were returning out on this match')
     }
     const isNy = isNyargsArea(ke.target)
 
     if (!isNy) {
+        // this keypress recording is handled universally, over in runtime/input--except for this one case. 
+        // in the browser only, you might be inputting into a non-nyargs textarea. the document should capture these as some hotkeys (perhaps most) are not focused only on one cli text area
+        // recordKeypress note
+        // longer term, this should also be simulated in Node; allow node to configure global versus focused hotkey recording.
+        recordKeypress(ke, extractTaId(ke.target as HTMLElement))
         return
     }
 

@@ -1,38 +1,96 @@
 import { ReadlineInterface } from "./types"
-import { isNumber } from "./validation"
+import { cssMonikers } from 'browser/init';
+export const NON_NYA_RECIPIENT = 'NON_NYA_RECIPIENT'
 
 
-export const extractTaIdFromId = (id: string) => {
-    const splitted = id.split('-')
+// may return NaN
+const splitAndNumberize = (ta: string) => {
+    const splitted = ta.split('-')
     const last = splitted.pop()
-    if (!isNumber(last)) throw new Error(`A number is required as lat "-"-separated section of a textarea id; this id does not match that scheme: ${id}`)
     return parseInt(last, 10)
 }
+export function isTextArea(elem: HTMLElement): elem is HTMLTextAreaElement {
+    if (elem?.tagName === 'TEXTAREA') return true
+    return false
+}
+export function isNyargsArea(elem: any): elem is HTMLTextAreaElement {
+    const isNyaTa = elem.id.startsWith(`${cssMonikers.nyargsCli}-`)
+    return isTextArea(elem) && isNyaTa
+    // return isTextArea(elem) && elem.classList.contains('nya-textarea')
+}
+export const extractTaId = (ta: string | HTMLElement): number | typeof NON_NYA_RECIPIENT => {
 
-export const extractTaId = (ta: HTMLTextAreaElement) => {
-    const id = (ta as { id: string }).id
-    return extractTaIdFromId(id)
+    if (typeof ta !== 'string' && !ta.tagName) {
+        console.error(ta)
+        throw new Error(`An html element is required for textarea id extraction. problem element is logged above`)
+    }
+
+    if (typeof ta === 'string') {
+        const asInt = splitAndNumberize(ta)
+        return isNaN(asInt) ? NON_NYA_RECIPIENT : asInt
+    }
+
+    if (!isNyargsArea(ta)) return NON_NYA_RECIPIENT
+
+    const fullId = (ta as { id: string }).id
+
+    if (!fullId) {
+        return NON_NYA_RECIPIENT
+    }
+
+    const id = splitAndNumberize(fullId)
+
+    if (isNaN(id)) {
+        throw new Error(`Badly formatted textarea id for nyargs text area: ${fullId}`)
+    }
+
+    return id
+}
+type numOrNonNya = number | typeof NON_NYA_RECIPIENT
+
+const lastFiveById: { [Property in numOrNonNya]: KeyboardEvent[] } = {
+    0: [],
+    [NON_NYA_RECIPIENT]: []
 }
 
-const lastFiveById: { [id: number]: KeyboardEvent[] } = {
-    0: []
-}
+export const lastFive = (id: /*number | */typeof NON_NYA_RECIPIENT): KeyboardEvent[] => {
 
-export const lastFive = (id: number = 0): KeyboardEvent[] => {
     if (!lastFiveById[id]) {
         lastFiveById[id] = []
     }
+
     return lastFiveById[id]
 }
 
-export const makeGetLastN = (id: number = 0) => {
+
+export const lastFiveReadonly = (id: number): KeyboardEvent[] => {
+
+    if (!lastFiveById[id]) {
+        lastFiveById[id] = []
+    }
+
+    return lastFiveById[id]
+}
+
+
+export const makeGetLastN = (id: typeof NON_NYA_RECIPIENT) => {
+    return makeGetLastN_(id)
+}
+
+export const makeGetLastNTest = (id: number) => {
+    return makeGetLastN_(id)
+}
+
+export const makeGetLastN_ = (id: number | typeof NON_NYA_RECIPIENT) => {
+
     if (lastFiveById[id] === undefined) {
         lastFiveById[id] = []
     }
+
     return (n: number) => {
         // needs to be redone as more of a state machine
-
-        const lastTwo = lastFive(id).slice(lastFive(id).length - n).reduce((accum: string, ke: KeyboardEvent, idx: number) => {
+        // @ts-ignore
+        const lastN = lastFive(id).slice(lastFive(id).length - n).reduce((accum: string, ke: KeyboardEvent) => {
             // browser-only above line
             if (ke.type !== 'keyup' && ke.type !== 'keydown') {
                 if ((ke as any).sequence === undefined) {
@@ -79,7 +137,7 @@ export const makeGetLastN = (id: number = 0) => {
             }
         }, '')
 
-        return lastTwo
+        return lastN
     }
 }
 
@@ -107,3 +165,26 @@ export const addListener = (name: string, fn: listener, b: beforeListener = () =
 }
 
 export let keypressFinished: Promise<void> = Promise.resolve()
+
+export function recordKeypress(keyboardEvent: KeyboardEvent, taId: number | typeof NON_NYA_RECIPIENT): void {
+
+    lastFive(NON_NYA_RECIPIENT).push(keyboardEvent)
+    if (lastFive(NON_NYA_RECIPIENT).length === 6) {
+        lastFive(NON_NYA_RECIPIENT).shift()
+    }
+
+    if (typeof taId === 'number') {
+        lastFiveReadonly(taId).push(keyboardEvent)
+        if (lastFiveReadonly(taId).length === 6) {
+            lastFiveReadonly(taId).shift()
+        }
+        const last2 = makeGetLastNTest(taId)(2)
+        console.log('last 2 in that ta', last2)
+
+    }
+
+
+
+
+}
+
