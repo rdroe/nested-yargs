@@ -425,7 +425,13 @@ function handleTextKeypress(ke: KeyboardEvent): Promise<void> {
     const isNy = isNyargsArea(ke.target)
 
     if (!isNy) {
-
+        // this keypress recording is handled universally, over in                                                                                                       
+        // runtime/input--except for this one case.  in the browser                                                                                                      
+        // only, you might be inputting into a non-nyargs                                                                                                                
+        // textarea. the document should capture these as some hotkeys                                                                                                   
+        // (perhaps most) are not focused only on one cli text area                                                                                                      
+        // recordKeypress note longer term, this should also be                                                                                                          
+        // simulated in Node; allow node to configure global                                                                                                             
         recordKeypressProxy(ke)
         return
     }
