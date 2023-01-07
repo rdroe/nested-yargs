@@ -2,7 +2,7 @@ import files from './files'
 import { set, get, getConfig, configure, configured } from '../shared'
 import { historyListener, print, renewReader, terminalUtils, toggleTa, } from './cliUtils'
 import { printResult } from '../shared/utils/printResult'
-import { Configuration, ConfigOptions, Result } from '../shared/utils/types'
+import { Configuration, ConfigOptions, Result, ResultWithBaseArgs } from '../shared/utils/types'
 import { db as getDb, filesDb as getFilesDb } from './db'
 import init from './init'
 const defaultConfig: Configuration = {
@@ -15,7 +15,7 @@ const defaultConfig: Configuration = {
         printResult: print, // configure to determine print behavio
         afterKeypress: async (ke) => { }, // " after any keypress
         // " process all results before they are cached
-        processResult: async (result: Result) => { return result },
+        processResult: async (result: ResultWithBaseArgs) => { return result },
         messageUser: console.log,
         useFakeDb: false,
         init

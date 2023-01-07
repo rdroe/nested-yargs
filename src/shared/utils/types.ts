@@ -1,5 +1,5 @@
 //import { Dexie as DexieCore } from 'dexie'
-
+import { ParsedCli } from "./cliParser"
 import { RESULT_KEY as RESULT_KEY_VAL } from "./const"
 export const RESULT_KEY = RESULT_KEY_VAL
 
@@ -89,8 +89,22 @@ export interface MultiResult {
 
 export type Result = SingleResult | MultiResult
 
-export interface PrintResult<T extends BaseArguments = BaseArguments> {
-    (argv: T, res: Result): Promise<boolean>
+export type SingleOrMulti = {
+    argv: ParsedCli
+    isMultiResult: boolean
+    errorInfo: null | string
+    list?: {
+        [str: string]: SingleResult
+    },
+    [RESULT_KEY]?: any
+}
+
+export type ResultWithBaseArgs = {
+    argv: ParsedCli
+} & SingleOrMulti
+
+export interface PrintResult<T extends ParsedCli = ParsedCli> {
+    (argv: T, res: SingleOrMulti): Promise<boolean>
 }
 
 export type Readline = {
@@ -190,11 +204,12 @@ export interface ConfigOptions {
     wrapperFn?: (cmd: string, modules?: Modules) => string
     hotkeys?: Hotkeys
     afterKeypress?: (ke: KeyboardEvent | NodeKeypress) => Promise<void>
-    processResult?: (result: Result) => Promise<any>
+    processResult?: (result: ResultWithBaseArgs) => Promise<any>
     messageUser?: (...messages: any) => void
     useFakeDb?: boolean
     init?: (...args: any[]) => any
 }
+
 
 export interface Configuration {
     shared?: ConfigOptions

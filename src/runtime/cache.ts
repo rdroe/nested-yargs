@@ -1,8 +1,9 @@
-import { BaseArguments, Result } from '../shared/utils/types'
+import { Result } from '../shared/utils/types'
 import { put, Entry } from './store'
 import { dbPath } from '../shared/utils/dbPath'
 import { importFromJson, clearDatabase, exportToJson } from '../shared/idb-backup-and-restore'
 import { get } from '../shared'
+import { ParsedCli } from 'shared/utils/cliParser'
 
 export const dbPathUtil = dbPath
 export const context: {
@@ -12,7 +13,7 @@ export const context: {
     currentResolve: null
 }
 
-const cacheResult = async (argv: BaseArguments & {}, data: object) => {
+const cacheResult = async (argv: ParsedCli & {}, data: object) => {
 
 
     if (!argv || data === undefined) {
@@ -32,7 +33,7 @@ const cacheResult = async (argv: BaseArguments & {}, data: object) => {
     if ((argv._ || []).includes('cache')) {
         return
     }
-
+    console.log('entry for cache', argv?.filters)
     const entry: Entry =
     {
 
@@ -47,14 +48,14 @@ const cacheResult = async (argv: BaseArguments & {}, data: object) => {
             : [],
 
         value: data,
-        filters: argv?.filters
+        filters: [argv?.filters as string]
     }
 
     await put(entry)
 }
 
 export const cache = async <Storable extends { isMultiResult?: boolean, list?: { [key: string]: any } } = Result>(
-    argv: BaseArguments,
+    argv: ParsedCli,
     data: Storable) => {
     if (argv.help) {
         console.log('escaping cache (help)')

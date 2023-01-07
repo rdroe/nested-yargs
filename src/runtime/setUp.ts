@@ -1,4 +1,4 @@
-import { Module, ParallelModule, Result, Modules, BaseArguments } from '../shared/utils/types'
+import { Module, ParallelModule, Result, Modules, BaseArguments, MultiResult, SingleResult, ResultWithBaseArgs } from '../shared/utils/types'
 import stringArgv from 'string-argv'
 import loop, { Executor } from './loop'
 import { showModule } from './help'
@@ -301,7 +301,7 @@ async function orderCallsAsync(entries: [string, WrapperFn][], opts1: any): Prom
 let resolveCaller: Function
 
 export const caller: {
-    get: Promise<(m: Modules, input: string) => { argv: BaseArguments, [RESULT_KEY]: object }>
+    get: Promise<(m: Modules, input: string) => Promise<ResultWithBaseArgs>>
 } = {
 
     get: new Promise((res) => {
@@ -323,20 +323,15 @@ const flattenModules = (ms: Module[], accum: UserYargs = {}) => {
 }
 
 export const makeCaller = (): Executor => {
-
-    const caller = async (modules: { [moduleName: string]: Module }, input: string) => {
-
+    const caller: Executor = async (modules: { [moduleName: string]: Module }, input: string) => {
         const lookUpAndCall = await makeLookUpAndCall()
         const simArgv = stringArgv(input)
-
         const allUserYargs: UserYargs = flattenModules(Object.values(modules))
-
         const argv = parse(modules, { ...yargsStarter, ...allUserYargs }, simArgv)
-
         const commands = argv._
         const result = await lookUpAndCall(modules, simArgv, commands)
-
-        return { argv, [RESULT_KEY]: result }
+        console.log('in executor (setup)', result)
+        return { argv, ...result }
     }
     resolveCaller(caller)
     return caller
@@ -351,6 +346,7 @@ export const repl = async (modules: { [moduleName: string]: Module | ParallelMod
     await setAll()
 
     try {
+
         const caller = makeCaller()
         return loop(
             modules as Modules /* importantly, more complex than actual "Modules" we are as-ing to*/,

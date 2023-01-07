@@ -2,12 +2,9 @@ import { cache } from './cache'
 import { parseCacheInstructions } from './store'
 import { firstReaders, getInput, _getInput } from './input'
 import {
-    BaseArguments,
     Module,
-    ParallelModule,
-    Result,
-    SingleResult,
-    Modules
+    Modules,
+    ResultWithBaseArgs
 } from '../shared/utils/types'
 import { get } from '../shared/index'
 import { program } from '../shared/utils/queue'
@@ -32,21 +29,8 @@ const containsInterrupt = (rawInput: string) => {
 
 
 /** Given input verified by verifyAndExecuteCli, force the running of the typed command. */
-const getExecuteCli = async (modules: { [moduleName: string]: Module | ParallelModule }, yargsCaller: Function) => async (input: string): Promise<{ argv: any, [RESULT_KEY]: any }> => {
-
-    let result: any
-    let argv: any
-
-
-    const x = await yargsCaller(modules, input || '')
-    if (!x) {
-        return
-    }
-
-    result = x[RESULT_KEY]
-    argv = x.argv
-
-    return { [RESULT_KEY]: result, argv }
+const getExecuteCli = async (modules: { [moduleName: string]: Module }, yargsCaller: Executor) => async (input: string): Promise<ResultWithBaseArgs> => {
+    return (await yargsCaller(modules, input || '')) || undefined
 }
 
 
@@ -55,7 +39,7 @@ async function verifyAndExecuteCli(
     modules: Modules,
     forwardedInput: string | null,
     id: number,
-    executor: (arg0: string) => Promise<{ [RESULT_KEY]: SingleResult[typeof RESULT_KEY], argv: BaseArguments }>,
+    executor: (arg0: string) => Promise<ResultWithBaseArgs>,
     tempPrompt: string = userPrompt
 ): Promise<{ argv: object, [RESULT_KEY]: object }> {
     if (typeof RESULT_KEY !== 'string') throw new Error(`String required as RESULT_KEY`)
@@ -63,7 +47,6 @@ async function verifyAndExecuteCli(
     let rawInput: string
     let didUseProgram: boolean = false
     const printResult = await get('printResult')
-
     // Obtain input and execute. 
     // If this is a recursion, with input already present, feed that forward.
 
@@ -104,31 +87,33 @@ async function verifyAndExecuteCli(
             console.log('program line expanded: ', input)
         }
 
+
         // if raw matches new, just replace.
         const ret = await executor(input)
-        await printResult(ret.argv, ret[RESULT_KEY])
+        await printResult(ret.argv, ret)
         // look at the arguments and results, cache if appropriate.
-        await processResult(ret[RESULT_KEY])
+        await processResult(ret)
 
-        await cache(ret.argv, ret[RESULT_KEY])
+        await cache(ret.argv, ret)
         // start fresh
         return verifyAndExecuteCli(modules, null, id, executor)
     }
 }
 
-export type Executor = (modules: { [moduleName: string]: Module }, input: string) => Promise<{ argv: object, [RESULT_KEY]: Result }>
+
+export type Executor = (modules: { [moduleName: string]: Module }, input: string) => Promise<ResultWithBaseArgs>
 
 // Given a list of modules and a yargs executer-helper, provide a repl-like environment for working on command lines and running them.
 const repl = (
     modules: Modules,
-    yargsCaller: Executor,
+    caller: Executor,
     id: number,
     prompt?: string
 ): Promise<any> => {
     userPrompt = prompt ? prompt : userPrompt
     // Set up the direct evaluator of the cli, which runs after conversation with the user such as "are you sure you want to use this command line string" and background caching behavior.
 
-    const executeCli = getExecuteCli(modules, yargsCaller)
+    const executeCli = getExecuteCli(modules, caller)
     executeCli.then((execCliRes) => {
         verifyAndExecuteCli(modules, null, id, execCliRes)
     })

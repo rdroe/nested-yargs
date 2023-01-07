@@ -1,9 +1,10 @@
-import { ReadlineInterface, HistoryListener, RenewReader, Result, BaseArguments } from '../../shared/utils/types';
+import { ReadlineInterface, HistoryListener, RenewReader, Result, BaseArguments, SingleOrMulti } from '../../shared/utils/types';
 
 import { makeGetLastN, lastFive, extractTaId, isTextArea, isNyargsArea, NON_NYA_RECIPIENT, recordKeypress } from '../../shared/utils/makeGetLastN';
 import { getText } from '../../shared/utils/printResult';
 import { isNumber } from 'shared/utils/validation';
 import { cssMonikers, classesByName, idsByName } from 'browser/init';
+import { ParsedCli } from 'shared/utils/cliParser';
 
 const DO_AUTO_SCROLL = true
 const textAreas: HTMLTextAreaElement[] = []
@@ -214,8 +215,9 @@ const getOrInitPrintArea = (ta: HTMLTextAreaElement) => {
     return printArea
 }
 
-export const print = <T extends BaseArguments = BaseArguments>(argv: T, arg: Result, ta: HTMLTextAreaElement = latestTextArea()): Promise<boolean> => {
+export const print = <T extends ParsedCli = ParsedCli>(argv: T, arg: SingleOrMulti, ta: HTMLTextAreaElement = latestTextArea()): Promise<boolean> => {
     const printArea = getOrInitPrintArea(ta)
+
     const text = getText(argv, arg)
 
     printArea.innerHTML = `${printArea.innerHTML}

@@ -1,6 +1,6 @@
 import { get, getConfig } from '../shared/index'
 import { queue } from '../shared/utils/queue'
-import { Readline, Modules, Module, HistoryListener } from '../shared/utils/types'
+import { Readline, Modules, Module, HistoryListener, Result, BaseArguments, ResultWithBaseArgs } from '../shared/utils/types'
 import isNode from '../shared/utils/isNode'
 import { makeGetLastN, lastFive, userListeners, userListenerFunctions, extractTaId, NON_NYA_RECIPIENT, lastFiveReadonly, makeGetLastNTest, recordKeypress, } from '../shared/utils/makeGetLastN'
 import { caller } from './setUp'
@@ -10,15 +10,14 @@ const virtualRecipient = 'nya-textarea-0'
 export { userListeners, addListener } from '../shared/utils/makeGetLastN'
 export const fakeCli: {
     modules: Modules | null
-    handle: (str: string) => Promise<{ argv: object, [RESULT_KEY]: object }>,
+    handle: (str: string) => Promise<ResultWithBaseArgs>,
     getCommandCounter: (modules?: Modules | null) => (str: string) => number,
     getMatchingModules: (modules?: Modules | null) => (str: string) => Module[],
 } = {
     modules: null,
     handle: async (str: string) => {
         const fn = await caller.get
-        const answer = await fn(fakeCli.modules, str)
-        return answer
+        return fn(fakeCli.modules, str)
     },
     getCommandCounter: (moduleObj: Modules | null = fakeCli.modules) => (str: string) => {
         if (!moduleObj) return 0

@@ -1,13 +1,14 @@
+import { ParsedCli } from "./cliParser"
 import { RESULT_KEY } from "./const"
-import { BaseArguments, Result } from "./types"
+import { BaseArguments, Result, SingleOrMulti } from "./types"
 
 const strJson = (arg: any) => JSON.stringify(arg, null, 2)
 
-export const getText = <T extends BaseArguments = BaseArguments>(argv: T, result: Result): string => {
-
+export const getText = <T extends ParsedCli = ParsedCli>(argv: T, result: SingleOrMulti): string => {
     if (argv.help === true) {
         return ''
     }
+
     if (result.isMultiResult === false) {
         console.log(result[RESULT_KEY])
         return strJson(result[RESULT_KEY])
@@ -35,7 +36,7 @@ ${strJson(result)}`
 }
 
 
-export const printResult = async <T extends BaseArguments>(argv: T, result: Result, optional?: any): Promise<boolean> => {
+export const printResult = async <T extends ParsedCli>(argv: T, result: SingleOrMulti, optional?: any): Promise<boolean> => {
     if (argv.help === true) {
         return true
     }

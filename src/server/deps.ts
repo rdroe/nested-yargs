@@ -3,7 +3,7 @@ import { set, get, getConfig, configure, configured } from '../shared'
 import { db as getDb } from './db'
 import { renewReader, terminalUtils } from './cliUtils'
 import { printResult } from '../shared/utils/printResult'
-import { ConfigOptions, Configuration, Result } from '../shared/utils/types'
+import { ConfigOptions, Configuration, Result, ResultWithBaseArgs } from '../shared/utils/types'
 
 require('source-map-support').install();
 
@@ -24,8 +24,7 @@ const defaultConfig: Configuration = {
             }
         },
         afterKeypress: async (ke) => { },
-        processResult: async (result: Result) => {
-
+        processResult: async (result: ResultWithBaseArgs) => {
             return result
         },
         messageUser: console.log
