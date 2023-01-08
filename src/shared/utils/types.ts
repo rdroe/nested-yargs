@@ -1,4 +1,5 @@
 //import { Dexie as DexieCore } from 'dexie'
+import { UiDb } from "server/db"
 import { ParsedCli } from "./cliParser"
 import { RESULT_KEY as RESULT_KEY_VAL } from "./const"
 export const RESULT_KEY = RESULT_KEY_VAL
@@ -55,7 +56,7 @@ class UiDb extends DexieCore {
 }
 */
 
-export type Db = any // InstanceType<typeof UiDb>
+export type Db = InstanceType<typeof UiDb>
 
 export interface TerminalUtils {
     default?: TerminalUtils,
