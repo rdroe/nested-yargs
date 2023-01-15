@@ -31,7 +31,7 @@ class UserTables extends NyargsDb {
     public constructor(options: DexieOptions = {}) {
         super("UserTables", options)
         this.version(1).stores({
-            userTables: 'id++,table, a, [table+a], b, [table+b], [table+a+b], c, [table+a+c], [table+a+b+c], [table+a+c], d, [table+a+b+c+d], e, [table+a+b+c+d+e], f, [table+a+b+c+d+e+f], data, createdAt'
+            userTables: 'id++,table, a, [table+a], b, [table+b], [table+a+b], c, [table+a+c], [table+a+b+c], d, [table+a+b+c+d], e, [table+a+b+c+d+e], f, [table+a+b+c+d+e+f], data, createdAt'
         });
         this.userTables = this.table('userTables')
     }
@@ -106,8 +106,11 @@ export const userTables = {
         return utDb.userTables.add({ table, a: indexes.a, ...indexes, data, createdAt })
     },
     where: async (table: string, indexes: { id?: number, a: string } & OptionalIndexes): Promise<UtsWhere> => {
+
         const utDb = await utSingleton.ut
-        return utDb.userTables.where({ table, ...indexes })
+        const whereRes = utDb.userTables.where({ table, ...indexes })
+
+        return whereRes
     },
     update: async (table: string, a: string, data: { [key: string]: any }, optionalIndexes: OptionalIndexes = defaultIndexes): Promise<ReturnType<Uts['userTables']['update']>> => {
         const utDb = await utSingleton.ut
@@ -117,11 +120,20 @@ export const userTables = {
     upsert: async (table: string, a: string, data: { [key: string]: any }, optionalIndexes: OptionalIndexes = defaultIndexes): Promise<ReturnType<Uts['userTables']['update']>> => {
 
         const indexes: { table: string, a: string } & OptionalIndexes = { table, a, ...optionalIndexes }
+
         const gotten = await userTables.where(table, indexes)
+
         if (gotten && (await gotten.count()) > 0) {
-            return userTables.update(table, a, data, optionalIndexes)
+
+            const updateRes = await userTables.update(table, a, data, optionalIndexes)
+
+            return updateRes
         }
-        return userTables.add(table, data, { a, ...optionalIndexes })
+
+
+        const res = await userTables.add(table, data, { a, ...optionalIndexes })
+
+        return res
     },
     config: async (key: string, val: string | null = null): Promise<ReturnType<Uts['userTables']['update']> | { [key: string]: any }> => {
         if (val === null) {

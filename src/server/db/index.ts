@@ -26,10 +26,10 @@ class UserTables extends NyargsDb {
         createdAt: number
     } & OptionalIndexes>
     public constructor() {
-        console.log('indexedb', fidb.IDBKeyRange)
+
         super("UserTables", { indexedDB: fidb.indexedDB, IDBKeyRange: fidb.IDBKeyRange })
         this.version(1).stores({
-            userTables: 'id++,table, a, [table+a], b, [table+b], [table+a+b], c, [table+a+c], [table+a+b+c], [table+a+c], d, [table+a+b+c+d], e, [table+a+b+c+d+e], f, [table+a+b+c+d+e+f], data, createdAt'
+            userTables: 'id++,table, a, [table+a], b, [table+b], [table+a+b], c, [table+a+c], [table+a+b+c], d, [table+a+b+c+d], e, [table+a+b+c+d+e], f, [table+a+b+c+d+e+f], data, createdAt'
         });
         this.userTables = this.table('userTables')
     }
