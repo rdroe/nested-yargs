@@ -8,16 +8,19 @@ class NyargsDb extends DexieCore {
         super(tableName, options)
     }
 }
+
 type OptionalIndexes = {
     b?: string | number
     c?: string | number
     d?: string | number
     e?: string | number
     f?: string | number
+    g?: string | number
+    h?: string | number
 }
 
 const defaultIndexes: OptionalIndexes = {
-    b: undefined, c: undefined, d: undefined, e: undefined, f: undefined
+    b: undefined, c: undefined, d: undefined, e: undefined, f: undefined, g: undefined, h: undefined
 }
 
 class UserTables extends NyargsDb {
@@ -31,7 +34,36 @@ class UserTables extends NyargsDb {
     public constructor(options: DexieOptions = {}) {
         super("UserTables", options)
         this.version(1).stores({
-            userTables: 'id++,table, a, [table+a], b, [table+b], [table+a+b], c, [table+a+c], [table+a+b+c], d, [table+a+b+c+d], e, [table+a+b+c+d+e], f, [table+a+b+c+d+e+f], data, createdAt'
+            userTables: `
+id++,
+table,
+a,
+[table+a], 
+b,
+[table+b],
+[table+a+b],
+c,
+[table+c],
+[table+a+c],
+[table+a+b+c], 
+d,
+[table+d],
+[table+a+b+c+d], 
+e,
+[table+e],
+[table+a+b+c+d+e], 
+f,
+[table+f],
+[table+a+b+c+d+e+f], 
+data,
+g,
+[table+g],
+[table+a+b+c+d+e+f+g],
+h,
+[table+h],
+[table+a+b+c+d+e+f+g+h],
+createdAt
+`.replace(/\n/g, '')
         });
         this.userTables = this.table('userTables')
     }
