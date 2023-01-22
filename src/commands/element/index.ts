@@ -37,9 +37,9 @@ const ret: {
 
 const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class: any, tag: any, style: any, json: boolean }>['fn'] = async (args): Promise<typeof ret> => {
     // const objStyle: null | Json = args.style ? JSON.parse(args.style) : null
-    console.log('element fn', args)
+
     if (args.action === actions[CREATE]) {
-        console.log('creating an elem')
+
         let parent = document.body
         if (args.parent) {
             parent = document.querySelector(args.parent)
@@ -49,7 +49,7 @@ const browser: Module<{ action: 'create' | 'remove' | 'read', parent: any, class
         if (args.style) {
             elem.setAttribute('style', args.style)
         }
-        console.log('append elem', elem, 'on', parent)
+
         parent.appendChild(elem)
 
     } else if (args.action === actions[REMOVE]) {

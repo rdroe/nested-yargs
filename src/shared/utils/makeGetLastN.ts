@@ -179,8 +179,6 @@ export function recordKeypress(keyboardEvent: KeyboardEvent, taId: number | type
             lastFiveReadonly(taId).shift()
         }
         const last2 = makeGetLastNTest(taId)(2)
-        console.log('last 2 in that ta', last2)
-
     }
 
 

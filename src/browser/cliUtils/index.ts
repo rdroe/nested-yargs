@@ -134,7 +134,6 @@ const recordKeypressCopy: typeof recordKeypress = (obj: RecordKeypressParams[0],
         return
     }
     if (id === NON_NYA_RECIPIENT) {
-        console.log('recording by proxy', obj, id)
         recordKeypress(obj, id)
     } else {
         throw new Error(`Would have double recorded an event for ${obj.target?.toString()}`)
@@ -334,7 +333,6 @@ export const renewReader: RenewReader = async (pr: string, id: number): Promise<
 
     let rawTa = document.querySelector(readerTaId)
     if (!rawTa) {
-        console.log('making textarea id', id)
         rawTa = makeTextArea(id)
     }
     if (!rawTa) throw new Error(`Could not create a terminal for ${id}`)
@@ -402,7 +400,7 @@ function handleAnyKeypress(ke: KeyboardEvent) {
 // make configurable
 export function toggleTa(ta: HTMLTextAreaElement): boolean {
     const taId = extractTaId(ta)
-    console.log('toggling! ta is ', taId)
+
     const toggled = maps.get('toggled', ta)
     const pa = taParent(ta)
     const printArea = getPrintArea(ta)

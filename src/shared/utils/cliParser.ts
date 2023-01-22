@@ -77,6 +77,7 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
                 }
             } else throw new Error(`A command /subcommand name cannot be repeated as an option name `)
         } else if (curr.startsWith('-') && !isNumber(curr)) {
+
             const newCursOptName = curr.replace(/\-/g, '')
             let newCursOpt: Opt = opts[newCursOptName] || {
                 array: false,
@@ -159,23 +160,31 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
 
             nms.forEach((optName: string) => {
                 // special behavior for those always initial
-                if (['c:c', 'commands', 'c:n', 'names'].includes(optName)) {
-
-                } else if (undefined !== ret[optName]) {
-
-                    console.log('failed invariant; info', JSON.stringify({
-                        temp,
-                        optName,
-                        ret,
-                        nms,
-                        opts
-                    }, null, 2))
 
 
-                    throw new Error(`Attempted to supply multiple values to non-array option ${optName} or used an alias twice for different options`)
+                if (undefined !== ret[optName] && ['c:c', 'commands', 'c:n', 'names'].includes(optName)) {
+                    if (!Array.isArray(ret[optName])) {
+                        const msg =
+                            `value of opt: ${JSON.stringify(opt)}; "ret": ${JSON.stringify(ret)}; failed invariant; info ${JSON.stringify({
+                                temp,
+                                optName,
+                                ret,
+                                nms,
+                                opts
+                            }, null, 2)} `
+
+
+                        console.warn(`Options name ${optName} in ${curr}; Attempted to supply multiple values to non - array option; or used an alias twice for different options; ${msg}; forcing non-array to be treated as array.`)
+                    }
                 }
-                ret[optName] = newVal
+
+                if (undefined === ret[optName]) {
+                    ret[optName] = newVal
+                } else {
+                    ret[optName] = Array.isArray(ret[optName]) ? [...ret[optName] as any[], newVal] : [ret[optName], newVal]
+                }
             })
+
             return ret
 
             // non-hyphenated thing, also non-module name, and no cursor yet.
@@ -200,5 +209,6 @@ export const parse = (modules: Modules, rawOpts: Opts, rawIn: string | string[])
         }
 
     } as ParsedCli)
+
     return ret
 }

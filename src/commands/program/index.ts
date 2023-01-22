@@ -90,7 +90,7 @@ const m: Module = {
         }
 
         const array = (args.positional as number[]).map(progIdx => dict[progIdx]).flat()
-        console.log('adding to queue', array)
+
         queue(array)
         return array
     }

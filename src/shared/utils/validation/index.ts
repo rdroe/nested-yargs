@@ -38,7 +38,6 @@ export const passivelyParsed = (val: string) => {
 }
 
 export const single = num.or(parseable.transform((val: string) => {
-    console.log('trainsforming2 ', val.trim())
     return JSON.parse(val)
 })).nullable().or(z.string())
 

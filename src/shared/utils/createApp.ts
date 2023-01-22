@@ -63,7 +63,7 @@ const createAppFromObj: AppCreator2 = async (
         ([configurable, configVal]) => configure(configurable as keyof typeof config, configVal))
 
     const replComplete = await repl({ ...modules, match, cache, program, test, nest, element, last }, prompt, id)
-    console.log('cafobj', id, replComplete)
+
     return replComplete
 }
 
@@ -84,9 +84,9 @@ const createApp: AppCreator = async (fnOrModules: CreateAppArg | Modules, config
         if (!init) {
             init = (await import('../../browser/init')).default
         }
-        console.log('nyargs calling init')
+
         await init()
-        console.log('nyargs called init')
+
     }
 
     const { main } = await importPlatform()

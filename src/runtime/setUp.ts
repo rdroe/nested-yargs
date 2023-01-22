@@ -14,7 +14,7 @@ const DO_LOG = false
 
 const log = (...args: any[]) => {
     if (DO_LOG) {
-        console.log(...args)
+        console.log('lookup and call:::', ...args)
     }
 }
 
@@ -58,6 +58,8 @@ const makeLookUpAndCall = async (): Promise<LookerUpperCaller> => {
 
     async function lookUpCallFn(modules: { [moduleName: string]: Module }, input: string[], commands: (number | string)[]): Promise<Result> {
 
+        log('starting lookup', input)
+        log('modules on start', modules)
         let yargsOptions = {
             ...yargsStarter
         }
@@ -85,11 +87,11 @@ const makeLookUpAndCall = async (): Promise<LookerUpperCaller> => {
 
 
         const reduced: Accumulator = commands?.reduce((accum: Accumulator, curr, idx) => {
-
+            log('iterating reducer', idx, 'for', curr, 'against', accum.layer)
             // if it's a command, found in modules...
             if (accum.layer[curr] && !lastCommandFound) {
                 // take apart the module into its parts.
-
+                log('found', curr)
 
                 const {
                     submodules,
@@ -118,6 +120,7 @@ const makeLookUpAndCall = async (): Promise<LookerUpperCaller> => {
 
                 const newNs = `${accum.currentNamespace} ${curr}`.trim()
                 namespaces.push(newNs)
+                log('set up new ns', newNs)
                 // HERE, WE'RE CREATING A READY-TO-CALL WRAPPER...
                 // and stacking it carefully to be called in the proper order later.
                 // It takes a "priors" argument for prior generations 
@@ -137,7 +140,8 @@ const makeLookUpAndCall = async (): Promise<LookerUpperCaller> => {
                     const positional = opts1._.slice(cmdDepth, lastPositional)
                     const underscore = opts1._.slice(0, cmdDepth)
                     const preferHelp = opts1.help === true
-
+                    log('wrapper fn called for', newNs)
+                    log({ cmdDepth, positional, underscore, preferHelp })
                     const argv1 = {
                         ...opts1,
                         positional,
@@ -156,7 +160,9 @@ const makeLookUpAndCall = async (): Promise<LookerUpperCaller> => {
                         if (parentmostIsAsync === false) {
                             await Promise.all(Object.values(priors))
                             result = await fn(argv1, priors)
+                            log('priors', priors)
                             log('result from fn()', result)
+
                         }
 
                         if (parentmostIsAsync === true) {
@@ -324,13 +330,14 @@ const flattenModules = (ms: Module[], accum: UserYargs = {}) => {
 
 export const makeCaller = (): Executor => {
     const caller: Executor = async (modules: { [moduleName: string]: Module }, input: string) => {
+
         const lookUpAndCall = await makeLookUpAndCall()
         const simArgv = stringArgv(input)
         const allUserYargs: UserYargs = flattenModules(Object.values(modules))
         const argv = parse(modules, { ...yargsStarter, ...allUserYargs }, simArgv)
         const commands = argv._
         const result = await lookUpAndCall(modules, simArgv, commands)
-        console.log('in executor (setup)', result)
+
         return { argv, ...result }
     }
     resolveCaller(caller)

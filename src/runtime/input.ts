@@ -17,6 +17,7 @@ export const fakeCli: {
     modules: null,
     handle: async (str: string) => {
         const fn = await caller.get
+
         return fn(fakeCli.modules, str)
     },
     getCommandCounter: (moduleObj: Modules | null = fakeCli.modules) => (str: string) => {
@@ -178,7 +179,7 @@ const initHistory = async (
         }
 
         const deducedId = extractTaId(evRecipient)
-        console.log('deduced id', deducedId)
+
 
         if (typeof deducedId === 'number' && id !== deducedId) {
 
@@ -186,7 +187,7 @@ const initHistory = async (
         }
 
         if (obj.type && obj.type === 'keydown') {
-            console.log('recording directly to', id)
+
             recordKeypress(obj, id)
         }
 
@@ -268,7 +269,7 @@ export const getInput: FnGetInput = async (modules, pr, id: number, initInput: s
 
     if (!curReadline(id)) {
         curReadlines[id] = await renewReader(pr, id) // dep: renewReader
-        console.log('renewReader call complete for', id)
+
         firstReaderResolvers[id]()
     }
 
