@@ -1,44 +1,25 @@
 
-type Referrable = { [key: string]: any } | Array<any>
-type Scalarr = number | string | boolean | null
+type Referrable<ValType = any> = { [key: string]: ValType }
 
-const isReferrable = (arg: any): arg is Referrable => {
+const isReferrable = <ValType = any>(arg: any): arg is Referrable<ValType> => {
     return typeof arg === 'object' && arg !== null
 }
 
-const singletons: { [key: string]: Referrable | { value: Scalarr } } = {}
+const singletons: { [key: string]: Referrable<unknown> } = {}
 
-const scalarNames: string[] = []
-
-export const setSingleton = (name: string, obj: Referrable | Scalarr) => {
-    if (isReferrable(obj)) {
+export const setSingleton = <ValType>(name: string, obj: ValType) => {
+    if (isReferrable<ValType>(obj)) {
         singletons[name] = obj
         return
     }
-
-    if (!scalarNames.includes(name)) {
-        scalarNames.push(name)
-    }
-    singletons[name] = {
-        value: obj
-    }
 }
 
-export const getSingleton = (name: string) => {
+export const getSingleton = <ValType>(name: string): Referrable<ValType> => {
     if (!singletons[name]) return
-
     const sought = singletons[name]
-
-    if (Array.isArray(sought)) {
-        return sought
+    if (isReferrable(sought)) {
+        return sought as Referrable<ValType>
     }
-    if (scalarNames.includes(name)) {
-        if (sought.value !== undefined) {
-            return sought.value
-        }
-        throw new Error(`Improperly stored value-based singleton at your key, ${name}`)
-    }
-    return sought
 }
 
 export default singletons 
