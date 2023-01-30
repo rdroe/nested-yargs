@@ -1,26 +1,25 @@
-import { get, getConfig } from '../shared/index'
+import { get, configure, getConfig } from '../shared/index'
 import { queue } from '../shared/utils/queue'
-import { Readline, Modules, Module, HistoryListener, Result, BaseArguments, ResultWithBaseArgs } from '../shared/utils/types'
+import { Readline, Modules, Module, HistoryListener, FakeCli } from '../shared/utils/types'
+
 import isNode from '../shared/utils/isNode'
-import { makeGetLastN, lastFive, userListeners, userListenerFunctions, extractTaId, NON_NYA_RECIPIENT, lastFiveReadonly, makeGetLastNTest, recordKeypress, } from '../shared/utils/makeGetLastN'
+import { makeGetLastN, userListenerFunctions, extractTaId, NON_NYA_RECIPIENT, recordKeypress, } from '../shared/utils/makeGetLastN'
 import { caller } from './setUp'
 import { RESULT_KEY } from '../shared/utils/const'
 import stringArgv from 'string-argv'
+import { getSingleton, setSingleton } from 'shared/utils/singletons'
+
 const virtualRecipient = 'nya-textarea-0'
-export { userListeners, addListener } from '../shared/utils/makeGetLastN'
-export const fakeCli: {
-    modules: Modules | null
-    handle: (str: string) => Promise<ResultWithBaseArgs>,
-    getCommandCounter: (modules?: Modules | null) => (str: string) => number,
-    getMatchingModules: (modules?: Modules | null) => (str: string) => Module[],
-} = {
+export { addListener } from '../shared/utils/makeGetLastN'
+
+const top: FakeCli = {
     modules: null,
     handle: async (str: string) => {
+        const fakeCli = getSingleton<FakeCli>('fakeCli').default
         const fn = await caller.get
-
         return fn(fakeCli.modules, str)
     },
-    getCommandCounter: (moduleObj: Modules | null = fakeCli.modules) => (str: string) => {
+    getCommandCounter: (moduleObj: Modules | null = top.modules) => (str: string) => {
         if (!moduleObj) return 0
         const asArgs = stringArgv(str)
         let cnt = 0
@@ -33,7 +32,8 @@ export const fakeCli: {
         }
         return cnt
     },
-    getMatchingModules: (moduleObj: Modules | null = fakeCli.modules) => (str: string): Module[] => {
+    getMatchingModules: (moduleObj: Modules | null = top.modules) => (str: string): Module[] => {
+        console.log('get matching module', moduleObj, str)
         if (!moduleObj) return []
         const asArgs = stringArgv(str)
         let modulesAndSubmodules: Module[] = []
@@ -50,6 +50,14 @@ export const fakeCli: {
         return modulesAndSubmodules
     }
 }
+
+setSingleton('fakeCli', {
+    default: top
+})
+
+export const fakeCli = top
+
+if (!fakeCli) throw new Error('awef no fakeCLi')
 
 const makeHandleQuestion = (res: Function, modules: Modules, id: number = 0) => {
 
@@ -232,9 +240,12 @@ const initHistory = async (
         }
 
         setTimeout(() => {
+            const userListeners = getSingleton<userListenerFunctions>('userListeners')
+            console.log('taking user listener entries', userListeners)
 
-            Object.values(userListeners).forEach(async ({ fn, b, a }: userListenerFunctions) => {
 
+            Object.entries(userListeners).forEach(async ([userNm, { fn, b, a }]: [string, userListenerFunctions]) => {
+                console.log('evaling', userNm)
                 const before = await b(obj, curReadline(id), evRecipient)
                 if (before === false) {
                     return false
@@ -301,7 +312,11 @@ const makeGetInput = async (id: number = 0) => {
         curReadlines[id] = await renewReader(pr, id)
 
         const userInput = await new Promise<string>((res) => {
+
             fakeCli.modules = modules
+            configure('fakeCli', fakeCli)
+
+            console.log('set fakeCli.modules', fakeCli)
             // in browser triggers readlineFunctions > question
             curReadline(id).question(pr, makeHandleQuestion(res, modules, id))
             if (initialInput) {

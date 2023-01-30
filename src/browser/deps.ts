@@ -2,12 +2,15 @@ import files from './files'
 import { set, get, getConfig, configure, configured } from '../shared'
 import { historyListener, print, renewReader, terminalUtils, toggleTa, } from './cliUtils'
 import { printResult } from '../shared/utils/printResult'
-import { Configuration, ConfigOptions, Result, ResultWithBaseArgs } from '../shared/utils/types'
-import { db as getDb, filesDb as getFilesDb } from './db'
+import { Configuration, ConfigOptions, ResultWithBaseArgs } from '../shared/utils/types'
+import { db as getDb, filesDb as getFilesDb, getUserTables } from './db'
 import init from './init'
+import { fakeCli } from 'runtime/input'
+
 const defaultConfig: Configuration = {
     browser: {
         hotkeys: {
+
             '-Control-Shift-K': () => toggleTa(document.querySelector('.nya-textarea'))
         },
         // configure this to alter every input string
@@ -36,8 +39,11 @@ export const setAll = async () => {
         readFile: files.read,
         mkdir: files.mkdir
     })
+
     const db = await getDb(getConfig('useFakeDb'))
+    const userTables = await getUserTables()
     set('db', db)
+    set('userTables', userTables)
     set('historyListener', historyListener)
     set('renewReader', renewReader)
     set('terminalUtils', terminalUtils)
@@ -62,4 +68,4 @@ export const setAll = async () => {
     })
 }
 
-set('setAll', setAll)
+set('setAll', setAll);

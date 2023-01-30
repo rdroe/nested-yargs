@@ -1,8 +1,8 @@
 import { ReadlineInterface } from "./types"
 import { cssMonikers } from 'browser/init';
+import { getSingleton, setSingleton } from "./singletons";
+
 export const NON_NYA_RECIPIENT = 'NON_NYA_RECIPIENT'
-
-
 // may return NaN
 const splitAndNumberize = (ta: string) => {
     const splitted = ta.split('-')
@@ -148,20 +148,25 @@ export type userListenerFunctions = {
     a: afterListener
 }
 
-export const userListeners: {
-    [fnName: string]: userListenerFunctions
-} = {}
+
+
+setSingleton('userListeners', {})
+
 
 export type beforeListener = (key: KeyboardEvent, curReadline: ReadlineInterface, evRecipient: string) => Promise<boolean>
 export type afterListener = (key: KeyboardEvent, curReadline: ReadlineInterface, evRecipient: string) => Promise<void>
 export type listener = (key: KeyboardEvent, curReadline: ReadlineInterface, evRecipient: string) => Promise<boolean>
 
 export const addListener = (name: string, fn: listener, b: beforeListener = () => Promise.resolve(true), a: afterListener = () => Promise.resolve()) => {
+    const userListeners = getSingleton<userListenerFunctions>('userListeners')
+
     if (userListeners[name]) throw new Error(`Function name ${name} is already set as a listener. Please delete it from userListeners, or choose a different name.`)
+
     userListeners[name] = {
         fn,
         b, a
     }
+
 }
 
 export let keypressFinished: Promise<void> = Promise.resolve()
@@ -180,9 +185,4 @@ export function recordKeypress(keyboardEvent: KeyboardEvent, taId: number | type
         }
         const last2 = makeGetLastNTest(taId)(2)
     }
-
-
-
-
 }
-

@@ -117,7 +117,7 @@ const repl = (
     executeCli.then((execCliRes) => {
         verifyAndExecuteCli(modules, null, id, execCliRes)
     })
-    console.log('loop repl executeCli complete for ', id)
+
     return firstReaders[id]
 
 

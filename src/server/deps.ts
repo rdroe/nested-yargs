@@ -1,6 +1,6 @@
 import { promises } from 'node:fs'
 import { set, get, getConfig, configure, configured } from '../shared'
-import { db as getDb } from './db'
+import { db as getDb, getUserTables } from './db'
 import { renewReader, terminalUtils } from './cliUtils'
 import { printResult } from '../shared/utils/printResult'
 import { ConfigOptions, Configuration, Result, ResultWithBaseArgs } from '../shared/utils/types'
@@ -20,7 +20,7 @@ const defaultConfig: Configuration = {
         },
         hotkeys: {
             '-Alt-Shift-T': (currInput: any) => {
-                // console.log('current contents', currInput)
+                console.log('current contents', currInput)
             }
         },
         afterKeypress: async (ke) => { },
@@ -50,6 +50,10 @@ export const setAll = async () => {
 
     const db = await getDb()
     set('db', db)
+
+
+    const userTables = await getUserTables()
+    set('userTables', userTables)
 
     set('historyListener', {
         on: (_: any, __: number, fn: (...args: any[]) => void) => {
@@ -95,6 +99,7 @@ export const setAll = async () => {
             }
         }
     })
+
 }
 
 set('setAll', setAll)

@@ -33,7 +33,7 @@ const cacheResult = async (argv: ParsedCli & {}, data: object) => {
     if ((argv._ || []).includes('cache')) {
         return
     }
-    console.log('entry for cache', argv?.filters)
+
     const entry: Entry =
     {
 

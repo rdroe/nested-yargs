@@ -1,4 +1,4 @@
-import { Files, PartialFs, Db, TerminalUtils, PrintResult, HistoryListener, RenewReader, Readline, SaveHistory, LoadHistory, Configuration, ConfigOptions, SetAll, keyofConfigOptions } from "./utils/types"
+import { Files, PartialFs, Db, TerminalUtils, PrintResult, HistoryListener, RenewReader, Readline, SaveHistory, LoadHistory, Configuration, ConfigOptions, SetAll, keyofConfigOptions, UserTables, FakeCli } from "./utils/types"
 
 import isNode from './utils/isNode'
 
@@ -43,7 +43,7 @@ export const get: Awaitable = async <T extends DepName>(dn: T): Promise<Deps[T]>
         // const configuredMsg = `configuration for ${dn}, overrode the default "set()" call`
         const asConfigured = getConfig(dn as keyof ConfigOptions)
         if (asConfigured) {
-            // console.log(configuredMsg)
+
             return asConfigured as Deps[T]
         }
     }
@@ -51,6 +51,7 @@ export const get: Awaitable = async <T extends DepName>(dn: T): Promise<Deps[T]>
 
     return depsRef[dn]
 }
+
 
 export const set = <D extends DepName>(depName: D, newDep: Deps[D]) => {
     depsRef[depName] = newDep
@@ -69,7 +70,7 @@ const isConfigOption = (arg: any): arg is keyof ConfigOptions => {
 export const getConfig = <Dn extends keyof ConfigOptions>(dn: Dn): ConfigOptions[Dn] => {
 
     const plat = isNode() ? 'server' : 'browser'
-    if (Object.keys(configuration[plat]).includes(dn)) {
+    if (Object.keys(configuration[plat]).includes(dn) && undefined !== configuration[plat][dn]) {
         return configuration[plat][dn]
     } else if (Object.keys(configuration.shared).includes(dn)) {
         return configuration.shared[dn]
@@ -116,4 +117,6 @@ type Deps = {
     'printResult'?: PrintResult
     'saveHistory'?: SaveHistory
     'loadHistory'?: LoadHistory
+    'userTables'?: UserTables
+    'fakeCli'?: FakeCli
 }

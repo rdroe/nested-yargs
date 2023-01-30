@@ -1,6 +1,6 @@
 import { indexedDB, IDBKeyRange } from "fake-indexeddb";
 import DexieCore, { DexieOptions } from 'dexie'
-import { Cache, DbFiles } from '../../shared/utils/types'
+import { Cache, DbFiles, UserTables } from '../../shared/utils/types'
 import { platformIsNode } from "shared/utils/createApp";
 
 class NyargsDb extends DexieCore {
@@ -25,7 +25,16 @@ const defaultIndexes: OptionalIndexes = {
     b: undefined, c: undefined, d: undefined, e: undefined, f: undefined, g: undefined, h: undefined
 }
 
-class UserTables extends NyargsDb {
+const filteredOptionals = (idxs: { id?: number } & OptionalIndexes) => {
+    const indexes = Object.fromEntries(
+        Object.entries(idxs).filter(([, v]) => {
+            return v !== undefined
+        })
+    ) as { table: string, id?: number } & OptionalIndexes
+    return indexes
+}
+
+class UserTablesDb extends NyargsDb {
     public userTables: DexieCore.Table<{
         id?: number
         table: string
@@ -34,7 +43,7 @@ class UserTables extends NyargsDb {
         createdAt: number
     } & OptionalIndexes>
     public constructor(options: DexieOptions = {}) {
-        super("UserTables", options)
+        super("UserTablesDb", options)
         this.version(1).stores({
             userTables: `
 id++,
@@ -114,10 +123,10 @@ export const filesDb = async (useFake: boolean) => {
 
 const userTables_ = async (useFake: boolean) => {
     if (useFake === true) {
-        return new UserTables({ indexedDB: indexedDB, IDBKeyRange: IDBKeyRange })
+        return new UserTablesDb({ indexedDB: indexedDB, IDBKeyRange: IDBKeyRange })
     }
 
-    return new UserTables;
+    return new UserTablesDb;
 }
 
 type UtReturned = ReturnType<typeof userTables_>
@@ -126,38 +135,25 @@ const utSingleton: {
     ut: UtReturned
 } = { ut: userTables_(platformIsNode) }
 
-type Uts = InstanceType<typeof UserTables>
-type UtsWhere = ReturnType<Uts['userTables']['where']>
-type UtsAdd = ReturnType<Uts['userTables']['add']>
+export const userTables: UserTables = {
 
-const filteredOptionals = (idxs: { id?: number } & OptionalIndexes) => {
-    const indexes = Object.fromEntries(
-        Object.entries(idxs).filter(([, v]) => {
-            return v !== undefined
-        })
-    ) as { table: string, id?: number } & OptionalIndexes
-    return indexes
-}
-
-export const userTables = {
-
-    add: async (table: string, puttable: { data: { [key: string]: any } } & OptionalIndexes): Promise<UtsAdd> => {
+    add: async (table: string, puttable) => {
         const utDb = await utSingleton.ut
         const createdAt = Date.now()
         return utDb.userTables.add({ table, ...puttable, createdAt })
     },
-    where: async (table: string, indexes: { id?: number } & OptionalIndexes): Promise<UtsWhere> => {
+    where: async (table: string, indexes) => {
         const utDb = await utSingleton.ut
         return utDb.userTables.where({ table, ...filteredOptionals(indexes) })
     },
-    update: async (table: string, data: { data: { [key: string]: any } } & OptionalIndexes & { id?: number }, optionalIndexes: { id?: number } & OptionalIndexes = defaultIndexes): Promise<ReturnType<Uts['userTables']['update']>> => {
+    update: async (table, data, optionalIndexes = defaultIndexes) => {
         const utDb = await utSingleton.ut
         const filteredIdxs = filteredOptionals(optionalIndexes)
         const search: { table: string } & OptionalIndexes = { table, ...filteredIdxs }
         const { id, ...filteredMinusId } = filteredIdxs
         return utDb.userTables.where(search).modify({ data, ...filteredMinusId })
     },
-    upsert: async (table: string, dataAndIdxs: { data: { [key: string]: any } } & OptionalIndexes & { id?: number }, searchIdxs: { id?: number } & OptionalIndexes = defaultIndexes): Promise<ReturnType<Uts['userTables']['update']>> => {
+    upsert: async (table, dataAndIdxs, searchIdxs = defaultIndexes) => {
 
         const filteredIdxs = filteredOptionals(searchIdxs)
         const gotten = await userTables.where(table, filteredIdxs)
@@ -170,18 +166,21 @@ export const userTables = {
         const res = await userTables.add(table, dataAndIdxs)
         return res
     },
-    config: async (key: string, val: string | null = null): Promise<ReturnType<Uts['userTables']['update']> | { [key: string]: any }> => {
+    config: async (key, val = null) => {
         if (val === null) {
             const gotten = await userTables.where('config', { a: key })
-            return (await gotten.first()).data
+            return (await gotten.first()).data.value
         }
-        return userTables.upsert('config', { data: { value: val } })
+        await userTables.upsert('config', { data: { value: val } }, { a: key })
+        return
     },
-    configVariant: async (key: string, variant: string, val: string | null = null): Promise<ReturnType<Uts['userTables']['update']> | { [key: string]: any }> => {
+    configVariant: async (key, variant, val = null) => {
         if (val === null) {
             const gotten = await userTables.where('config', { a: key, b: variant })
-            return (await gotten.first()).data
+            return (await gotten.first()).data.value
         }
-        return userTables.upsert('config', { data: { value: val } }, { b: variant })
+        await userTables.upsert('config', { data: { value: val } }, { a: val, b: variant })
+        return
     }
 }
+export const getUserTables = () => Promise.resolve(userTables)

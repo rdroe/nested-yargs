@@ -1,8 +1,16 @@
 //import { Dexie as DexieCore } from 'dexie'
 import { UiDb } from "server/db"
+import { UserTablesDb } from "./classes"
 import { ParsedCli } from "./cliParser"
 import { RESULT_KEY as RESULT_KEY_VAL } from "./const"
 export const RESULT_KEY = RESULT_KEY_VAL
+
+export type FakeCli = {
+    modules: Modules | null
+    handle: (str: string) => Promise<ResultWithBaseArgs>,
+    getCommandCounter: (modules?: Modules | null) => (str: string) => number,
+    getMatchingModules: (modules?: Modules | null) => (str: string) => Module[],
+}
 
 import { userListenerFunctions } from "./makeGetLastN"
 
@@ -42,6 +50,36 @@ export interface DbFiles {
 export interface Hotkeys {
     [keyCombo: string]: (currInput: any) => void
 }
+
+export type OptionalIndexes = {
+    a?: string | number
+    b?: string | number
+    c?: string | number
+    d?: string | number
+    e?: string | number
+    f?: string | number
+    g?: string | number
+    h?: string | number
+}
+
+type Uts = InstanceType<typeof UserTablesDb>
+type UtsWhere = ReturnType<Uts['userTables']['where']>
+type UtsAdd = ReturnType<Uts['userTables']['add']>
+type UtsUp = Promise<ReturnType<Uts['userTables']['update']>>
+
+type Puttable = { data: { [key: string]: any } }
+
+
+export type UserTables = {
+    add: (table: string, puttable: Puttable) => Promise<UtsAdd>
+    where: (table: string, indexes: { id?: number } & OptionalIndexes) => Promise<UtsWhere>
+    update: (table: string, data: { data: { [key: string]: any } } & OptionalIndexes & { id?: number }, optionalIndexes: { id?: number } & OptionalIndexes) => Promise<any>
+    config: (key: string, val: string | null) => Promise<UtsWhere | UtsUp | void>
+    configVariant: (key: string, variant: string, val: string | null) => Promise<any>
+    upsert: (table: string, dataAndIdxs: { data: { [key: string]: any } } & OptionalIndexes & { id?: number }, searchIdxs: { id?: number } & OptionalIndexes) => Promise<UtsUp>
+
+}
+
 
 /*
 class UiDb extends DexieCore {
@@ -209,6 +247,7 @@ export interface ConfigOptions {
     messageUser?: (...messages: any) => void
     useFakeDb?: boolean
     init?: (...args: any[]) => any
+    fakeCli?: FakeCli
 }
 
 
